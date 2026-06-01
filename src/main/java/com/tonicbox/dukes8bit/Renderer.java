@@ -37,6 +37,8 @@ final class Renderer {
     private static final Color BUG_COLOR = new Color(214, 70, 64);
     private static final Color NULL_COLOR = new Color(158, 96, 214);
     private static final Color LEAK_COLOR = new Color(92, 192, 112);
+    private static final Color FORK_COLOR = new Color(232, 150, 44);
+    private static final Color DEADLOCK_COLOR = new Color(120, 122, 136);
     private static final Color ENEMY_EYE = new Color(20, 16, 24);
     private static final Color OVERLAY = new Color(0, 0, 0, 178);
     private static final Color SWORD_COLOR = new Color(224, 226, 240);
@@ -54,10 +56,14 @@ final class Renderer {
     private static final Color MERCHANT_SKIN = new Color(232, 196, 158);
     private static final Color MERCHANT_HAT = new Color(96, 64, 32);
     private static final Color PROMPT = new Color(245, 240, 210);
+    private static final Color TRAP_COLOR = new Color(212, 78, 68);
+    private static final Color CHEST_BODY = new Color(150, 96, 40);
+    private static final Color CHEST_LID = new Color(220, 174, 72);
+    private static final Color LOOT_GEM = new Color(118, 210, 232);
 
     /**
-     * Draws one frame: the camera-relative, fog-aware dungeon, then entities, Duke,
-     * the HUD, and any overlay for the current game state.
+     * Draws one frame: the camera-relative, fog-aware dungeon, then loot, entities,
+     * Duke, the HUD, and any overlay for the current game state.
      */
     void render(Graphics graphics, Game game) {
         graphics.setColor(BACKGROUND);
@@ -78,16 +84,33 @@ final class Renderer {
                 if (!game.explored[idx]) {
                     continue;
                 }
-                drawTile(graphics, x * Game.TILE - cameraX, y * Game.TILE - cameraY, game.map[idx],
-                        game.visible[idx], ((x + y) & 1) == 1);
+                int sx = x * Game.TILE - cameraX;
+                int sy = y * Game.TILE - cameraY;
+                int tile = game.map[idx];
+                boolean lit = game.visible[idx];
+                drawTile(graphics, sx, sy, tile, lit, ((x + y) & 1) == 1);
+                if (tile == Game.TRAP && lit && Math.abs(x - game.playerX) + Math.abs(y - game.playerY) <= 2) {
+                    drawTrap(graphics, sx, sy);
+                }
+            }
+        }
+
+        for (int i = 0; i < game.lootCount; i++) {
+            if (game.visible[Game.index(game.lootX[i], game.lootY[i])]) {
+                int sx = game.lootX[i] * Game.TILE - cameraX;
+                int sy = game.lootY[i] * Game.TILE - cameraY;
+                if (game.lootChest[i]) {
+                    drawChest(graphics, sx, sy);
+                } else {
+                    drawGem(graphics, sx, sy);
+                }
             }
         }
 
         for (int i = 0; i < game.enemyCount; i++) {
             if (game.visible[Game.index(game.enemyX[i], game.enemyY[i])]) {
                 int hop = Math.round(game.enemyHit[i] * 6f);
-                drawEnemy(graphics, Math.round(game.enemyRenderPixelX(i)) - cameraX,
-                        Math.round(game.enemyRenderPixelY(i)) - cameraY - hop, game.enemyType[i]);
+                drawEnemy(graphics, Math.round(game.enemyRenderPixelX(i)) - cameraX, Math.round(game.enemyRenderPixelY(i)) - cameraY - hop, game.enemyType[i]);
             }
         }
 
@@ -116,6 +139,8 @@ final class Renderer {
             drawShop(graphics, game);
         } else if (game.state == Game.PAUSED) {
             drawPause(graphics, game);
+        } else if (game.state == Game.INVENTORY) {
+            drawInventory(graphics, game);
         }
     }
 
@@ -151,6 +176,34 @@ final class Renderer {
         for (int i = 0; i < 3; i++) {
             graphics.fillRect(px + 4 + i * step, py + 5 + i * step, Game.TILE - 8 - i * 2 * step, step);
         }
+    }
+
+    private void drawTrap(Graphics graphics, int px, int py) {
+        graphics.setColor(TRAP_COLOR);
+        for (int i = 0; i < 3; i++) {
+            int sx = px + 5 + i * 7;
+            int[] xs = {sx, sx + 3, sx + 6};
+            int[] ys = {py + Game.TILE - 5, py + 8, py + Game.TILE - 5};
+            graphics.fillPolygon(xs, ys, 3);
+        }
+    }
+
+    private void drawChest(Graphics graphics, int px, int py) {
+        graphics.setColor(CHEST_BODY);
+        graphics.fillRect(px + 5, py + 10, Game.TILE - 10, Game.TILE - 13);
+        graphics.setColor(CHEST_LID);
+        graphics.fillRect(px + 5, py + 7, Game.TILE - 10, 5);
+        graphics.setColor(ENEMY_EYE);
+        graphics.fillRect(px + Game.TILE / 2 - 1, py + 11, 2, 4);
+    }
+
+    private void drawGem(Graphics graphics, int px, int py) {
+        graphics.setColor(LOOT_GEM);
+        int cx = px + Game.TILE / 2;
+        int cy = py + Game.TILE / 2;
+        int[] xs = {cx, cx + 5, cx, cx - 5};
+        int[] ys = {cy - 6, cy, cy + 6, cy};
+        graphics.fillPolygon(xs, ys, 4);
     }
 
     private void drawDuke(Graphics graphics, int px, int py) {
@@ -201,6 +254,15 @@ final class Renderer {
                 graphics.setColor(LEAK_DRIP);
                 graphics.fillRect(px + 8, py + 8, 4, 3);
             }
+            case Game.FORKBOMB -> {
+                graphics.setColor(FORK_COLOR);
+                graphics.fillRect(px + 5, py + 8, Game.TILE - 10, Game.TILE - 12);
+                graphics.fillRect(px + 9, py + 4, Game.TILE - 18, 5);
+            }
+            case Game.DEADLOCK -> {
+                graphics.setColor(DEADLOCK_COLOR);
+                graphics.fillRect(px + 3, py + 4, Game.TILE - 6, Game.TILE - 7);
+            }
             default -> {
                 graphics.setColor(BUG_LEG);
                 graphics.fillRect(px + 5, py + Game.TILE - 6, 2, 5);
@@ -222,12 +284,9 @@ final class Renderer {
 
         graphics.setColor(HUD_TEXT);
         graphics.drawString(
-                "DEPTH " + game.floor +
-                    "    LVL " + game.playerLevel +
-                    "    ATK " + game.playerAtk +
-                    "    GOLD " + game.gold +
-                    "    POT " + game.potions,
-                12, top + 22
+                "DEPTH " + game.floor + "   LVL " + game.playerLevel
+                + "   ATK " + game.attackPower() + "   DEF " + game.defense()
+                + "   GOLD " + game.gold + "   POT " + game.potions, 12, top + 22
         );
 
         int barX = 430;
@@ -247,7 +306,8 @@ final class Renderer {
         graphics.fillRect(barX, xpY, barWidth * Math.min(game.playerXp, game.xpForNext()) / game.xpForNext(), 7);
 
         graphics.setColor(HUD_HINT);
-        graphics.drawString("Move WASD/Arrows   Space attack   Q potion   Enter: merchant shop   Stairs descend", 12, top + 58);
+        graphics.drawString("Move WASD/Arrows   Space attack   Q potion   I inventory   Enter shop   Stairs descend",
+                12, top + 58);
     }
 
     private void drawDeath(Graphics graphics, Game game) {
@@ -279,8 +339,42 @@ final class Renderer {
         graphics.setColor(game.pauseSelection == 1 ? PROMPT : HUD_HINT);
         drawCentered(graphics, (game.pauseSelection == 1 ? "> " : "  ") + "Quit", Game.PLAY_HEIGHT / 2 + 30);
         graphics.setColor(HUD_HINT);
-        drawCentered(graphics, "Up / Down to choose      Enter to confirm      Esc to resume",
-                Game.PLAY_HEIGHT / 2 + 64);
+        drawCentered(graphics, "Up / Down to choose      Enter to confirm      Esc to resume", Game.PLAY_HEIGHT / 2 + 64);
+    }
+
+    private void drawInventory(Graphics graphics, Game game) {
+        graphics.setColor(OVERLAY);
+        graphics.fillRect(0, 0, Game.VIEW_WIDTH, Game.VIEW_HEIGHT);
+        graphics.setColor(HUD_TEXT);
+        drawCentered(graphics, "INVENTORY", 64);
+
+        int left = Game.VIEW_WIDTH / 2 - 150;
+        graphics.setColor(HUD_HINT);
+        graphics.drawString("EQUIPPED", left, 110);
+        graphics.setColor(HUD_TEXT);
+        graphics.drawString("Weapon    " + slotName(game.equippedWeapon), left, 132);
+        graphics.drawString("Armor     " + slotName(game.equippedArmor), left, 152);
+        graphics.drawString("Trinket   " + slotName(game.equippedTrinket), left, 172);
+
+        graphics.setColor(HUD_HINT);
+        graphics.drawString("CARRIED", left, 212);
+        if (game.inventoryCount == 0) {
+            graphics.drawString("  (empty)", left, 234);
+        } else {
+            for (int i = 0; i < game.inventoryCount; i++) {
+                boolean selected = i == game.inventorySelection;
+                graphics.setColor(selected ? PROMPT : HUD_TEXT);
+                graphics.drawString((selected ? "> " : "  ") + Game.ITEM_NAME[game.inventory[i]], left, 234 + i * 20);
+            }
+        }
+
+        graphics.setColor(HUD_HINT);
+        drawCentered(graphics, "[Up/Down] select    [Enter] equip    [D] drop    [I/Esc] close",
+                Game.PLAY_HEIGHT - 20);
+    }
+
+    private String slotName(int item) {
+        return item >= 0 ? Game.ITEM_NAME[item] : "(none)";
     }
 
     private void drawMerchant(Graphics graphics, int px, int py) {
