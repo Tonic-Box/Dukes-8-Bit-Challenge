@@ -171,5 +171,4 @@ final class Sound {
             track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_OFF, channel, key, 0), off));
         }
     }
-
 }

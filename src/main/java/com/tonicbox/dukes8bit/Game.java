@@ -74,8 +74,8 @@ final class Game {
 
     private static final int FOV_RADIUS = 5;
     private static final int MAX_ROOMS = 20;
-    private static final int ROOM_MIN = 5;
-    private static final int ROOM_MAX = 10;
+    private static final int ROOM_MIN = 4;
+    private static final int ROOM_MAX = 8;
     private static final float MOVE_DURATION_MS = 120f;
     private static final float ENEMY_DURATION_MS = 300f;
     private static final float ENEMY_ATTACK_MS = 600f;
@@ -822,7 +822,7 @@ final class Game {
         int[] centerY = new int[MAX_ROOMS];
         int roomCount = 0;
 
-        for (int attempt = 0; attempt < roomTarget * 3 && roomCount < roomTarget; attempt++) {
+        for (int attempt = 0; attempt < roomTarget * 10 && roomCount < roomTarget; attempt++) {
             int width = ROOM_MIN + genRandom.nextInt(ROOM_MAX - ROOM_MIN + 1);
             int height = ROOM_MIN + genRandom.nextInt(ROOM_MAX - ROOM_MIN + 1);
             int left = 1 + genRandom.nextInt(floorWidth - width - 1);
@@ -842,13 +842,22 @@ final class Game {
         }
 
         int last = roomCount - 1;
-        map[index(centerX[last], centerY[last])] = DOWN_STAIRS;
         if (floor > 1) {
             map[index(centerX[0], centerY[0])] = UP_STAIRS;
         }
-        int arrival = arriveAtDownStairs ? last : 0;
-        playerX = centerX[arrival];
-        playerY = centerY[arrival];
+        int downX = centerX[last];
+        int downY = centerY[last];
+        if (downX == centerX[0] && downY == centerY[0]) {
+            downX++;
+        }
+        map[index(downX, downY)] = DOWN_STAIRS;
+        if (arriveAtDownStairs) {
+            playerX = downX;
+            playerY = downY;
+        } else {
+            playerX = centerX[0];
+            playerY = centerY[0];
+        }
         previousX = playerX;
         previousY = playerY;
         moveProgress = 1f;
