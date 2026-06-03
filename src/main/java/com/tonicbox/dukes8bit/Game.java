@@ -45,11 +45,18 @@ final class Game {
     static final int FORKBOMB = 3;
     static final int DEADLOCK = 4;
 
-    /** Per-enemy-type base stats indexed by type id; depth scaling is added at each call site. */
-    private static final int[] ENEMY_MAX_HP = {3, 5, 8, 6, 16};
-    private static final int[] ENEMY_ATTACK = {1, 2, 3, 2, 4};
-    private static final int[] ENEMY_GOLD = {2, 4, 7, 5, 12};
-    private static final int[] ENEMY_XP = {4, 8, 14, 10, 22};
+    /**
+     * Per-enemy-type base stats packed as {maxHp, attack, gold, xp} per type id and read as
+     * ENEMY_STATS[type * 4 + stat]; depth scaling is added at each call site. Rows are types in
+     * id order: BUG, NULLPTR, LEAK, FORKBOMB, DEADLOCK.
+     */
+    private static final int[] ENEMY_STATS = {
+        3, 1, 2, 4,
+        5, 2, 4, 8,
+        8, 3, 7, 14,
+        6, 2, 5, 10,
+        16, 4, 12, 22,
+    };
 
     static final int MAX_ENEMIES = 32;
     static final int POTION_COST = 12;
@@ -487,8 +494,8 @@ final class Game {
         int deadType = enemyType[i];
         int deadX = enemyX[i];
         int deadY = enemyY[i];
-        gold += ENEMY_GOLD[deadType] + floor + (equippedTrinket == TRINKET_COIN ? floor : 0);
-        grantXp(ENEMY_XP[deadType] + floor);
+        gold += ENEMY_STATS[deadType * 4 + 2] + floor + (equippedTrinket == TRINKET_COIN ? floor : 0);
+        grantXp(ENEMY_STATS[deadType * 4 + 3] + floor);
         removeEnemy(i);
         if (deadType == FORKBOMB) {
             splitForkBomb(deadX, deadY);
@@ -531,7 +538,7 @@ final class Game {
         enemyPrevX[slot] = x;
         enemyPrevY[slot] = y;
         enemyType[slot] = type;
-        enemyHp[slot] = ENEMY_MAX_HP[type] + floor / 2;
+        enemyHp[slot] = ENEMY_STATS[type * 4] + floor / 2;
         enemyHit[slot] = 0f;
         aggroed[slot] = aggro;
         enemyCooldown[slot] = 0f;
@@ -587,7 +594,7 @@ final class Game {
                 enemyCooldown[i] = Math.max(0f, enemyCooldown[i] - deltaMillis);
             }
             if (distToPlayer(enemyX[i], enemyY[i]) == 1 && enemyCooldown[i] <= 0f) {
-                playerHp -= Math.max(1, ENEMY_ATTACK[enemyType[i]] + floor / 4 + random.nextInt(2) - defense());
+                playerHp -= Math.max(1, ENEMY_STATS[enemyType[i] * 4 + 1] + floor / 4 + random.nextInt(2) - defense());
                 enemyCooldown[i] = ENEMY_ATTACK_MS;
                 aggroed[i] = true;
                 sound.enemyAttack();
