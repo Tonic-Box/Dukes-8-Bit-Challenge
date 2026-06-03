@@ -68,8 +68,8 @@ Size is measured as the compiled `.class` files under `build/classes/java/main`.
 
 - **Debug info stripped** (`-g:none`): line-number, local-variable, and source-file tables are removed from the bytecode while source remains fully readable.
 - **Minimal class count** (3): fewer classes means less constant-pool and class-file overhead
-- **No asset files:** all visuals are generated at runtime, so the resources directory is empty and contributes nothing to the measured size.
 - **No per-frame allocation:** colors are hoisted into constants and entities are reused in fixed arrays, keeping peak memory low.
+- Other minor optimizations explained inline with comments.
 
 ## Tech
 
