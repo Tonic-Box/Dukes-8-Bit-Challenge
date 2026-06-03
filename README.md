@@ -4,6 +4,8 @@ A procedural dungeon crawler starring Duke, the Java mascot, built for the 8-bit
 challenge. Descend through randomly generated floors, fight Java-themed enemies, 
 level up, and see how deep you can get before you fall.
 
+![img.png](img.png)
+
 ## Build & Run
 
 Requires **JDK 25**.
