@@ -51,12 +51,16 @@ final class Sound {
     private static final int ARP_VELOCITY = 44;
 
     /**
-     * The 4-bar Am-F-C-G backing loop, packed as {key, startEighth, lengthEighths} triples —
-     * one character per value, biased by NOTE_PACK_OFFSET so every byte stays printable.
-     * {@link #addVoice} unpacks them; editing the tune means re-encoding (each char = value + 48).
+     * An 8-bar Am-F-C-G call-and-response loop. Voices are packed as {key, startEighth,
+     * lengthEighths} triples, one character per value biased by NOTE_PACK_OFFSET so every byte
+     * stays printable; {@link #addVoice} unpacks them (each char = value + 48). Bass and arp repeat
+     * over both phrases, while the melody answers its open "call" ending (two half-notes, D5-B4) with
+     * a descending arpeggio cadence (D5-B4-G4-E4) that resolves low and leads back up to the tonic.
      */
     private static final int NOTE_PACK_OFFSET = 48;
+    private static final int PHRASE_EIGHTHS = 32;
     private static final String MELODY = "u04p44x84u<4w@4sD4zH4wL4";
+    private static final String MELODY_RESPONSE = "u04p44x84u<4w@4sD4zH2wJ2sL2pN2";
     private static final String BASS = "]04d44Y84`<4`@4[D4[H4bL4";
     private static final String ARP = "i02l22p42u62e82i:2l<2q>2l@2pB2sD2xF2gH2kJ2nL2sN2";
 
@@ -151,21 +155,27 @@ final class Sound {
         channel.controlChange(VOLUME, MUSIC_VOLUME);
     }
 
-    /** Builds the looping backing track from the per-voice note tables. */
+    /** Builds the 8-bar loop: a "call" phrase followed by a resolving "response" phrase. */
     private static Sequence buildMusic() throws InvalidMidiDataException {
         Sequence sequence = new Sequence(Sequence.PPQ, TICKS_PER_EIGHTH * 2);
         Track track = sequence.createTrack();
-        addVoice(track, BASS_CHANNEL, BASS, BASS_VELOCITY);
-        addVoice(track, MELODY_CHANNEL, MELODY, MELODY_VELOCITY);
-        addVoice(track, ARP_CHANNEL, ARP, ARP_VELOCITY);
+        addPhrase(track, MELODY, 0);
+        addPhrase(track, MELODY_RESPONSE, PHRASE_EIGHTHS);
         return sequence;
     }
 
-    /** Unpacks one voice's {key, start, length} char-triples and adds its notes to the track. */
-    private static void addVoice(Track track, int channel, String notes, int velocity) throws InvalidMidiDataException {
+    /** Lays the bass, arp, and the given melody for one phrase starting at {@code offsetEighths}. */
+    private static void addPhrase(Track track, String melody, int offsetEighths) throws InvalidMidiDataException {
+        addVoice(track, BASS_CHANNEL, BASS, BASS_VELOCITY, offsetEighths);
+        addVoice(track, MELODY_CHANNEL, melody, MELODY_VELOCITY, offsetEighths);
+        addVoice(track, ARP_CHANNEL, ARP, ARP_VELOCITY, offsetEighths);
+    }
+
+    /** Unpacks one voice's {key, start, length} char-triples and adds its notes at the phrase offset. */
+    private static void addVoice(Track track, int channel, String notes, int velocity, int offsetEighths) throws InvalidMidiDataException {
         for (int i = 0; i < notes.length(); i += 3) {
             int key = notes.charAt(i) - NOTE_PACK_OFFSET;
-            long on = (long) (notes.charAt(i + 1) - NOTE_PACK_OFFSET) * TICKS_PER_EIGHTH;
+            long on = (long) (notes.charAt(i + 1) - NOTE_PACK_OFFSET + offsetEighths) * TICKS_PER_EIGHTH;
             long off = on + (long) (notes.charAt(i + 2) - NOTE_PACK_OFFSET) * TICKS_PER_EIGHTH;
             track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_ON, channel, key, velocity), on));
             track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_OFF, channel, key, 0), off));
