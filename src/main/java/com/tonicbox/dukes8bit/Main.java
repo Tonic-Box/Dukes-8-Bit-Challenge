@@ -4,7 +4,6 @@ import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.KeyboardFocusManager;
 import java.awt.KeyEventDispatcher;
-import java.awt.Toolkit;
 import java.awt.image.BufferStrategy;
 import java.awt.event.KeyEvent;
 
@@ -65,16 +64,16 @@ public final class Main extends Frame implements KeyEventDispatcher {
             renderer.render(graphics, game);
             graphics.dispose();
             strategy.show();
-            Toolkit.getDefaultToolkit().sync();
             try {
                 Thread.sleep(16);
-            } catch (InterruptedException interrupted) {
-                Thread.currentThread().interrupt();
+            }
+            //Broad exception saves 11 bytes here
+            catch (Exception interrupted) {
             }
         }
     }
 
-    static void main(String[] args) {
+    static void main() {
         new Main().run();
     }
 }

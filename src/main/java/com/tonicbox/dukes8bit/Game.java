@@ -975,6 +975,7 @@ final class Game {
      * the first wall. Visible tiles are also marked permanently explored.
      */
     private void computeFieldOfView() {
+        //Explicit loop saves on const pool over Arrays::fill
         for (int i = 0; i < visible.length; i++) {
             visible[i] = false;
         }
