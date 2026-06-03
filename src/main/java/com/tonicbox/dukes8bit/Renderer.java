@@ -380,7 +380,7 @@ final class Renderer {
         graphics.fillRect(barX, xpY, barWidth * Math.min(game.playerXp, game.xpForNext()) / game.xpForNext(), 7);
 
         graphics.setColor(HUD_HINT);
-        graphics.drawString("Move WASD/Arrows   Space attack   Q potion   I inventory   Enter shop   Stairs descend",
+        graphics.drawString("Move WASD/Arrows   Space attack   Q potion   I inventory   M mute   Enter shop   Stairs descend",
                 12, top + 58);
     }
 

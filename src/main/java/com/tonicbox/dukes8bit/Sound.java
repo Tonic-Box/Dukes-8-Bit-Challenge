@@ -66,6 +66,8 @@ final class Sound {
 
     private final MidiChannel[] channels;
     private final ScheduledExecutorService scheduler;
+    private final Sequencer sequencer;
+    private boolean muted;
     private long lastFootstepNanos;
 
     Sound() {
@@ -96,9 +98,11 @@ final class Sound {
         } catch (Exception unavailable) {
             openChannels = null;
             timer = null;
+            music = null;
         }
         channels = openChannels;
         scheduler = timer;
+        sequencer = music;
     }
 
     /** A fast, bright two-note downward slash for Duke's spin attack. */
@@ -143,8 +147,29 @@ final class Sound {
         note(CHIME_CHANNEL, 84, 98, 210, 220);
     }
 
+    /** Toggles all audio: pauses or resumes the music loop and silences any sounding notes. */
+    void toggleMute() {
+        if (channels == null) {
+            return;
+        }
+        muted = !muted;
+        if (muted) {
+            if (sequencer != null) {
+                sequencer.stop();
+            }
+            for (MidiChannel channel : channels) {
+                channel.allSoundOff();
+            }
+        } else if (sequencer != null) {
+            sequencer.start();
+        }
+    }
+
     /** Schedules one note: key on at {@code startMs}, off {@code durationMs} later. */
     private void note(int channel, int key, int velocity, long startMs, long durationMs) {
+        if (muted) {
+            return;
+        }
         scheduler.schedule(() -> channels[channel].noteOn(key, velocity), startMs, TimeUnit.MILLISECONDS);
         scheduler.schedule(() -> channels[channel].noteOff(key), startMs + durationMs, TimeUnit.MILLISECONDS);
     }

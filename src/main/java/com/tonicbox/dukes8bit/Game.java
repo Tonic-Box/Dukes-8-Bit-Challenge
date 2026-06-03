@@ -164,6 +164,7 @@ final class Game {
     private boolean escHeld;
     private boolean inventoryHeld;
     private boolean dropHeld;
+    private boolean muteHeld;
     private boolean quaffRequested;
     private boolean buyRequested;
     private boolean talkRequested;
@@ -196,7 +197,7 @@ final class Game {
         attackProgress = 1f;
         leftHeld = rightHeld = upHeld = downHeld = attackHeld = false;
         pauseSelection = 0;
-        quaffHeld = buyHeld = enterHeld = escHeld = inventoryHeld = dropHeld = false;
+        quaffHeld = buyHeld = enterHeld = escHeld = inventoryHeld = dropHeld = muteHeld = false;
         quaffRequested = buyRequested = talkRequested = equipRequested = dropRequested = false;
         regenTimer = 0f;
         baseSeed = random.nextLong();
@@ -219,6 +220,13 @@ final class Game {
      * death states.
      */
     void keyDown(int code) {
+        if (code == KeyEvent.VK_M) {
+            if (!muteHeld) {
+                muteHeld = true;
+                sound.toggleMute();
+            }
+            return;
+        }
         // Key events only set flags for the loop to drain; edge-detect so a held key fires once, not on OS repeat.
         boolean enterEdge = false;
         if (code == KeyEvent.VK_ENTER) {
@@ -323,6 +331,9 @@ final class Game {
         }
         if (code == KeyEvent.VK_D) {
             dropHeld = false;
+        }
+        if (code == KeyEvent.VK_M) {
+            muteHeld = false;
         }
     }
 
