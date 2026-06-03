@@ -67,7 +67,7 @@ final class Game {
     private static final int INVENTORY_SIZE = 8;
     private static final int LOOT_CAP = 16;
 
-    private static final int FOV_RADIUS = 7;
+    private static final int FOV_RADIUS = 5;
     private static final int MAX_ROOMS = 20;
     private static final int ROOM_MIN = 5;
     private static final int ROOM_MAX = 10;
@@ -84,6 +84,7 @@ final class Game {
     private final Random random = new Random();
     // Generation uses its own seeded RNG so floor layouts are reproducible, independent of combat rolls.
     private final Random genRandom = new Random();
+    private final Sound sound = new Sound();
 
     final int[] map = new int[MAP_WIDTH * MAP_HEIGHT];
     final boolean[] explored = new boolean[MAP_WIDTH * MAP_HEIGHT];
@@ -445,12 +446,14 @@ final class Game {
         }
         computeFieldOfView();
         pickUpAt(nextX, nextY);
+        sound.footstep();
         moveProgress = 0f;
     }
 
     /** A spinning slash that damages every enemy in the eight surrounding tiles. */
     private void performAttack() {
         attackProgress = 0f;
+        sound.swordAttack();
         for (int i = enemyCount - 1; i >= 0; i--) {
             int dx = Math.abs(enemyX[i] - playerX);
             int dy = Math.abs(enemyY[i] - playerY);
@@ -571,6 +574,7 @@ final class Game {
                 playerHp -= Math.max(1, ENEMY_ATTACK[enemyType[i]] + floor / 4 + random.nextInt(2) - defense());
                 enemyCooldown[i] = ENEMY_ATTACK_MS;
                 aggroed[i] = true;
+                sound.enemyAttack();
             }
         }
         if (playerHp <= 0) {
@@ -747,6 +751,7 @@ final class Game {
      * destination and placing Duke on the matching arrival stairs.
      */
     private void changeFloor(int delta, boolean arriveAtDownStairs) {
+        sound.stairs();
         floor += delta;
         generate(arriveAtDownStairs);
         state = PLAYING;
