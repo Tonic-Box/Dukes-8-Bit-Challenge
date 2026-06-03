@@ -13,11 +13,9 @@ import java.awt.event.KeyEvent;
 final class Game {
 
     static final int TILE = 24;
-    static final int VIEWPORT_W = 27;
-    static final int VIEWPORT_H = 19;
     static final int HUD_HEIGHT = 72;
-    static final int PLAY_WIDTH = VIEWPORT_W * TILE;
-    static final int PLAY_HEIGHT = VIEWPORT_H * TILE;
+    static final int PLAY_WIDTH = 27 * TILE;
+    static final int PLAY_HEIGHT = 19 * TILE;
     static final int VIEW_WIDTH = PLAY_WIDTH;
     static final int VIEW_HEIGHT = PLAY_HEIGHT + HUD_HEIGHT;
 
@@ -41,6 +39,12 @@ final class Game {
     static final int LEAK = 2;
     static final int FORKBOMB = 3;
     static final int DEADLOCK = 4;
+
+    /** Per-enemy-type base stats indexed by type id; depth scaling is added at each call site. */
+    private static final int[] ENEMY_MAX_HP = {3, 5, 8, 6, 16};
+    private static final int[] ENEMY_ATTACK = {1, 2, 3, 2, 4};
+    private static final int[] ENEMY_GOLD = {2, 4, 7, 5, 12};
+    private static final int[] ENEMY_XP = {4, 8, 14, 10, 22};
 
     static final int MAX_ENEMIES = 32;
     static final int POTION_COST = 12;
@@ -67,12 +71,6 @@ final class Game {
     private static final int MAX_ROOMS = 20;
     private static final int ROOM_MIN = 5;
     private static final int ROOM_MAX = 10;
-    private static final int BASE_MAP_W = 20;
-    private static final int BASE_MAP_H = 14;
-    private static final int MAP_GROW_W = 5;
-    private static final int MAP_GROW_H = 3;
-    private static final int BASE_ROOMS = 4;
-    private static final int ROOM_GROW = 2;
     private static final float MOVE_DURATION_MS = 120f;
     private static final float ENEMY_DURATION_MS = 300f;
     private static final float ENEMY_ATTACK_MS = 600f;
@@ -198,14 +196,6 @@ final class Game {
     /** Damage reduction from the equipped armor. */
     int defense() {
         return equippedArmor >= 0 ? ITEM_VALUE[equippedArmor] : 0;
-    }
-
-    private float regenInterval() {
-        return equippedTrinket == TRINKET_COFFEE ? REGEN_INTERVAL_MS * 0.55f : REGEN_INTERVAL_MS;
-    }
-
-    private int fovRadius() {
-        return FOV_RADIUS + (equippedTrinket == TRINKET_LANTERN ? 2 : 0);
     }
 
     /**
@@ -379,9 +369,10 @@ final class Game {
             }
         }
 
+        float regenInterval = equippedTrinket == TRINKET_COFFEE ? REGEN_INTERVAL_MS * 0.55f : REGEN_INTERVAL_MS;
         regenTimer += deltaMillis;
-        if (regenTimer >= regenInterval()) {
-            regenTimer -= regenInterval();
+        if (regenTimer >= regenInterval) {
+            regenTimer -= regenInterval;
             if (playerHp < playerMaxHp) {
                 playerHp++;
             }
@@ -445,7 +436,7 @@ final class Game {
         playerX = nextX;
         playerY = nextY;
         if (targetTile == TRAP) {
-            playerHp -= trapDamage();
+            playerHp -= 6 + floor;
             if (playerHp <= 0) {
                 playerHp = 0;
                 state = DEAD;
@@ -455,10 +446,6 @@ final class Game {
         computeFieldOfView();
         pickUpAt(nextX, nextY);
         moveProgress = 0f;
-    }
-
-    private int trapDamage() {
-        return 6 + floor;
     }
 
     /** A spinning slash that damages every enemy in the eight surrounding tiles. */
@@ -481,8 +468,8 @@ final class Game {
         int deadType = enemyType[i];
         int deadX = enemyX[i];
         int deadY = enemyY[i];
-        gold += goldReward(deadType) + (equippedTrinket == TRINKET_COIN ? floor : 0);
-        grantXp(xpReward(deadType));
+        gold += ENEMY_GOLD[deadType] + floor + (equippedTrinket == TRINKET_COIN ? floor : 0);
+        grantXp(ENEMY_XP[deadType] + floor);
         removeEnemy(i);
         if (deadType == FORKBOMB) {
             splitForkBomb(deadX, deadY);
@@ -525,7 +512,7 @@ final class Game {
         enemyPrevX[slot] = x;
         enemyPrevY[slot] = y;
         enemyType[slot] = type;
-        enemyHp[slot] = enemyMaxHp(type);
+        enemyHp[slot] = ENEMY_MAX_HP[type] + floor / 2;
         enemyHit[slot] = 0f;
         aggroed[slot] = aggro;
         enemyCooldown[slot] = 0f;
@@ -581,7 +568,7 @@ final class Game {
                 enemyCooldown[i] = Math.max(0f, enemyCooldown[i] - deltaMillis);
             }
             if (distToPlayer(enemyX[i], enemyY[i]) == 1 && enemyCooldown[i] <= 0f) {
-                playerHp -= Math.max(1, enemyAttack(enemyType[i]) + random.nextInt(2) - defense());
+                playerHp -= Math.max(1, ENEMY_ATTACK[enemyType[i]] + floor / 4 + random.nextInt(2) - defense());
                 enemyCooldown[i] = ENEMY_ATTACK_MS;
                 aggroed[i] = true;
             }
@@ -618,25 +605,6 @@ final class Game {
         return true;
     }
 
-    private int enemyMaxHp(int type) {
-        return (switch (type) {
-            case BUG -> 3;
-            case NULLPTR -> 5;
-            case LEAK -> 8;
-            case FORKBOMB -> 6;
-            default -> 16;
-        }) + floor / 2;
-    }
-
-    private int enemyAttack(int type) {
-        return (switch (type) {
-            case BUG -> 1;
-            case NULLPTR, FORKBOMB -> 2;
-            case LEAK -> 3;
-            default -> 4;
-        }) + floor / 4;
-    }
-
     private int rollType() {
         int roll = genRandom.nextInt(floor + 4);
         if (roll < 2) {
@@ -649,26 +617,6 @@ final class Game {
             return LEAK;
         }
         return roll < 8 ? FORKBOMB : DEADLOCK;
-    }
-
-    private int goldReward(int type) {
-        return (switch (type) {
-            case BUG -> 2;
-            case NULLPTR -> 4;
-            case LEAK -> 7;
-            case FORKBOMB -> 5;
-            default -> 12;
-        }) + floor;
-    }
-
-    private int xpReward(int type) {
-        return (switch (type) {
-            case BUG -> 4;
-            case NULLPTR -> 8;
-            case LEAK -> 14;
-            case FORKBOMB -> 10;
-            default -> 22;
-        }) + floor;
     }
 
     /** Picks an item id biased toward better tiers on deeper floors. */
@@ -845,9 +793,9 @@ final class Game {
             explored[i] = false;
         }
 
-        int floorWidth = Math.min(MAP_WIDTH, BASE_MAP_W + (floor - 1) * MAP_GROW_W);
-        int floorHeight = Math.min(MAP_HEIGHT, BASE_MAP_H + (floor - 1) * MAP_GROW_H);
-        int roomTarget = Math.min(MAX_ROOMS, BASE_ROOMS + (floor - 1) * ROOM_GROW);
+        int floorWidth = Math.min(MAP_WIDTH, 20 + (floor - 1) * 5);
+        int floorHeight = Math.min(MAP_HEIGHT, 14 + (floor - 1) * 3);
+        int roomTarget = Math.min(MAX_ROOMS, 4 + (floor - 1) * 2);
 
         int[] centerX = new int[MAX_ROOMS];
         int[] centerY = new int[MAX_ROOMS];
@@ -1030,7 +978,7 @@ final class Game {
         for (int i = 0; i < visible.length; i++) {
             visible[i] = false;
         }
-        int radius = fovRadius();
+        int radius = FOV_RADIUS + (equippedTrinket == TRINKET_LANTERN ? 2 : 0);
         for (int y = playerY - radius; y <= playerY + radius; y++) {
             for (int x = playerX - radius; x <= playerX + radius; x++) {
                 int dx = x - playerX;
