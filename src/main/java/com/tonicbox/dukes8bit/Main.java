@@ -21,7 +21,6 @@ public final class Main extends Frame implements KeyEventDispatcher {
 
     private Main() {
         setTitle("Duke's Descent");
-        setUndecorated(true);
         setResizable(false);
         setSize(Game.VIEW_WIDTH, Game.VIEW_HEIGHT);
         setLocationRelativeTo(null);
@@ -37,11 +36,10 @@ public final class Main extends Frame implements KeyEventDispatcher {
      */
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        int code = event.getKeyCode();
         if (event.getID() == KeyEvent.KEY_PRESSED) {
-            game.keyDown(code);
+            game.keyDown(event.getKeyCode());
         } else if (event.getID() == KeyEvent.KEY_RELEASED) {
-            game.keyUp(code);
+            game.keyUp(event.getKeyCode());
         }
         return false;
     }
