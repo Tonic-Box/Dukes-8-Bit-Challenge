@@ -34,6 +34,11 @@ final class Game {
     static final int PAUSED = 3;
     static final int INVENTORY = 4;
 
+    static final int FACE_DOWN = 0;
+    static final int FACE_UP = 1;
+    static final int FACE_LEFT = 2;
+    static final int FACE_RIGHT = 3;
+
     static final int BUG = 0;
     static final int NULLPTR = 1;
     static final int LEAK = 2;
@@ -111,6 +116,7 @@ final class Game {
 
     int playerX;
     int playerY;
+    int facing;
     int floor;
     int playerHp;
     int playerMaxHp;
@@ -179,6 +185,7 @@ final class Game {
         inventoryCount = 0;
         inventorySelection = 0;
         state = PLAYING;
+        facing = FACE_DOWN;
         attackProgress = 1f;
         leftHeld = rightHeld = upHeld = downHeld = attackHeld = false;
         pauseSelection = 0;
@@ -414,6 +421,15 @@ final class Game {
      * change floor, traps bite, and any loot on the destination is picked up.
      */
     private void attemptMove(int dx, int dy) {
+        if (dx < 0) {
+            facing = FACE_LEFT;
+        } else if (dx > 0) {
+            facing = FACE_RIGHT;
+        } else if (dy < 0) {
+            facing = FACE_UP;
+        } else {
+            facing = FACE_DOWN;
+        }
         int nextX = playerX + dx;
         int nextY = playerY + dy;
         if (!inBounds(nextX, nextY)) {

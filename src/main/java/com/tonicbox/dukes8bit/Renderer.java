@@ -6,6 +6,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
+import java.awt.geom.AffineTransform;
 
 /**
  * Draws a Game's current state to an AWT Graphics. Stateless: every visual is
@@ -49,6 +50,9 @@ final class Renderer {
     private static final Color FLOOR_DIM_ALT = new Color(22, 20, 28);
     private static final Color WALL_SHADOW = new Color(30, 28, 40);
     private static final Color DUKE_OUTLINE = new Color(22, 28, 70);
+    private static final Color DUKE_BELLY = new Color(236, 239, 246);
+    private static final Color DUKE_FOOT = new Color(242, 170, 44);
+    private static final Color DUKE_FLIPPER = new Color(40, 60, 150);
     private static final Color BUG_LEG = new Color(120, 32, 28);
     private static final Color LEAK_DRIP = new Color(156, 232, 174);
     private static final Color MERCHANT_ROBE = new Color(150, 110, 60);
@@ -126,7 +130,7 @@ final class Renderer {
 
         int dukeX = Math.round(game.renderPixelX()) - cameraX;
         int dukeY = Math.round(game.renderPixelY()) - cameraY;
-        drawDuke(graphics, dukeX, dukeY);
+        drawDuke(graphics, dukeX, dukeY, game.facing);
         if (game.attackProgress < 1f) {
             drawSword(graphics, dukeX + Game.TILE / 2, dukeY + Game.TILE / 2, game.attackProgress);
         }
@@ -206,18 +210,88 @@ final class Renderer {
         graphics.fillPolygon(xs, ys, 4);
     }
 
-    private void drawDuke(Graphics graphics, int px, int py) {
-        int size = Game.TILE;
+    /** Draws Duke facing his current travel direction; right reuses the left sprite mirrored. */
+    private void drawDuke(Graphics graphics, int px, int py, int facing) {
+        switch (facing) {
+            case Game.FACE_UP -> drawDukeBack(graphics, px, py);
+            case Game.FACE_LEFT -> drawDukeLeft(graphics, px, py);
+            case Game.FACE_RIGHT -> drawDukeRight(graphics, px, py);
+            default -> drawDukeFront(graphics, px, py);
+        }
+    }
+
+    private void drawDukeFront(Graphics graphics, int px, int py) {
+        graphics.setColor(DUKE_FOOT);
+        graphics.fillRect(px + 7, py + 21, 4, 2);
+        graphics.fillRect(px + 13, py + 21, 4, 2);
+        graphics.setColor(DUKE_FLIPPER);
+        graphics.fillRoundRect(px + 3, py + 10, 4, 8, 4, 4);
+        graphics.fillRoundRect(px + 17, py + 10, 4, 8, 4, 4);
         graphics.setColor(DUKE_BODY);
-        graphics.fillRoundRect(px + 4, py + 3, size - 8, size - 5, 8, 8);
-        graphics.setColor(DUKE_OUTLINE);
-        graphics.drawRoundRect(px + 4, py + 3, size - 8, size - 5, 8, 8);
-        graphics.setColor(DUKE_NOSE);
-        graphics.fillOval(px + size - 10, py + 8, 5, 5);
+        graphics.fillRoundRect(px + 5, py + 2, 14, 20, 11, 11);
+        graphics.setColor(DUKE_BELLY);
+        graphics.fillOval(px + 8, py + 10, 8, 11);
         graphics.setColor(Color.WHITE);
-        graphics.fillRect(px + 9, py + 8, 3, 4);
+        graphics.fillOval(px + 7, py + 6, 5, 5);
+        graphics.fillOval(px + 12, py + 6, 5, 5);
         graphics.setColor(Color.BLACK);
-        graphics.fillRect(px + 10, py + 9, 2, 2);
+        graphics.fillOval(px + 9, py + 7, 2, 2);
+        graphics.fillOval(px + 14, py + 7, 2, 2);
+        graphics.setColor(DUKE_NOSE);
+        int[] beakX = {px + 10, px + 14, px + 12};
+        int[] beakY = {py + 12, py + 12, py + 15};
+        graphics.fillPolygon(beakX, beakY, 3);
+        graphics.setColor(DUKE_OUTLINE);
+        graphics.drawRoundRect(px + 5, py + 2, 14, 20, 11, 11);
+    }
+
+    /** Back view used while walking away: body and flippers with a nape patch, no face. */
+    private void drawDukeBack(Graphics graphics, int px, int py) {
+        graphics.setColor(DUKE_FOOT);
+        graphics.fillRect(px + 7, py + 21, 4, 2);
+        graphics.fillRect(px + 13, py + 21, 4, 2);
+        graphics.setColor(DUKE_FLIPPER);
+        graphics.fillRoundRect(px + 3, py + 10, 4, 8, 4, 4);
+        graphics.fillRoundRect(px + 17, py + 10, 4, 8, 4, 4);
+        graphics.setColor(DUKE_BODY);
+        graphics.fillRoundRect(px + 5, py + 2, 14, 20, 11, 11);
+        graphics.setColor(DUKE_FLIPPER);
+        graphics.fillRoundRect(px + 9, py + 5, 6, 8, 5, 5);
+        graphics.setColor(DUKE_OUTLINE);
+        graphics.drawRoundRect(px + 5, py + 2, 14, 20, 11, 11);
+    }
+
+    /** Left-facing profile: belly, eye, and beak turned to the side. */
+    private void drawDukeLeft(Graphics graphics, int px, int py) {
+        graphics.setColor(DUKE_FOOT);
+        graphics.fillRect(px + 8, py + 21, 4, 2);
+        graphics.fillRect(px + 13, py + 21, 3, 2);
+        graphics.setColor(DUKE_BODY);
+        graphics.fillRoundRect(px + 5, py + 2, 14, 20, 11, 11);
+        graphics.setColor(DUKE_BELLY);
+        graphics.fillOval(px + 6, py + 10, 8, 11);
+        graphics.setColor(Color.WHITE);
+        graphics.fillOval(px + 7, py + 6, 5, 5);
+        graphics.setColor(Color.BLACK);
+        graphics.fillOval(px + 8, py + 8, 2, 2);
+        graphics.setColor(DUKE_NOSE);
+        int[] beakX = {px + 4, px + 9, px + 9};
+        int[] beakY = {py + 11, py + 9, py + 13};
+        graphics.fillPolygon(beakX, beakY, 3);
+        graphics.setColor(DUKE_FLIPPER);
+        graphics.fillRoundRect(px + 7, py + 13, 4, 7, 4, 4);
+        graphics.setColor(DUKE_OUTLINE);
+        graphics.drawRoundRect(px + 5, py + 2, 14, 20, 11, 11);
+    }
+
+    /** Right-facing profile: the left sprite mirrored about the tile's vertical center. */
+    private void drawDukeRight(Graphics graphics, int px, int py) {
+        Graphics2D g2 = (Graphics2D) graphics;
+        AffineTransform previous = g2.getTransform();
+        g2.translate(2 * px + Game.TILE, 0);
+        g2.scale(-1, 1);
+        drawDukeLeft(g2, px, py);
+        g2.setTransform(previous);
     }
 
     private void drawSword(Graphics graphics, int centerX, int centerY, float progress) {

@@ -4,10 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="init">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Let there be sound">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Game.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Renderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Renderer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Sound.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Sound.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -107,7 +108,7 @@
     "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle"
   }
 }]]></component>
-  <component name="RunManager" selected="Gradle.dukes8bit [run]">
+  <component name="RunManager" selected="Gradle.dukes8bit [size]">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.tonicbox.dukes8bit.Main" />
       <module name="dukes8bit.main" />
@@ -167,8 +168,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.dukes8bit [run]" />
         <item itemvalue="Gradle.dukes8bit [size]" />
+        <item itemvalue="Gradle.dukes8bit [run]" />
         <item itemvalue="Application.Main" />
       </list>
     </recent_temporary>
@@ -190,11 +191,72 @@
       <option name="project" value="LOCAL" />
       <updated>1780352601387</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="init">
+      <option name="closed" value="true" />
+      <created>1780358070612</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1780358070612</updated>
+    </task>
+    <task id="LOCAL-00003" summary="- Shrink Game.class via lookup tables, inlining, and constant cleanup">
+      <option name="closed" value="true" />
+      <created>1780458045757</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1780458045757</updated>
+    </task>
+    <task id="LOCAL-00004" summary="- Shrink Game.class via lookup tables, inlining, and constant cleanup&#10;- a few other smaller optimizations">
+      <option name="closed" value="true" />
+      <created>1780460739751</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1780460739751</updated>
+    </task>
+    <task id="LOCAL-00005" summary="- a few smaller size optimizations">
+      <option name="closed" value="true" />
+      <created>1780463615236</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1780463615236</updated>
+    </task>
+    <task id="LOCAL-00006" summary="- Updated the readme">
+      <option name="closed" value="true" />
+      <created>1780463980313</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1780463980313</updated>
+    </task>
+    <task id="LOCAL-00007" summary="- Updated the readme">
+      <option name="closed" value="true" />
+      <created>1780464169452</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1780464169452</updated>
+    </task>
+    <task id="LOCAL-00008" summary="- Let there be sound">
+      <option name="closed" value="true" />
+      <created>1780467436643</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1780467436643</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="init" />
-    <option name="LAST_COMMIT_MESSAGE" value="init" />
+    <MESSAGE value="- Shrink Game.class via lookup tables, inlining, and constant cleanup" />
+    <MESSAGE value="- Shrink Game.class via lookup tables, inlining, and constant cleanup&#10;- a few other smaller optimizations" />
+    <MESSAGE value="- a few smaller size optimizations" />
+    <MESSAGE value="- Updated the readme" />
+    <MESSAGE value="- Let there be sound" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Let there be sound" />
   </component>
 </project>

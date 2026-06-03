@@ -50,21 +50,15 @@ final class Sound {
     private static final int BASS_VELOCITY = 68;
     private static final int ARP_VELOCITY = 44;
 
-    // A 4-bar Am-F-C-G loop. Each row is {key, startEighth, lengthEighths} on an eighth-note grid.
-    private static final int[][] MELODY = {
-        {69, 0, 4}, {64, 4, 4}, {72, 8, 4}, {69, 12, 4},
-        {71, 16, 4}, {67, 20, 4}, {74, 24, 4}, {71, 28, 4},
-    };
-    private static final int[][] BASS = {
-        {45, 0, 4}, {52, 4, 4}, {41, 8, 4}, {48, 12, 4},
-        {48, 16, 4}, {43, 20, 4}, {43, 24, 4}, {50, 28, 4},
-    };
-    private static final int[][] ARP = {
-        {57, 0, 2}, {60, 2, 2}, {64, 4, 2}, {69, 6, 2},
-        {53, 8, 2}, {57, 10, 2}, {60, 12, 2}, {65, 14, 2},
-        {60, 16, 2}, {64, 18, 2}, {67, 20, 2}, {72, 22, 2},
-        {55, 24, 2}, {59, 26, 2}, {62, 28, 2}, {67, 30, 2},
-    };
+    /**
+     * The 4-bar Am-F-C-G backing loop, packed as {key, startEighth, lengthEighths} triples —
+     * one character per value, biased by NOTE_PACK_OFFSET so every byte stays printable.
+     * {@link #addVoice} unpacks them; editing the tune means re-encoding (each char = value + 48).
+     */
+    private static final int NOTE_PACK_OFFSET = 48;
+    private static final String MELODY = "u04p44x84u<4w@4sD4zH4wL4";
+    private static final String BASS = "]04d44Y84`<4`@4[D4[H4bL4";
+    private static final String ARP = "i02l22p42u62e82i:2l<2q>2l@2pB2sD2xF2gH2kJ2nL2sN2";
 
     private final MidiChannel[] channels;
     private final ScheduledExecutorService scheduler;
@@ -87,7 +81,7 @@ final class Sound {
             configureMusicChannel(openChannels[MELODY_CHANNEL], SQUARE_LEAD);
             configureMusicChannel(openChannels[BASS_CHANNEL], SYNTH_BASS);
             configureMusicChannel(openChannels[ARP_CHANNEL], SQUARE_LEAD);
-            timer = Executors.newSingleThreadScheduledExecutor(Sound::daemon);
+            timer = Executors.newSingleThreadScheduledExecutor();
             music = MidiSystem.getSequencer(false);
             music.open();
             music.getTransmitter().setReceiver(synthesizer.getReceiver());
@@ -167,20 +161,15 @@ final class Sound {
         return sequence;
     }
 
-    /** Adds one voice's notes to the track at the given channel and velocity. */
-    private static void addVoice(Track track, int channel, int[][] notes, int velocity) throws InvalidMidiDataException {
-        for (int[] n : notes) {
-            long on = (long) n[1] * TICKS_PER_EIGHTH;
-            long off = on + (long) n[2] * TICKS_PER_EIGHTH;
-            track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_ON, channel, n[0], velocity), on));
-            track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_OFF, channel, n[0], 0), off));
+    /** Unpacks one voice's {key, start, length} char-triples and adds its notes to the track. */
+    private static void addVoice(Track track, int channel, String notes, int velocity) throws InvalidMidiDataException {
+        for (int i = 0; i < notes.length(); i += 3) {
+            int key = notes.charAt(i) - NOTE_PACK_OFFSET;
+            long on = (long) (notes.charAt(i + 1) - NOTE_PACK_OFFSET) * TICKS_PER_EIGHTH;
+            long off = on + (long) (notes.charAt(i + 2) - NOTE_PACK_OFFSET) * TICKS_PER_EIGHTH;
+            track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_ON, channel, key, velocity), on));
+            track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_OFF, channel, key, 0), off));
         }
     }
 
-    /** Creates the named daemon thread used for effect-note scheduling. */
-    private static Thread daemon(Runnable task) {
-        Thread thread = new Thread(task, "sfx");
-        thread.setDaemon(true);
-        return thread;
-    }
 }
