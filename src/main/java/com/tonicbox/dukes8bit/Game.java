@@ -370,35 +370,29 @@ final class Game {
         return equippedArmor >= 0 ? itemValue(equippedArmor) : 0;
     }
 
-    int weaponEffect() {
-        return equippedWeapon >= 0 ? ITEM_EFFECT[itemId(equippedWeapon)] : EFF_NONE;
+    /** The effect of a packed equipped item, or EFF_NONE when the slot is empty (-1). */
+    int effectOf(int packed) {
+        return packed >= 0 ? ITEM_EFFECT[itemId(packed)] : EFF_NONE;
     }
 
-    int armorEffect() {
-        return equippedArmor >= 0 ? ITEM_EFFECT[itemId(equippedArmor)] : EFF_NONE;
+    /** The rarity-scaled magnitude of a packed equipped item, or 0 when the slot is empty (-1). */
+    int magOf(int packed) {
+        return packed >= 0 ? itemMag(packed) : 0;
     }
-
-    int trinketEffect() {
-        return equippedTrinket >= 0 ? ITEM_EFFECT[itemId(equippedTrinket)] : EFF_NONE;
-    }
-
-    int weaponMag() { return equippedWeapon >= 0 ? itemMag(equippedWeapon) : 0; }
-    int armorMag()  { return equippedArmor  >= 0 ? itemMag(equippedArmor)  : 0; }
-    int trinketMag(){ return equippedTrinket >= 0 ? itemMag(equippedTrinket): 0; }
 
     /** Percent chance the equipped weapon lands a critical hit, 0 when it has no crit effect. */
     int critChance() {
-        return weaponEffect() == EFF_CRIT ? weaponMag() : 0;
+        return effectOf(equippedWeapon) == EFF_CRIT ? magOf(equippedWeapon) : 0;
     }
 
     /** Percent of damage dealt returned as health, 0 without a lifesteal weapon. */
     int lifestealPercent() {
-        return weaponEffect() == EFF_LIFESTEAL ? weaponMag() : 0;
+        return effectOf(equippedWeapon) == EFF_LIFESTEAL ? magOf(equippedWeapon) : 0;
     }
 
     /** Percent chance the equipped armor evades an incoming bite, 0 without a dodge effect. */
     int dodgeChance() {
-        return armorEffect() == EFF_DODGE ? armorMag() : 0;
+        return effectOf(equippedArmor) == EFF_DODGE ? magOf(equippedArmor) : 0;
     }
 
     int itemSlot(int packed)   { return ITEM_SLOT[itemId(packed)]; }
@@ -693,7 +687,7 @@ final class Game {
             openAdjacentChest();
         }
 
-        float regenInterval = trinketEffect() == EFF_REGEN ? REGEN_INTERVAL_MS * 0.55f : REGEN_INTERVAL_MS;
+        float regenInterval = effectOf(equippedTrinket) == EFF_REGEN ? REGEN_INTERVAL_MS * 0.55f : REGEN_INTERVAL_MS;
         regenTimer += deltaMillis;
         if (regenTimer >= regenInterval) {
             regenTimer -= regenInterval;
@@ -711,7 +705,7 @@ final class Game {
         }
 
         if (attackProgress < 1f) {
-            float attackDuration = trinketEffect() == EFF_SPEED ? ATTACK_DURATION_MS * 0.8f : ATTACK_DURATION_MS;
+            float attackDuration = effectOf(equippedTrinket) == EFF_SPEED ? ATTACK_DURATION_MS * 0.8f : ATTACK_DURATION_MS;
             attackProgress = Math.min(1f, attackProgress + deltaMillis / attackDuration);
         } else if (attackHeld) {
             performAttack();
@@ -724,7 +718,7 @@ final class Game {
         }
 
         if (moveProgress < 1f) {
-            float moveDuration = trinketEffect() == EFF_SPEED ? MOVE_DURATION_MS * 0.7f : MOVE_DURATION_MS;
+            float moveDuration = effectOf(equippedTrinket) == EFF_SPEED ? MOVE_DURATION_MS * 0.7f : MOVE_DURATION_MS;
             moveProgress = Math.min(1f, moveProgress + deltaMillis / moveDuration);
             return;
         }
@@ -814,7 +808,7 @@ final class Game {
     private void performAttack() {
         attackProgress = 0f;
         sound.swordAttack();
-        int effect = weaponEffect();
+        int effect = effectOf(equippedWeapon);
         int reach = effect == EFF_REACH ? 2 : 1;
         for (int i = enemyCount - 1; i >= 0; i--) {
             int offsetX = enemyX[i] - playerX;
@@ -824,14 +818,14 @@ final class Game {
                 continue;
             }
             int damage = Math.max(1, attackPower() + random.nextInt(3));
-            if (effect == EFF_CRIT && random.nextInt(100) < weaponMag()) {
+            if (effect == EFF_CRIT && random.nextInt(100) < magOf(equippedWeapon)) {
                 damage *= 2;
                 enemyCrit[i] = 1f;
             }
             enemyHp[i] -= damage;
             enemyHit[i] = 1f;
             if (effect == EFF_LIFESTEAL) {
-                healPlayer(Math.max(1, damage * weaponMag() / 100));
+                healPlayer(Math.max(1, damage * magOf(equippedWeapon) / 100));
             } else if (effect == EFF_POISON) {
                 enemyPoison[i] = POISON_DURATION_MS;
             } else if (effect == EFF_KNOCKBACK) {
@@ -845,11 +839,11 @@ final class Game {
             int distance = bossDistanceToPlayer();
             if (distance >= 1 && distance <= reach) {
                 int damage = Math.max(1, attackPower() + random.nextInt(3));
-                if (effect == EFF_CRIT && random.nextInt(100) < weaponMag()) {
+                if (effect == EFF_CRIT && random.nextInt(100) < magOf(equippedWeapon)) {
                     damage *= 2;
                 }
                 if (effect == EFF_LIFESTEAL) {
-                    healPlayer(Math.max(1, damage * weaponMag() / 100));
+                    healPlayer(Math.max(1, damage * magOf(equippedWeapon) / 100));
                 }
                 damageBoss(damage);
             }
@@ -899,7 +893,7 @@ final class Game {
             enemyX[i] = nextX;
             enemyY[i] = nextY;
         } else {
-            enemyHp[i] -= weaponMag();
+            enemyHp[i] -= magOf(equippedWeapon);
             enemyHit[i] = 1f;
         }
     }
@@ -908,10 +902,10 @@ final class Game {
         int deadType = enemyType[i];
         int deadX = enemyX[i];
         int deadY = enemyY[i];
-        gold += ENEMY_STATS[deadType * 4 + 2] + floor + (trinketEffect() == EFF_GOLD ? floor : 0);
+        gold += ENEMY_STATS[deadType * 4 + 2] + floor + (effectOf(equippedTrinket) == EFF_GOLD ? floor : 0);
         grantXp(ENEMY_STATS[deadType * 4 + 3] + floor);
-        if (armorEffect() == EFF_HEAL_ON_KILL) {
-            healPlayer(armorMag());
+        if (effectOf(equippedArmor) == EFF_HEAL_ON_KILL) {
+            healPlayer(magOf(equippedArmor));
         }
         removeEnemy(i);
         if (deadType == FORKBOMB) {
@@ -1028,14 +1022,14 @@ final class Game {
                 enemyCooldown[i] = ENEMY_ATTACK_MS;
                 enemyAttack[i] = 1f;
                 aggroed[i] = true;
-                if (armorEffect() == EFF_DODGE && random.nextInt(100) < armorMag()) {
+                if (effectOf(equippedArmor) == EFF_DODGE && random.nextInt(100) < magOf(equippedArmor)) {
                     playerDodge = 1f;
                     continue;
                 }
                 playerHp -= Math.max(1, ENEMY_STATS[enemyType[i] * 4 + 1] + floor / 4 + random.nextInt(2) - defense());
                 sound.enemyAttack();
-                if (armorEffect() == EFF_THORNS) {
-                    enemyHp[i] -= armorMag();
+                if (effectOf(equippedArmor) == EFF_THORNS) {
+                    enemyHp[i] -= magOf(equippedArmor);
                     enemyHit[i] = 1f;
                     if (enemyHp[i] <= 0) {
                         killEnemy(i);
@@ -1143,8 +1137,8 @@ final class Game {
 
     /** Adds experience and levels Duke up while he has enough, boosting his stats. */
     private void grantXp(int amount) {
-        if (trinketEffect() == EFF_XP) {
-            amount += amount * trinketMag() / 100;
+        if (effectOf(equippedTrinket) == EFF_XP) {
+            amount += amount * magOf(equippedTrinket) / 100;
         }
         playerXp += amount;
         while (playerXp >= xpForNext()) {
@@ -1589,7 +1583,7 @@ final class Game {
 
     /** Vault odds: 25% on the second floor, climbing 7% per floor with depth and capped at 80%. Keyring adds a small flat bonus. */
     private int vaultChancePercent() {
-        int bonus = trinketEffect() == EFF_KEYFIND ? trinketMag() : 0;
+        int bonus = effectOf(equippedTrinket) == EFF_KEYFIND ? magOf(equippedTrinket) : 0;
         return Math.min(80, 25 + (floor - 2) * 7 + bonus);
     }
 
@@ -1831,14 +1825,14 @@ final class Game {
 
     /** Applies boss damage to Duke, honoring dodge and reflecting thorns back into the boss. */
     private void applyBossHitToPlayer(int damage) {
-        if (armorEffect() == EFF_DODGE && random.nextInt(100) < armorMag()) {
+        if (effectOf(equippedArmor) == EFF_DODGE && random.nextInt(100) < magOf(equippedArmor)) {
             playerDodge = 1f;
             return;
         }
         playerHp -= Math.max(1, damage - defense());
         sound.enemyAttack();
-        if (armorEffect() == EFF_THORNS) {
-            damageBoss(armorMag());
+        if (effectOf(equippedArmor) == EFF_THORNS) {
+            damageBoss(magOf(equippedArmor));
         }
         if (playerHp <= 0) {
             playerHp = 0;
@@ -2071,7 +2065,7 @@ final class Game {
         for (int i = 0; i < visible.length; i++) {
             visible[i] = false;
         }
-        int radius = FOV_RADIUS + (trinketEffect() == EFF_SIGHT ? 2 : 0);
+        int radius = FOV_RADIUS + (effectOf(equippedTrinket) == EFF_SIGHT ? 2 : 0);
         for (int y = playerY - radius; y <= playerY + radius; y++) {
             for (int x = playerX - radius; x <= playerX + radius; x++) {
                 int dx = x - playerX;
