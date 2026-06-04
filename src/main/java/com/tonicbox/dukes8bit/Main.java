@@ -89,6 +89,10 @@ public final class Main extends Frame implements KeyEventDispatcher {
             // incompatible surface (display change, GPU reclaim) is simply recreated and redrawn.
             int width = canvas.getWidth();
             int height = canvas.getHeight();
+
+            // A VolatileImage's VRAM surface can be reclaimed by the GPU while we render into it, so contentsLost() is only
+            // meaningful to check after the render-and-blit. do/while guarantees we always draw the frame once and then repeat
+            // only if that surface was invalidated mid-draw, which a plain while (checking before the body) can't express.
             do {
                 if (scene == null || scene.validate(getGraphicsConfiguration()) == VolatileImage.IMAGE_INCOMPATIBLE) {
                     scene = createVolatileImage(Game.VIEW_WIDTH, Game.VIEW_HEIGHT);

@@ -354,6 +354,7 @@ final class Game {
         falling = false;
         fallProgress = 0f;
         breakCount = 0;
+        // Manual floop here instead of Arrays::fill saves on const pool bytes
         for (int i = 0; i < lightLevel.length; i++) lightLevel[i] = 0f;
         for (int i = 0; i < FLOOR_CACHE_CAP; i++) floorCache[i] = null;
         baseSeed = random.nextLong();
@@ -1306,6 +1307,7 @@ final class Game {
         saveFloor();
         floor += delta;
         // Start the new floor dark so its lit area fades in rather than snapping on arrival.
+        // Manual floop here instead of Arrays::fill saves on const pool bytes
         for (int i = 0; i < lightLevel.length; i++) lightLevel[i] = 0f;
         if (floor >= 1 && floor <= FLOOR_CACHE_CAP && floorCache[floor - 1] != null) {
             restoreFloor(arriveAtDownStairs);
@@ -2060,7 +2062,7 @@ final class Game {
      * the first wall. Visible tiles are also marked permanently explored.
      */
     private void computeFieldOfView() {
-        //Explicit loop saves on const pool over Arrays::fill
+        // Explicit loop saves on const pool over Arrays::fill
         for (int i = 0; i < visible.length; i++) {
             visible[i] = false;
         }
