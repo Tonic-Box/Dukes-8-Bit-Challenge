@@ -69,21 +69,34 @@ Key decisions:
 - **Procedural audio.** Effects are short synthesized blips; the music is a sequencer loop routed into the same JDK synthesizer on its own channels. Nothing is loaded from disk, so the resources directory stays empty.
 - **Seeded then persistent floors.** A floor's first layout, enemies, and merchant are produced from a per-floor seed (`baseSeed + floor`); after that the floor's state is snapshotted and restored on return, so revisiting preserves your changes rather than regenerating.
 
+## Algorithms & patterns
+
+The notable techniques the game uses.
+
+- **Floor generation — rejection sampling.** Random rooms are placed one by one, rejecting any that overlap (plus a one-tile border), then linked to the previous room by an L-shaped corridor. A per-floor seed makes every floor rebuild identically.
+- **Field of view — Bresenham ray casting.** A line is walked from the player to each tile in radius, marking it visible until the line hits a wall, door, or scenery. Visible tiles become permanently explored.
+- **Vault isolation — region check before carving.** A vault carves only where its footprint, door, and wall border are all solid rock, so the locked door is the only way in. Its key spawns a fixed distance away.
+- **Pit clusters — seeded neighbor growth.** A pit grows from one tile by attaching random open neighbors (up to four), each required to pass a 3x3-floor interior test so clusters never reach corridors.
+- **Smooth motion — positional interpolation.** Entities store a previous and current tile plus a 0–1 progress; the rendered position is their linear blend, animating between discrete steps.
+- **Lighting — light levels with run-batched overlay.** Each tile's light eases toward visible or remembered; tiles draw lit, then a translucent overlay sized by `1 - light` dims them, with equal-darkness runs merged into one fill.
+- **Entity storage — structure of arrays, swap-remove.** Enemies and loot are parallel primitive arrays; removal copies the last element into the freed slot for O(1) unordered deletion.
+- **Floor persistence — packed snapshots.** A floor serializes into one depth-keyed `int[]` (header, fixed-stride entity/loot records, then map and explored masks) and restores on return; first visits generate from the seed.
+- **Item encoding — bit-packing.** Each item is one `int`: template id in the low bits, rarity tier above. Stats and effects scale by rarity when read.
+- **Rarity rolls — depth-weighted bands.** Rarity is drawn from probability bands that widen with depth (Legendary from floor 7, Rare scaling, both clamped); bosses add a flat Rare bonus.
+- **Boss collision — footprint AABB.** The 3x3 boss is an axis-aligned box; a move checks every destination tile, and the slam hits the bordering ring.
+- **Display scaling — fixed-resolution buffer.** The game renders to a fixed-size buffer stretched to the window each frame, keeping world coordinates resolution-independent.
+
 ## Code design notes
 
 A few implementation choices and the reasoning behind them:
 
 - **Input as flags drained by the loop.** Key events (AWT's event thread) only set held/request booleans; the game loop reads and acts on them. Simulation stays on a single thread, and discrete actions (potion, buy, pause, stairs) use edge detection so a held key fires once instead of repeating with the OS key-repeat.
 - **Single integer game state.** `PLAYING` / `SHOP` / `PAUSED` / `DEAD` is one `int` switched on in update and render; a minimal state machine that needs no extra classes or enums.
-- **Swap-remove entity arrays.** A dead enemy is removed by copying the last active entry over its slot and shrinking the count. Removal is O(1), order is irrelevant, and no objects are allocated or garbage-collected mid-run.
-- **Ray-cast field of view.** Visibility casts a straight line to each tile within radius and stops at the first wall. Chosen for compactness over heavier shadow-casting; it only recomputes on movement, so the cost is negligible.
 - **Integer-rounded camera.** The camera follows Duke's interpolated sub-pixel position but is rounded to whole pixels before drawing, so the scrolling dungeon stays crisp instead of shimmering.
 - **Placement sanity checks.** The merchant is only placed where the surrounding 3×3 block is floor, guaranteeing it sits in open room space and can never wall off a corridor.
 - **Directional avatar.** Duke is drawn as four facing sprites (front / back / left / right); the right profile is the left one mirrored with a transform, so only one side is hand-built.
-- **Bosses.** A floor boss occupies a 3x3 footprint and lives in its own fields rather than the per-tile enemy arrays, keeping its multi-tile collision, telegraphed slam, and enrage phase cleanly separate from the lightweight regular enemies.
-- **Per-floor state snapshots.** Leaving a floor copies its tiles, fog memory, enemies, loot, and boss into a cache keyed by depth; returning restores that snapshot. First visits still generate from the seed, so determinism and persistence coexist. Pit falls warp several floors at once, generating and caching each skipped floor on the way down so climbing back up is consistent.
-- **Packed item instances.** A carried item is a single `int`: the template id in the low bits and the rolled rarity tier in the high bits. Loot, inventory, and equipment slots all stay primitive, rarity scaling is applied where stats are read, and the per-floor snapshot stores items as-is.
-- **Smooth fog via an overlay table.** Each tile holds a light level that eases toward lit or unlit every frame. The renderer draws every tile in its lit form, then lays one of a small lookup table of translucent-black steps over it sized by that level - so lighting glides with the player with no per-frame allocation and no duplicate dim/lit color sets.
+- **Boss as separate state.** A floor boss lives in its own fields rather than the per-tile enemy arrays, keeping its multi-tile collision, telegraphed slam, and enrage phase separate from the lightweight regular enemies.
+- **VRAM scene buffer.** The fixed-resolution scene is drawn into a `VolatileImage` so the scaled blit runs on the GPU; the render loop uses the standard validate / `contentsLost` retry and allocates no per-frame pixel rasters.
 
 ## Optimization strategies
 

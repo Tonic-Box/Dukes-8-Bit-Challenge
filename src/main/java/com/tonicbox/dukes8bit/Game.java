@@ -1196,13 +1196,11 @@ final class Game {
         }
     }
 
+    /** Permanently discards the selected carried item; dropped gear is destroyed, not left on the floor. */
     private void dropSelected() {
-        if (inventorySelection >= inventoryCount) {
-            return;
+        if (inventorySelection < inventoryCount) {
+            removeInventory(inventorySelection);
         }
-        int item = inventory[inventorySelection];
-        removeInventory(inventorySelection);
-        spawnLoot(playerX, playerY, item, false);
     }
 
     private void removeInventory(int i) {
