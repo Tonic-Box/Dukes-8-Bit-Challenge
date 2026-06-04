@@ -766,7 +766,7 @@ final class Renderer {
                 graphics.setColor(selected ? PROMPT : HUD_TEXT);
                 graphics.drawString((selected ? "> " : "  ") + Game.ITEM_NAME[game.inventory[i]], leftX, 276 + i * 20);
             }
-            drawEquipDelta(graphics, game, rightX, 252);
+            drawEquipDelta(graphics, game, rightX);
         }
 
         graphics.setColor(HUD_HINT);
@@ -778,15 +778,15 @@ final class Renderer {
      * Shows what equipping the highlighted carried item would change: the ATK/DEF swing in green/red,
      * the effect gained or lost, and which item it would replace. Modeled on a "vs equipped" preview.
      */
-    private void drawEquipDelta(Graphics graphics, Game game, int x, int y) {
+    private void drawEquipDelta(Graphics graphics, Game game, int x) {
         int carried = game.inventory[game.inventorySelection];
         int slot = game.itemSlot(carried);
         int current = game.equippedCounterpart(carried);
 
         graphics.setColor(HUD_HINT);
-        graphics.drawString("IF EQUIPPED", x, y);
+        graphics.drawString("IF EQUIPPED", x, 252);
 
-        int lineY = y + 24;
+        int lineY = 252 + 24;
         if (slot == Game.WEAPON || slot == Game.ARMOR) {
             String stat;
             int oldTotal;

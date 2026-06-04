@@ -934,7 +934,6 @@ final class Game {
                     enemyHit[i] = 1f;
                     if (enemyHp[i] <= 0) {
                         killEnemy(i);
-                        continue;
                     }
                 }
             }
@@ -1503,11 +1502,10 @@ final class Game {
 
         if (arriveAtDownStairs) {
             playerX = downX;
-            playerY = midY;
         } else {
             playerX = upX;
-            playerY = midY;
         }
+        playerY = midY;
         previousX = playerX;
         previousY = playerY;
         moveProgress = 1f;
