@@ -1,7 +1,5 @@
 package com.tonicbox.dukes8bit;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 import java.awt.event.KeyEvent;
 
@@ -179,7 +177,9 @@ final class Game {
     private static final int SNAP_MAP_BASE = SNAP_LOOT_BASE + LOOT_CAP * 5;
     private static final int SNAP_EXPLORED_BASE = SNAP_MAP_BASE + MAP_WIDTH * MAP_HEIGHT;
     private static final int SNAP_SIZE = SNAP_EXPLORED_BASE + MAP_WIDTH * MAP_HEIGHT;
-    private final Map<Integer, int[]> floorCache = new HashMap<>();
+    // Direct-indexed by (floor - 1); avoids Integer boxing and HashMap Entry overhead.
+    private static final int FLOOR_CACHE_CAP = 50;
+    private final int[][] floorCache = new int[FLOOR_CACHE_CAP][];
 
     final int[] map = new int[MAP_WIDTH * MAP_HEIGHT];
     final boolean[] explored = new boolean[MAP_WIDTH * MAP_HEIGHT];
@@ -316,7 +316,7 @@ final class Game {
         playerHeal = 0f;
         playerDodge = 0f;
         bossActive = false;
-        floorCache.clear();
+        for (int i = 0; i < FLOOR_CACHE_CAP; i++) floorCache[i] = null;
         baseSeed = random.nextLong();
         generate(false);
     }
@@ -1170,7 +1170,7 @@ final class Game {
         sound.stairs();
         saveFloor();
         floor += delta;
-        if (floorCache.containsKey(floor)) {
+        if (floor >= 1 && floor <= FLOOR_CACHE_CAP && floorCache[floor - 1] != null) {
             restoreFloor(arriveAtDownStairs);
         } else {
             generate(arriveAtDownStairs);
@@ -1184,7 +1184,9 @@ final class Game {
      * durable state is stored; transient combat clocks and flashes are recreated on restore.
      */
     private void saveFloor() {
-        int[] snapshot = floorCache.computeIfAbsent(floor, key -> new int[SNAP_SIZE]);
+        if (floor < 1 || floor > FLOOR_CACHE_CAP) return;
+        if (floorCache[floor - 1] == null) floorCache[floor - 1] = new int[SNAP_SIZE];
+        int[] snapshot = floorCache[floor - 1];
         snapshot[0] = enemyCount;
         snapshot[1] = lootCount;
         snapshot[2] = merchantX;
@@ -1220,7 +1222,7 @@ final class Game {
 
     /** Restores a cached floor from its packed snapshot and drops Duke onto the arrival stairs. */
     private void restoreFloor(boolean arriveAtDownStairs) {
-        int[] snapshot = floorCache.get(floor);
+        int[] snapshot = floorCache[floor - 1];
         enemyCount = snapshot[0];
         lootCount = snapshot[1];
         merchantX = snapshot[2];

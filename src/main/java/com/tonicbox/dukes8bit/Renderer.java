@@ -6,7 +6,6 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
-import java.awt.geom.AffineTransform;
 
 /**
  * Draws a Game's current state to an AWT Graphics. Stateless: every visual is
@@ -112,6 +111,14 @@ final class Renderer {
     private static final Color BOSS_BAR_BACK = new Color(40, 16, 20);
     private static final Color BOSS_BAR_FILL = new Color(206, 60, 72);
     private static final Color BOSS_BAR_FILL_ENRAGED = new Color(240, 120, 60);
+
+    // Reusable polygon scratch arrays — render loop is single-threaded so sharing is safe.
+    private static final int[] POLY_X3 = new int[3];
+    private static final int[] POLY_Y3 = new int[3];
+    private static final int[] POLY_X4 = new int[4];
+    private static final int[] POLY_Y4 = new int[4];
+    private static final int[] POLY_X5 = new int[5];
+    private static final int[] POLY_Y5 = new int[5];
 
     /**
      * Draws one frame: the camera-relative, fog-aware dungeon, then loot, entities,
@@ -259,11 +266,11 @@ final class Renderer {
 
     private void drawTrap(Graphics graphics, int px, int py) {
         graphics.setColor(TRAP_COLOR);
+        POLY_Y3[0] = py + Game.TILE - 5; POLY_Y3[1] = py + 8; POLY_Y3[2] = py + Game.TILE - 5;
         for (int i = 0; i < 3; i++) {
             int sx = px + 5 + i * 7;
-            int[] xs = {sx, sx + 3, sx + 6};
-            int[] ys = {py + Game.TILE - 5, py + 8, py + Game.TILE - 5};
-            graphics.fillPolygon(xs, ys, 3);
+            POLY_X3[0] = sx; POLY_X3[1] = sx + 3; POLY_X3[2] = sx + 6;
+            graphics.fillPolygon(POLY_X3, POLY_Y3, 3);
         }
     }
 
@@ -309,9 +316,9 @@ final class Renderer {
         graphics.setColor(LOOT_GEM);
         int cx = px + Game.TILE / 2;
         int cy = py + Game.TILE / 2;
-        int[] xs = {cx, cx + 5, cx, cx - 5};
-        int[] ys = {cy - 6, cy, cy + 6, cy};
-        graphics.fillPolygon(xs, ys, 4);
+        POLY_X4[0] = cx; POLY_X4[1] = cx + 5; POLY_X4[2] = cx; POLY_X4[3] = cx - 5;
+        POLY_Y4[0] = cy - 6; POLY_Y4[1] = cy; POLY_Y4[2] = cy + 6; POLY_Y4[3] = cy;
+        graphics.fillPolygon(POLY_X4, POLY_Y4, 4);
     }
 
     /** Draws Duke facing his current travel direction; right reuses the left sprite mirrored. */
@@ -350,9 +357,9 @@ final class Renderer {
         graphics.fillOval(px + 9, py + 7, 2, 2);
         graphics.fillOval(px + 14, py + 7, 2, 2);
         graphics.setColor(DUKE_NOSE);
-        int[] beakX = {px + 10, px + 14, px + 12};
-        int[] beakY = {py + 12, py + 12, py + 15};
-        graphics.fillPolygon(beakX, beakY, 3);
+        POLY_X3[0] = px + 10; POLY_X3[1] = px + 14; POLY_X3[2] = px + 12;
+        POLY_Y3[0] = py + 12; POLY_Y3[1] = py + 12; POLY_Y3[2] = py + 15;
+        graphics.fillPolygon(POLY_X3, POLY_Y3, 3);
         graphics.setColor(DUKE_OUTLINE);
         graphics.drawRoundRect(px + 5, py + 2, 14, 20, 11, 11);
     }
@@ -387,9 +394,9 @@ final class Renderer {
         graphics.setColor(Color.BLACK);
         graphics.fillOval(px + 8, py + 8, 2, 2);
         graphics.setColor(DUKE_NOSE);
-        int[] beakX = {px + 4, px + 9, px + 9};
-        int[] beakY = {py + 11, py + 9, py + 13};
-        graphics.fillPolygon(beakX, beakY, 3);
+        POLY_X3[0] = px + 4; POLY_X3[1] = px + 9; POLY_X3[2] = px + 9;
+        POLY_Y3[0] = py + 11; POLY_Y3[1] = py + 9; POLY_Y3[2] = py + 13;
+        graphics.fillPolygon(POLY_X3, POLY_Y3, 3);
         graphics.setColor(DUKE_FLIPPER);
         graphics.fillRoundRect(px + 7, py + 13, 4, 7, 4, 4);
         graphics.setColor(DUKE_OUTLINE);
@@ -399,11 +406,11 @@ final class Renderer {
     /** Right-facing profile: the left sprite mirrored about the tile's vertical center. */
     private void drawDukeRight(Graphics graphics, int px, int py) {
         Graphics2D g2 = (Graphics2D) graphics;
-        AffineTransform previous = g2.getTransform();
         g2.translate(2 * px + Game.TILE, 0);
         g2.scale(-1, 1);
         drawDukeLeft(g2, px, py);
-        g2.setTransform(previous);
+        g2.scale(-1, 1);
+        g2.translate(-(2 * px + Game.TILE), 0);
     }
 
     private void drawSword(Graphics graphics, int centerX, int centerY, float progress) {
@@ -430,9 +437,9 @@ final class Renderer {
         switch (type) {
             case Game.NULLPTR -> {
                 graphics.setColor(NULL_COLOR);
-                int[] xs = {px + 12, px + 20, px + 12, px + 4};
-                int[] ys = {py + 3, py + 12, py + 21, py + 12};
-                graphics.fillPolygon(xs, ys, 4);
+                POLY_X4[0] = px + 12; POLY_X4[1] = px + 20; POLY_X4[2] = px + 12; POLY_X4[3] = px + 4;
+                POLY_Y4[0] = py + 3; POLY_Y4[1] = py + 12; POLY_Y4[2] = py + 21; POLY_Y4[3] = py + 12;
+                graphics.fillPolygon(POLY_X4, POLY_Y4, 4);
             }
             case Game.LEAK -> {
                 graphics.setColor(LEAK_COLOR);
@@ -497,11 +504,11 @@ final class Renderer {
         graphics.fillOval(px + 8, py + size - 16, size - 16, 14);
 
         graphics.setColor(enraged ? BOSS_BODY_ENRAGED : BOSS_BODIES[type & 3]);
+        POLY_Y3[0] = py + 16; POLY_Y3[1] = py - 1; POLY_Y3[2] = py + 16;
         for (int i = 0; i < 5; i++) {
             int sx = px + 12 + i * ((size - 24) / 4);
-            int[] xs = {sx, sx + 7, sx + 14};
-            int[] ys = {py + 16, py - 1, py + 16};
-            graphics.fillPolygon(xs, ys, 3);
+            POLY_X3[0] = sx; POLY_X3[1] = sx + 7; POLY_X3[2] = sx + 14;
+            graphics.fillPolygon(POLY_X3, POLY_Y3, 3);
         }
         graphics.fillRoundRect(px + 6, py + 10, size - 12, size - 20, 30, 30);
         graphics.setColor(BOSS_EDGE);
@@ -525,9 +532,9 @@ final class Renderer {
 
         graphics.setColor(BOSS_EYE_DARK);
         int mawY = py + size - 28;
-        int[] mawX = {px + 22, px + 30, px + 38, px + 46, px + 54};
-        int[] mawYs = {mawY, mawY + 9, mawY, mawY + 9, mawY};
-        graphics.fillPolygon(mawX, mawYs, 5);
+        POLY_X5[0] = px + 22; POLY_X5[1] = px + 30; POLY_X5[2] = px + 38; POLY_X5[3] = px + 46; POLY_X5[4] = px + 54;
+        POLY_Y5[0] = mawY; POLY_Y5[1] = mawY + 9; POLY_Y5[2] = mawY; POLY_Y5[3] = mawY + 9; POLY_Y5[4] = mawY;
+        graphics.fillPolygon(POLY_X5, POLY_Y5, 5);
 
         if (telegraph > 0f) {
             graphics.setColor(BOSS_TELEGRAPH);
@@ -823,9 +830,9 @@ final class Renderer {
     private void drawMerchant(Graphics graphics, int px, int py) {
         int cx = px + Game.TILE / 2;
         graphics.setColor(MERCHANT_ROBE);
-        int[] bodyX = {px + 8, px + Game.TILE - 8, px + Game.TILE - 4, px + 4};
-        int[] bodyY = {py + 13, py + 13, py + Game.TILE - 1, py + Game.TILE - 1};
-        graphics.fillPolygon(bodyX, bodyY, 4);
+        POLY_X4[0] = px + 8; POLY_X4[1] = px + Game.TILE - 8; POLY_X4[2] = px + Game.TILE - 4; POLY_X4[3] = px + 4;
+        POLY_Y4[0] = py + 13; POLY_Y4[1] = py + 13; POLY_Y4[2] = py + Game.TILE - 1; POLY_Y4[3] = py + Game.TILE - 1;
+        graphics.fillPolygon(POLY_X4, POLY_Y4, 4);
         graphics.setColor(MERCHANT_TRIM);
         graphics.fillRect(cx - 4, py + 13, 8, 2);
         graphics.fillRect(cx - 1, py + 15, 2, Game.TILE - 17);
