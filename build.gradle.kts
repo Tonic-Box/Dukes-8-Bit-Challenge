@@ -1,9 +1,10 @@
 plugins {
     application
+    id("com.gradleup.shadow") version "8.3.6"
 }
 
 group = "com.tonicbox.dukes8bit"
-version = "1.0-SNAPSHOT"
+version = "1.0"
 
 java {
     toolchain {
@@ -17,14 +18,19 @@ application {
 
 tasks.withType<JavaCompile>().configureEach {
     options.release = 25
-    options.setDebug(false)
+    options.isDebug = false
     options.encoding = "UTF-8"
+}
+
+tasks.named<Jar>("shadowJar") {
+    archiveBaseName = "DukesDescent"
+    archiveClassifier = ""
 }
 
 tasks.register("size") {
     group = "verification"
-    description = "Reports total runtime size (compiled classes + runtime resources)."
-    dependsOn("classes")
+    description = "Reports total runtime size (compiled classes + resources) and the packaged shadow jar size."
+    dependsOn("classes", "shadowJar")
     doLast {
         val measured = listOf(
             layout.buildDirectory.dir("classes/java/main").get().asFile,
@@ -43,5 +49,10 @@ tasks.register("size") {
         println("-".repeat(48))
         println("Files: %d".format(fileCount))
         println("Total: %d B (%.2f KB)".format(totalBytes, kilobytes))
+
+        val jarFile = tasks.named<Jar>("shadowJar").get().archiveFile.get().asFile
+        if (jarFile.exists()) {
+            println("Shadow jar: %d B (%.2f KB)  %s".format(jarFile.length(), jarFile.length() / 1024.0, jarFile.name))
+        }
     }
 }

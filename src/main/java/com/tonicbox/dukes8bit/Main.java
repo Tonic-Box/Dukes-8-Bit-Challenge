@@ -26,8 +26,7 @@ public final class Main extends Frame implements KeyEventDispatcher {
     private final BufferStrategy strategy;
     private final Game game = new Game();
     private final Renderer renderer = new Renderer();
-    private final BufferedImage scene =
-            new BufferedImage(Game.VIEW_WIDTH, Game.VIEW_HEIGHT, BufferedImage.TYPE_INT_RGB);
+    private final BufferedImage scene = new BufferedImage(Game.VIEW_WIDTH, Game.VIEW_HEIGHT, BufferedImage.TYPE_INT_RGB);
     private final Graphics2D sceneGraphics = scene.createGraphics();
 
     private Main() {

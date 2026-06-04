@@ -4,12 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="Add replayability: gear effects, vaults, bosses, persistent floors, minimap&#10;- Effect-typed gear (lifesteal, crit, reach, poison, knockback, thorns, dodge, heal-on-kill) with proc flashes, plus a stats + equip-delta inventory screen and ~10 new items&#10;- Keys &amp; sealed vault rooms: locked doors gate treasure, with a key hidden elsewhere on the floor and vault odds that climb with depth&#10;- Arena bosses every 5th floor: a large 3x3 guardian with a telegraphed slam, an enrage that summons minions, and stairs sealed until it falls&#10;- Persistent floors: revisiting restores cleared enemies, opened doors, looted chests, and felled bosses instead of regenerating&#10;- Fog-aware minimap in the top-right tracking layout, stairs, and entities&#10;- README refreshed; floor snapshots packed into a primitive int[]">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Fixed sizing of minimap&#10;- Implemented stretching and resizability for the game view">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Game.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Renderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Renderer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -96,6 +94,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.Main.executor": "Run",
+    "Gradle.dukes8bit [build].executor": "Run",
     "Gradle.dukes8bit [run].executor": "Run",
     "Gradle.dukes8bit [size].executor": "Run",
     "Gradle.dukes8bit [test].executor": "Run",
@@ -123,6 +122,28 @@
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
+    </configuration>
+    <configuration name="dukes8bit [build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="build" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
     </configuration>
     <configuration name="dukes8bit [run]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
@@ -172,6 +193,7 @@
       <list>
         <item itemvalue="Gradle.dukes8bit [size]" />
         <item itemvalue="Application.Main" />
+        <item itemvalue="Gradle.dukes8bit [build]" />
         <item itemvalue="Gradle.dukes8bit [run]" />
       </list>
     </recent_temporary>
@@ -257,7 +279,15 @@
       <option name="project" value="LOCAL" />
       <updated>1780532594643</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="- Fixed sizing of minimap&#10;- Implemented stretching and resizability for the game view">
+      <option name="closed" value="true" />
+      <created>1780535589806</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1780535589806</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -268,6 +298,7 @@
     <MESSAGE value="- Updated the readme" />
     <MESSAGE value="- Let there be sound" />
     <MESSAGE value="Add replayability: gear effects, vaults, bosses, persistent floors, minimap&#10;- Effect-typed gear (lifesteal, crit, reach, poison, knockback, thorns, dodge, heal-on-kill) with proc flashes, plus a stats + equip-delta inventory screen and ~10 new items&#10;- Keys &amp; sealed vault rooms: locked doors gate treasure, with a key hidden elsewhere on the floor and vault odds that climb with depth&#10;- Arena bosses every 5th floor: a large 3x3 guardian with a telegraphed slam, an enrage that summons minions, and stairs sealed until it falls&#10;- Persistent floors: revisiting restores cleared enemies, opened doors, looted chests, and felled bosses instead of regenerating&#10;- Fog-aware minimap in the top-right tracking layout, stairs, and entities&#10;- README refreshed; floor snapshots packed into a primitive int[]" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add replayability: gear effects, vaults, bosses, persistent floors, minimap&#10;- Effect-typed gear (lifesteal, crit, reach, poison, knockback, thorns, dodge, heal-on-kill) with proc flashes, plus a stats + equip-delta inventory screen and ~10 new items&#10;- Keys &amp; sealed vault rooms: locked doors gate treasure, with a key hidden elsewhere on the floor and vault odds that climb with depth&#10;- Arena bosses every 5th floor: a large 3x3 guardian with a telegraphed slam, an enrage that summons minions, and stairs sealed until it falls&#10;- Persistent floors: revisiting restores cleared enemies, opened doors, looted chests, and felled bosses instead of regenerating&#10;- Fog-aware minimap in the top-right tracking layout, stairs, and entities&#10;- README refreshed; floor snapshots packed into a primitive int[]" />
+    <MESSAGE value="- Fixed sizing of minimap&#10;- Implemented stretching and resizability for the game view" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Fixed sizing of minimap&#10;- Implemented stretching and resizability for the game view" />
   </component>
 </project>
