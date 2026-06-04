@@ -195,18 +195,18 @@ final class Renderer {
         }
 
         for (int i = 0; i < game.breakCount; i++) {
-            float t = game.breakTimer[i];
+            float life = game.breakTimer[i];
             int bx = game.breakX[i], by = game.breakY[i];
             int cx = bx * Game.TILE + Game.TILE / 2 - cameraX;
             int cy = by * Game.TILE + Game.TILE / 2 - cameraY;
-            int spread = (int) ((1f - t) * 14) + 1;
-            int sz = Math.max(1, (int) (t * 4));
+            int spread = (int) ((1f - life) * 14) + 1;
+            int size = Math.max(1, (int) (life * 4));
             graphics.setColor(SCENERY_DEBRIS[(bx * 7 + by * 3) % 3]);
-            for (int f = 0; f < 6; f++) {
-                double angle = f * Math.PI / 3;
+            for (int shard = 0; shard < 6; shard++) {
+                double angle = shard * Math.PI / 3;
                 int fx = cx + (int) (Math.cos(angle) * spread);
                 int fy = cy + (int) (Math.sin(angle) * spread);
-                graphics.fillRect(fx - sz / 2, fy - sz / 2, sz, sz);
+                graphics.fillRect(fx - size / 2, fy - size / 2, size, size);
             }
         }
         for (int i = 0; i < game.lootCount; i++) {
@@ -268,17 +268,17 @@ final class Renderer {
         int dukeX = Math.round(game.renderPixelX()) - cameraX;
         int dukeY = Math.round(game.renderPixelY()) - cameraY;
         if (game.falling && game.fallProgress > 0f) {
-            float s = 1f - game.fallProgress;
-            if (s > 0.02f) {
+            float scale = 1f - game.fallProgress;
+            if (scale > 0.02f) {
                 Graphics2D g2 = (Graphics2D) graphics;
                 int cx = dukeX + Game.TILE / 2;
                 int cy = dukeY + Game.TILE / 2;
                 g2.translate(cx, cy);
-                g2.scale(s, s);
+                g2.scale(scale, scale);
                 g2.translate(-cx, -cy);
                 drawDuke(graphics, dukeX, dukeY, game.facing, 0f, 0f);
                 g2.translate(cx, cy);
-                g2.scale(1.0 / s, 1.0 / s);
+                g2.scale(1.0 / scale, 1.0 / scale);
                 g2.translate(-cx, -cy);
             }
         } else {

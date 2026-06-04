@@ -4,10 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Added in some explanatory comments">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Gave the README some love&#10;- discarded items no longer litter the floor">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Game.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Renderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Renderer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -119,7 +119,7 @@
     "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle"
   }
 }]]></component>
-  <component name="RunManager" selected="Gradle.dukes8bit [run]">
+  <component name="RunManager" selected="Gradle.dukes8bit [size]">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.tonicbox.dukes8bit.Main" />
       <module name="dukes8bit.main" />
@@ -201,8 +201,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.dukes8bit [run]" />
         <item itemvalue="Gradle.dukes8bit [size]" />
+        <item itemvalue="Gradle.dukes8bit [run]" />
         <item itemvalue="Application.Main" />
         <item itemvalue="Gradle.dukes8bit [build]" />
       </list>
@@ -369,7 +369,15 @@
       <option name="project" value="LOCAL" />
       <updated>1780592260477</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="- Gave the README some love&#10;- discarded items no longer litter the floor">
+      <option name="closed" value="true" />
+      <created>1780593505283</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1780593505283</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -402,6 +410,7 @@
     <MESSAGE value="- Size optimizations via effectOf/magOf helpers replacing the six accessors&#10;- Cut runtime allocation ~8x via VRAM scene buffer and batched fog&#10;- Updated README" />
     <MESSAGE value="- Updated README image" />
     <MESSAGE value="- Added in some explanatory comments" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Added in some explanatory comments" />
+    <MESSAGE value="- Gave the README some love&#10;- discarded items no longer litter the floor" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Gave the README some love&#10;- discarded items no longer litter the floor" />
   </component>
 </project>

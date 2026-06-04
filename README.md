@@ -107,3 +107,15 @@ Size is measured as the compiled `.class` files under `build/classes/java/main`.
 - **Compact data:** enemy stats use small lookup tables, trivial one-call helpers are inlined, and the music score is packed into strings instead of array-init bytecode.
 - **No per-frame allocation:** colors and the fog-overlay palette are hoisted into constants and lookup tables, polygon scratch buffers are shared, and entities are reused in fixed arrays, keeping peak memory low.
 - Other minor optimizations explained inline with comments.
+
+### Size breakdown
+
+Measured from a clean build (`./gradlew size`). There are **no runtime asset files** — all graphics and audio are generated procedurally — so the total is purely compiled bytecode.
+
+| File | Size | Share |
+| --- | ---: | ---: |
+| `Game.class` | 30,121 B | 48% |
+| `Renderer.class` | 22,142 B | 36% |
+| `Sound.class` | 6,795 B | 11% |
+| `Main.class` | 3,197 B | 5% |
+| **Total** | **62,255 B (60.80 KB)** | |
