@@ -10,7 +10,7 @@ import java.awt.Graphics2D;
 import java.awt.KeyboardFocusManager;
 import java.awt.KeyEventDispatcher;
 import java.awt.image.BufferStrategy;
-import java.awt.image.BufferedImage;
+import java.awt.image.VolatileImage;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 
@@ -26,8 +26,9 @@ public final class Main extends Frame implements KeyEventDispatcher {
     private final BufferStrategy strategy;
     private final Game game = new Game();
     private final Renderer renderer = new Renderer();
-    private final BufferedImage scene = new BufferedImage(Game.VIEW_WIDTH, Game.VIEW_HEIGHT, BufferedImage.TYPE_INT_RGB);
-    private final Graphics2D sceneGraphics = scene.createGraphics();
+    // VRAM-backed scene buffer: drawing into and stretching from a VolatileImage keeps the scaled
+    // blit on the GPU, so the loop allocates no per-frame pixel rasters the way a BufferedImage would.
+    private VolatileImage scene;
 
     private Main() {
         setTitle("Duke's Descent");
@@ -83,16 +84,27 @@ public final class Main extends Frame implements KeyEventDispatcher {
             if (game.quitRequested) {
                 System.exit(0);
             }
-            renderer.render(sceneGraphics, game);
 
+            // Re-render and re-blit until the VolatileImage stays valid for a whole frame; a lost or
+            // incompatible surface (display change, GPU reclaim) is simply recreated and redrawn.
             int width = canvas.getWidth();
             int height = canvas.getHeight();
-            Graphics graphics = strategy.getDrawGraphics();
-            if (width > 0 && height > 0) {
-                graphics.drawImage(scene, 0, 0, width, height, null);
-            }
-            graphics.dispose();
-            strategy.show();
+            do {
+                if (scene == null || scene.validate(getGraphicsConfiguration()) == VolatileImage.IMAGE_INCOMPATIBLE) {
+                    scene = createVolatileImage(Game.VIEW_WIDTH, Game.VIEW_HEIGHT);
+                }
+                Graphics2D sceneGraphics = scene.createGraphics();
+                renderer.render(sceneGraphics, game);
+                sceneGraphics.dispose();
+
+                Graphics graphics = strategy.getDrawGraphics();
+                if (width > 0 && height > 0) {
+                    graphics.drawImage(scene, 0, 0, width, height, null);
+                }
+                graphics.dispose();
+                strategy.show();
+            } while (scene.contentsLost());
+
             try {
                 Thread.sleep(16);
             }

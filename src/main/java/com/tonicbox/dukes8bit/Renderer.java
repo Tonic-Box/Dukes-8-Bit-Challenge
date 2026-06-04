@@ -160,25 +160,38 @@ final class Renderer {
         int firstY = Math.max(0, cameraY / Game.TILE);
         int lastX = Math.min(Game.MAP_WIDTH - 1, (cameraX + Game.PLAY_WIDTH) / Game.TILE);
         int lastY = Math.min(Game.MAP_HEIGHT - 1, (cameraY + Game.PLAY_HEIGHT) / Game.TILE);
+        // Tiles are drawn per-cell, but the translucent fog overlay is coalesced into horizontal runs of
+        // equal darkness and laid down as one fillRect per run — far fewer alpha-composited fills per frame.
         for (int y = firstY; y <= lastY; y++) {
+            int rowSy = y * Game.TILE - cameraY;
+            int runStep = 0;
+            int runStartSx = 0;
+            int runWidth = 0;
             for (int x = firstX; x <= lastX; x++) {
                 int idx = Game.index(x, y);
-                if (!game.explored[idx]) {
-                    continue;
-                }
                 int sx = x * Game.TILE - cameraX;
-                int sy = y * Game.TILE - cameraY;
-                int tile = game.map[idx];
-                drawTile(graphics, sx, sy, tile, ((x + y) & 1) == 1, x, y);
-                if (tile == Game.TRAP && game.visible[idx] && Math.abs(x - game.playerX) + Math.abs(y - game.playerY) <= 2) {
-                    drawTrap(graphics, sx, sy);
+                int step;
+                if (!game.explored[idx]) {
+                    step = 0;
+                } else {
+                    int tile = game.map[idx];
+                    drawTile(graphics, sx, rowSy, tile, ((x + y) & 1) == 1, x, y);
+                    if (tile == Game.TRAP && game.visible[idx] && Math.abs(x - game.playerX) + Math.abs(y - game.playerY) <= 2) {
+                        drawTrap(graphics, sx, rowSy);
+                    }
+                    float light = game.lightLevel[idx];
+                    step = light < 0.997f ? Math.round((1f - light) * (FOG_STEPS - 1)) : 0;
                 }
-                float light = game.lightLevel[idx];
-                if (light < 0.997f) {
-                    graphics.setColor(FOG[Math.round((1f - light) * (FOG_STEPS - 1))]);
-                    graphics.fillRect(sx, sy, Game.TILE, Game.TILE);
+                if (step == runStep) {
+                    runWidth += Game.TILE;
+                } else {
+                    fillFog(graphics, runStep, runStartSx, rowSy, runWidth);
+                    runStep = step;
+                    runStartSx = sx;
+                    runWidth = Game.TILE;
                 }
             }
+            fillFog(graphics, runStep, runStartSx, rowSy, runWidth);
         }
 
         for (int i = 0; i < game.breakCount; i++) {
@@ -290,6 +303,14 @@ final class Renderer {
             drawPause(graphics, game);
         } else if (game.state == Game.INVENTORY) {
             drawInventory(graphics, game);
+        }
+    }
+
+    /** Lays one coalesced run of the fog overlay; step 0 is fully lit and draws nothing. */
+    private void fillFog(Graphics graphics, int step, int sx, int sy, int width) {
+        if (step > 0) {
+            graphics.setColor(FOG[step]);
+            graphics.fillRect(sx, sy, width, Game.TILE);
         }
     }
 

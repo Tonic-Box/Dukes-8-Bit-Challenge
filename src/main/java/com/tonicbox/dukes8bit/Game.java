@@ -664,8 +664,7 @@ final class Game {
             if (fallProgress >= 1f) {
                 falling = false;
                 playerHp = Math.max(0, playerHp - fallFloors * 4);
-                if (playerHp <= 0) {
-                    playerHp = 0;
+                if (playerHp == 0) {
                     state = DEAD;
                     return;
                 }
