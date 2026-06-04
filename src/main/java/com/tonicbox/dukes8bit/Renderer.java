@@ -64,6 +64,52 @@ final class Renderer {
     private static final Color CHEST_BODY = new Color(150, 96, 40);
     private static final Color CHEST_LID = new Color(220, 174, 72);
     private static final Color LOOT_GEM = new Color(118, 210, 232);
+    private static final Color POISON_TINT = new Color(90, 220, 110, 115);
+    private static final Color CRIT_FLASH = new Color(255, 232, 90, 150);
+    private static final Color HEAL_FLASH = new Color(110, 240, 130, 130);
+    private static final Color DODGE_FLASH = new Color(220, 230, 255, 120);
+    private static final Color DELTA_UP = new Color(120, 224, 132);
+    private static final Color DELTA_DOWN = new Color(232, 96, 96);
+    private static final Color DOOR_FRAME_LIT = new Color(120, 88, 52);
+    private static final Color DOOR_FRAME_DIM = new Color(54, 40, 26);
+    private static final Color DOOR_PANEL_LIT = new Color(168, 120, 66);
+    private static final Color DOOR_PANEL_DIM = new Color(74, 54, 32);
+    private static final Color DOOR_LOCK_LIT = new Color(232, 200, 110);
+    private static final Color DOOR_LOCK_DIM = new Color(96, 82, 46);
+    private static final Color KEY_COLOR = new Color(238, 206, 96);
+    private static final Color KEY_SHADE = new Color(176, 142, 52);
+    private static final Color BOSS_SHADOW = new Color(0, 0, 0, 96);
+    private static final Color[] BOSS_BODIES = {
+        new Color(58, 36, 74), new Color(34, 54, 76), new Color(54, 62, 34), new Color(70, 44, 36),
+    };
+    private static final Color BOSS_BODY_ENRAGED = new Color(96, 32, 44);
+    private static final Color BOSS_EDGE = new Color(158, 104, 200);
+    private static final Color BOSS_CORE = new Color(236, 96, 72);
+    private static final Color BOSS_CORE_HOT = new Color(255, 198, 104);
+    private static final Color BOSS_EYE = new Color(248, 232, 120);
+    private static final Color BOSS_EYE_DARK = new Color(20, 12, 20);
+    private static final Color BOSS_TELEGRAPH = new Color(255, 70, 60, 130);
+    private static final Color BOSS_FLASH = new Color(255, 255, 255, 160);
+    private static final Color SHOCKWAVE_BRIGHT = new Color(255, 150, 90, 200);
+    private static final Color SHOCKWAVE_FAINT = new Color(255, 150, 90, 90);
+    private static final Color SLAM_DANGER = new Color(228, 64, 52, 120);
+    private static final Color SLAM_DANGER_FAINT = new Color(228, 64, 52, 60);
+    private static final int MINIMAP_CELL = 2;
+    private static final int MINIMAP_MARGIN = 28;
+    private static final int MINIMAP_TOP = 48;
+    private static final Color MINIMAP_BACK = new Color(10, 10, 16, 220);
+    private static final Color MINIMAP_BORDER = new Color(84, 80, 110);
+    private static final Color MINIMAP_FLOOR_LIT = new Color(118, 114, 148);
+    private static final Color MINIMAP_FLOOR_DIM = new Color(58, 56, 76);
+    private static final Color MINIMAP_DOWN = new Color(236, 206, 92);
+    private static final Color MINIMAP_UP = new Color(228, 84, 84);
+    private static final Color MINIMAP_DOOR = new Color(200, 150, 70);
+    private static final Color MINIMAP_ENEMY = new Color(222, 70, 64);
+    private static final Color MINIMAP_BOSS = new Color(244, 60, 72);
+    private static final Color MINIMAP_PLAYER = new Color(96, 224, 236);
+    private static final Color BOSS_BAR_BACK = new Color(40, 16, 20);
+    private static final Color BOSS_BAR_FILL = new Color(206, 60, 72);
+    private static final Color BOSS_BAR_FILL_ENRAGED = new Color(240, 120, 60);
 
     /**
      * Draws one frame: the camera-relative, fog-aware dungeon, then loot, entities,
@@ -103,7 +149,9 @@ final class Renderer {
             if (game.visible[Game.index(game.lootX[i], game.lootY[i])]) {
                 int sx = game.lootX[i] * Game.TILE - cameraX;
                 int sy = game.lootY[i] * Game.TILE - cameraY;
-                if (game.lootChest[i]) {
+                if (game.lootKey[i]) {
+                    drawKey(graphics, sx, sy);
+                } else if (game.lootChest[i]) {
                     drawChest(graphics, sx, sy);
                 } else {
                     drawGem(graphics, sx, sy);
@@ -114,7 +162,23 @@ final class Renderer {
         for (int i = 0; i < game.enemyCount; i++) {
             if (game.visible[Game.index(game.enemyX[i], game.enemyY[i])]) {
                 int hop = Math.round(game.enemyHit[i] * 6f);
-                drawEnemy(graphics, Math.round(game.enemyRenderPixelX(i)) - cameraX, Math.round(game.enemyRenderPixelY(i)) - cameraY - hop, game.enemyType[i]);
+                drawEnemy(graphics, Math.round(game.enemyRenderPixelX(i)) - cameraX, Math.round(game.enemyRenderPixelY(i)) - cameraY - hop,
+                        game.enemyType[i], game.enemyCrit[i], game.enemyPoison[i] > 0f);
+            }
+        }
+
+        boolean bossShown = game.bossActive && bossVisible(game);
+        if (bossShown) {
+            int bx = Math.round(game.bossRenderPixelX()) - cameraX;
+            int by = Math.round(game.bossRenderPixelY()) - cameraY;
+            float telegraph = game.bossTelegraph();
+            if (telegraph > 0f) {
+                drawSlamDanger(graphics, game, cameraX, cameraY, telegraph);
+            }
+            drawBoss(graphics, bx, by, game.bossType, game.bossHit, telegraph, game.bossAnimTime, game.bossEnraged);
+            if (game.bossShockwave > 0f) {
+                int half = Game.BOSS_SIZE * Game.TILE / 2;
+                drawShockwave(graphics, bx + half, by + half, game.bossShockwave);
             }
         }
 
@@ -130,10 +194,15 @@ final class Renderer {
 
         int dukeX = Math.round(game.renderPixelX()) - cameraX;
         int dukeY = Math.round(game.renderPixelY()) - cameraY;
-        drawDuke(graphics, dukeX, dukeY, game.facing);
+        drawDuke(graphics, dukeX, dukeY, game.facing, game.playerHeal, game.playerDodge);
         if (game.attackProgress < 1f) {
             drawSword(graphics, dukeX + Game.TILE / 2, dukeY + Game.TILE / 2, game.attackProgress);
         }
+
+        if (bossShown) {
+            drawBossBar(graphics, game);
+        }
+        drawMinimap(graphics, game);
 
         graphics.setClip(null);
         drawHud(graphics, game);
@@ -158,6 +227,10 @@ final class Renderer {
                 graphics.setColor(WALL_SHADOW);
                 graphics.fillRect(px, py + Game.TILE - 3, Game.TILE, 3);
             }
+            return;
+        }
+        if (tile == Game.LOCKED_DOOR) {
+            drawLockedDoor(graphics, px, py, lit);
             return;
         }
         if (lit) {
@@ -192,6 +265,35 @@ final class Renderer {
         }
     }
 
+    /** A studded vault door with a brass lock plate and keyhole; dims when out of the light. */
+    private void drawLockedDoor(Graphics graphics, int px, int py, boolean lit) {
+        graphics.setColor(lit ? DOOR_FRAME_LIT : DOOR_FRAME_DIM);
+        graphics.fillRect(px, py, Game.TILE, Game.TILE);
+        graphics.setColor(lit ? DOOR_PANEL_LIT : DOOR_PANEL_DIM);
+        graphics.fillRect(px + 3, py + 2, Game.TILE - 6, Game.TILE - 4);
+        int cx = px + Game.TILE / 2;
+        graphics.setColor(lit ? DOOR_LOCK_LIT : DOOR_LOCK_DIM);
+        graphics.fillRect(cx - 3, py + Game.TILE / 2 - 3, 6, 8);
+        graphics.setColor(ENEMY_EYE);
+        graphics.fillRect(cx - 1, py + Game.TILE / 2 - 1, 2, 2);
+        graphics.fillRect(cx - 1, py + Game.TILE / 2 + 1, 2, 3);
+    }
+
+    /** A small golden key with a ring bow, shaft, and a pair of teeth. */
+    private void drawKey(Graphics graphics, int px, int py) {
+        int cx = px + Game.TILE / 2;
+        int cy = py + Game.TILE / 2;
+        graphics.setColor(KEY_COLOR);
+        graphics.fillOval(cx - 7, cy - 5, 7, 7);
+        graphics.setColor(BACKGROUND);
+        graphics.fillOval(cx - 5, cy - 3, 3, 3);
+        graphics.setColor(KEY_COLOR);
+        graphics.fillRect(cx - 1, cy - 2, 8, 2);
+        graphics.setColor(KEY_SHADE);
+        graphics.fillRect(cx + 3, cy, 2, 3);
+        graphics.fillRect(cx + 6, cy, 2, 3);
+    }
+
     private void drawChest(Graphics graphics, int px, int py) {
         graphics.setColor(CHEST_BODY);
         graphics.fillRect(px + 5, py + 10, Game.TILE - 10, Game.TILE - 13);
@@ -211,12 +313,20 @@ final class Renderer {
     }
 
     /** Draws Duke facing his current travel direction; right reuses the left sprite mirrored. */
-    private void drawDuke(Graphics graphics, int px, int py, int facing) {
+    private void drawDuke(Graphics graphics, int px, int py, int facing, float heal, float dodge) {
         switch (facing) {
             case Game.FACE_UP -> drawDukeBack(graphics, px, py);
             case Game.FACE_LEFT -> drawDukeLeft(graphics, px, py);
             case Game.FACE_RIGHT -> drawDukeRight(graphics, px, py);
             default -> drawDukeFront(graphics, px, py);
+        }
+        if (heal > 0f) {
+            graphics.setColor(HEAL_FLASH);
+            graphics.fillRect(px + 3, py, Game.TILE - 6, Game.TILE);
+        }
+        if (dodge > 0f) {
+            graphics.setColor(DODGE_FLASH);
+            graphics.fillRect(px + 3, py, Game.TILE - 6, Game.TILE);
         }
     }
 
@@ -314,7 +424,7 @@ final class Renderer {
         g2.drawLine(hiltX, hiltY, tipX, tipY);
     }
 
-    private void drawEnemy(Graphics graphics, int px, int py, int type) {
+    private void drawEnemy(Graphics graphics, int px, int py, int type, float crit, boolean poisoned) {
         switch (type) {
             case Game.NULLPTR -> {
                 graphics.setColor(NULL_COLOR);
@@ -349,6 +459,198 @@ final class Renderer {
         graphics.setColor(ENEMY_EYE);
         graphics.fillRect(px + 8, py + 10, 3, 3);
         graphics.fillRect(px + Game.TILE - 11, py + 10, 3, 3);
+        if (poisoned) {
+            graphics.setColor(POISON_TINT);
+            graphics.fillRect(px + 2, py + 2, Game.TILE - 4, Game.TILE - 4);
+        }
+        if (crit > 0f) {
+            graphics.setColor(CRIT_FLASH);
+            graphics.fillRect(px + 1, py + 1, Game.TILE - 2, Game.TILE - 2);
+        }
+    }
+
+    private boolean bossVisible(Game game) {
+        for (int oy = 0; oy < Game.BOSS_SIZE; oy++) {
+            for (int ox = 0; ox < Game.BOSS_SIZE; ox++) {
+                int x = game.bossX + ox;
+                int y = game.bossY + oy;
+                if (x >= 0 && y >= 0 && x < Game.MAP_WIDTH && y < Game.MAP_HEIGHT
+                        && game.visible[Game.index(x, y)]) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Draws the multi-tile boss: a looming spiked mass with a pulsing core and glaring eyes that bobs
+     * while idle, flares red as it winds up a slam, and whitewashes when struck.
+     */
+    private void drawBoss(Graphics graphics, int px, int py, int type, float hit, float telegraph, float anim, boolean enraged) {
+        int size = Game.BOSS_SIZE * Game.TILE;
+        py += (int) (Math.sin(anim / 240.0) * 3);
+
+        graphics.setColor(BOSS_SHADOW);
+        graphics.fillOval(px + 8, py + size - 16, size - 16, 14);
+
+        graphics.setColor(enraged ? BOSS_BODY_ENRAGED : BOSS_BODIES[type & 3]);
+        for (int i = 0; i < 5; i++) {
+            int sx = px + 12 + i * ((size - 24) / 4);
+            int[] xs = {sx, sx + 7, sx + 14};
+            int[] ys = {py + 16, py - 1, py + 16};
+            graphics.fillPolygon(xs, ys, 3);
+        }
+        graphics.fillRoundRect(px + 6, py + 10, size - 12, size - 20, 30, 30);
+        graphics.setColor(BOSS_EDGE);
+        graphics.drawRoundRect(px + 6, py + 10, size - 12, size - 20, 30, 30);
+
+        int pulse = (int) (Math.sin(anim / 160.0) * 3) + 3;
+        graphics.setColor(BOSS_CORE);
+        graphics.fillOval(px + size / 2 - 14 - pulse / 2, py + size / 2 - 10 - pulse / 2, 28 + pulse, 24 + pulse);
+        graphics.setColor(BOSS_CORE_HOT);
+        graphics.fillOval(px + size / 2 - 7, py + size / 2 - 6, 14, 12);
+
+        graphics.setColor(BOSS_EYE);
+        int eyeY = py + 24;
+        graphics.fillOval(px + 16, eyeY, 9, 9);
+        graphics.fillOval(px + size - 25, eyeY, 9, 9);
+        graphics.fillOval(px + size / 2 - 4, py + 17, 8, 8);
+        graphics.setColor(BOSS_EYE_DARK);
+        graphics.fillOval(px + 19, eyeY + 3, 3, 3);
+        graphics.fillOval(px + size - 22, eyeY + 3, 3, 3);
+        graphics.fillOval(px + size / 2 - 1, py + 20, 3, 3);
+
+        graphics.setColor(BOSS_EYE_DARK);
+        int mawY = py + size - 28;
+        int[] mawX = {px + 22, px + 30, px + 38, px + 46, px + 54};
+        int[] mawYs = {mawY, mawY + 9, mawY, mawY + 9, mawY};
+        graphics.fillPolygon(mawX, mawYs, 5);
+
+        if (telegraph > 0f) {
+            graphics.setColor(BOSS_TELEGRAPH);
+            int grow = (int) (telegraph * 10);
+            graphics.fillRoundRect(px + 6 - grow, py + 10 - grow, size - 12 + grow * 2, size - 20 + grow * 2, 30, 30);
+        }
+        if (hit > 0f) {
+            graphics.setColor(BOSS_FLASH);
+            graphics.fillRoundRect(px + 6, py + 10, size - 12, size - 20, 30, 30);
+        }
+    }
+
+    /**
+     * Tints the exact tiles the boss's slam will strike during its wind-up, so the player can read which
+     * neighbouring tiles to flee to. Brightens as the slam nears.
+     */
+    private void drawSlamDanger(Graphics graphics, Game game, int cameraX, int cameraY, float telegraph) {
+        graphics.setColor(telegraph > 0.5f ? SLAM_DANGER : SLAM_DANGER_FAINT);
+        int radius = Game.BOSS_SLAM_RADIUS;
+        for (int y = game.bossY - radius; y < game.bossY + Game.BOSS_SIZE + radius; y++) {
+            for (int x = game.bossX - radius; x < game.bossX + Game.BOSS_SIZE + radius; x++) {
+                if (x < 0 || y < 0 || x >= Game.MAP_WIDTH || y >= Game.MAP_HEIGHT) {
+                    continue;
+                }
+                int idx = Game.index(x, y);
+                if (game.bossOccupies(x, y) || !game.visible[idx] || game.map[idx] == Game.WALL) {
+                    continue;
+                }
+                graphics.fillRect(x * Game.TILE - cameraX, y * Game.TILE - cameraY, Game.TILE, Game.TILE);
+            }
+        }
+    }
+
+    /** An expanding ring marking the boss slam's reach, brightest at the moment of impact. */
+    private void drawShockwave(Graphics graphics, int centerX, int centerY, float t) {
+        Graphics2D g2 = (Graphics2D) graphics;
+        Stroke previous = g2.getStroke();
+        g2.setStroke(SWORD_STROKE);
+        int radius = (int) ((1f - t) * (Game.BOSS_SIZE / 2f + Game.BOSS_SLAM_RADIUS) * Game.TILE);
+        g2.setColor(t > 0.5f ? SHOCKWAVE_BRIGHT : SHOCKWAVE_FAINT);
+        g2.drawOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
+        g2.setStroke(previous);
+    }
+
+    private void drawBossBar(Graphics graphics, Game game) {
+        int barWidth = 360;
+        int barX = (Game.PLAY_WIDTH - barWidth) / 2;
+        int barY = 16;
+        graphics.setColor(BOSS_BAR_BACK);
+        graphics.fillRect(barX, barY, barWidth, 16);
+        graphics.setColor(game.bossEnraged ? BOSS_BAR_FILL_ENRAGED : BOSS_BAR_FILL);
+        graphics.fillRect(barX, barY, barWidth * Math.max(0, game.bossHp) / game.bossMaxHp, 16);
+        graphics.setColor(HUD_TEXT);
+        drawCenteredAt(graphics, bossName(game.bossType) + (game.bossEnraged ? "   — ENRAGED" : ""),
+                Game.PLAY_WIDTH / 2, barY - 4);
+        graphics.setColor(HUD_HINT);
+        drawCenteredAt(graphics, "The stairs below stay sealed until it falls", Game.PLAY_WIDTH / 2, barY + 30);
+    }
+
+    private String bossName(int type) {
+        return switch (type) {
+            case 0 -> "KERNEL PANIC";
+            case 1 -> "STACK OVERFLOW";
+            case 2 -> "SEGFAULT";
+            default -> "HEAP CORRUPTION";
+        };
+    }
+
+    /**
+     * A fog-aware overview of the floor in the top-right: explored corridors and rooms (brighter where
+     * currently lit), stairs, sealed vault doors, visible enemies and the boss, and Duke as a bright dot.
+     */
+    private void drawMinimap(Graphics graphics, Game game) {
+        int cell = MINIMAP_CELL;
+        int width = Game.MAP_WIDTH * cell;
+        int height = Game.MAP_HEIGHT * cell;
+        int originX = Game.VIEW_WIDTH - width - MINIMAP_MARGIN;
+        int originY = MINIMAP_TOP;
+
+        graphics.setColor(MINIMAP_BACK);
+        graphics.fillRect(originX - 3, originY - 3, width + 6, height + 6);
+        graphics.setColor(MINIMAP_BORDER);
+        graphics.drawRect(originX - 3, originY - 3, width + 5, height + 5);
+
+        for (int ty = 0; ty < Game.MAP_HEIGHT; ty++) {
+            for (int tx = 0; tx < Game.MAP_WIDTH; tx++) {
+                int idx = Game.index(tx, ty);
+                if (!game.explored[idx]) {
+                    continue;
+                }
+                Color color = minimapColor(game.map[idx], game.visible[idx]);
+                if (color == null) {
+                    continue;
+                }
+                graphics.setColor(color);
+                graphics.fillRect(originX + tx * cell, originY + ty * cell, cell, cell);
+            }
+        }
+
+        graphics.setColor(MINIMAP_ENEMY);
+        for (int i = 0; i < game.enemyCount; i++) {
+            if (game.visible[Game.index(game.enemyX[i], game.enemyY[i])]) {
+                graphics.fillRect(originX + game.enemyX[i] * cell, originY + game.enemyY[i] * cell, cell, cell);
+            }
+        }
+
+        if (game.bossActive && bossVisible(game)) {
+            graphics.setColor(MINIMAP_BOSS);
+            graphics.fillRect(originX + game.bossX * cell, originY + game.bossY * cell,
+                    Game.BOSS_SIZE * cell, Game.BOSS_SIZE * cell);
+        }
+
+        graphics.setColor(MINIMAP_PLAYER);
+        graphics.fillRect(originX + game.playerX * cell - 1, originY + game.playerY * cell - 1, cell + 2, cell + 2);
+    }
+
+    /** Minimap colour for a tile: null hides unseen walls; floors dim when only remembered, not lit. */
+    private Color minimapColor(int tile, boolean lit) {
+        return switch (tile) {
+            case Game.WALL -> null;
+            case Game.DOWN_STAIRS -> MINIMAP_DOWN;
+            case Game.UP_STAIRS -> MINIMAP_UP;
+            case Game.LOCKED_DOOR -> MINIMAP_DOOR;
+            default -> lit ? MINIMAP_FLOOR_LIT : MINIMAP_FLOOR_DIM;
+        };
     }
 
     private void drawHud(Graphics graphics, Game game) {
@@ -360,7 +662,7 @@ final class Renderer {
         graphics.drawString(
                 "DEPTH " + game.floor + "   LVL " + game.playerLevel
                 + "   ATK " + game.attackPower() + "   DEF " + game.defense()
-                + "   GOLD " + game.gold + "   POT " + game.potions, 12, top + 22
+                + "   GOLD " + game.gold + "   POT " + game.potions + "   KEY " + game.keys, 12, top + 22
         );
 
         int barX = 430;
@@ -420,31 +722,94 @@ final class Renderer {
         graphics.setColor(OVERLAY);
         graphics.fillRect(0, 0, Game.VIEW_WIDTH, Game.VIEW_HEIGHT);
         graphics.setColor(HUD_TEXT);
-        drawCentered(graphics, "INVENTORY", 64);
+        drawCentered(graphics, "INVENTORY", 48);
 
-        int left = Game.VIEW_WIDTH / 2 - 150;
+        int leftX = 60;
+        int rightX = 356;
+
         graphics.setColor(HUD_HINT);
-        graphics.drawString("EQUIPPED", left, 110);
+        graphics.drawString("CHARACTER", leftX, 84);
         graphics.setColor(HUD_TEXT);
-        graphics.drawString("Weapon    " + slotName(game.equippedWeapon), left, 132);
-        graphics.drawString("Armor     " + slotName(game.equippedArmor), left, 152);
-        graphics.drawString("Trinket   " + slotName(game.equippedTrinket), left, 172);
+        graphics.drawString("HP         " + game.playerHp + " / " + game.playerMaxHp, leftX, 108);
+        graphics.drawString("ATK        " + game.attackPower(), leftX, 128);
+        graphics.drawString("DEF        " + game.defense(), leftX, 148);
+        graphics.drawString("Crit       " + game.critChance() + "%", leftX, 168);
+        graphics.drawString("Lifesteal  " + game.lifestealPercent() + "%", leftX, 188);
+        graphics.drawString("Dodge      " + game.dodgeChance() + "%", leftX, 208);
 
         graphics.setColor(HUD_HINT);
-        graphics.drawString("CARRIED", left, 212);
+        graphics.drawString("EQUIPPED", rightX, 84);
+        graphics.setColor(HUD_TEXT);
+        graphics.drawString("Weapon   " + slotName(game.equippedWeapon), rightX, 108);
+        graphics.drawString("Armor    " + slotName(game.equippedArmor), rightX, 128);
+        graphics.drawString("Trinket  " + slotName(game.equippedTrinket), rightX, 148);
+
+        graphics.setColor(HUD_HINT);
+        graphics.drawString("CARRIED", leftX, 252);
         if (game.inventoryCount == 0) {
-            graphics.drawString("  (empty)", left, 234);
+            graphics.setColor(HUD_TEXT);
+            graphics.drawString("  (empty)", leftX, 276);
         } else {
             for (int i = 0; i < game.inventoryCount; i++) {
                 boolean selected = i == game.inventorySelection;
                 graphics.setColor(selected ? PROMPT : HUD_TEXT);
-                graphics.drawString((selected ? "> " : "  ") + Game.ITEM_NAME[game.inventory[i]], left, 234 + i * 20);
+                graphics.drawString((selected ? "> " : "  ") + Game.ITEM_NAME[game.inventory[i]], leftX, 276 + i * 20);
             }
+            drawEquipDelta(graphics, game, rightX, 252);
         }
 
         graphics.setColor(HUD_HINT);
         drawCentered(graphics, "[Up/Down] select    [Enter] equip    [D] drop    [I/Esc] close",
-                Game.PLAY_HEIGHT - 20);
+                Game.VIEW_HEIGHT - 22);
+    }
+
+    /**
+     * Shows what equipping the highlighted carried item would change: the ATK/DEF swing in green/red,
+     * the effect gained or lost, and which item it would replace. Modeled on a "vs equipped" preview.
+     */
+    private void drawEquipDelta(Graphics graphics, Game game, int x, int y) {
+        int carried = game.inventory[game.inventorySelection];
+        int slot = game.itemSlot(carried);
+        int current = game.equippedCounterpart(carried);
+
+        graphics.setColor(HUD_HINT);
+        graphics.drawString("IF EQUIPPED", x, y);
+
+        int lineY = y + 24;
+        if (slot == Game.WEAPON || slot == Game.ARMOR) {
+            String stat;
+            int oldTotal;
+            int newTotal;
+            if (slot == Game.WEAPON) {
+                stat = "ATK";
+                oldTotal = game.attackPower();
+                newTotal = game.playerAtk + game.itemValue(carried);
+            } else {
+                stat = "DEF";
+                oldTotal = game.defense();
+                newTotal = game.itemValue(carried);
+            }
+            int diff = newTotal - oldTotal;
+            graphics.setColor(diff > 0 ? DELTA_UP : diff < 0 ? DELTA_DOWN : HUD_TEXT);
+            String sign = diff >= 0 ? "+" : "";
+            graphics.drawString(stat + "  " + oldTotal + " -> " + newTotal + "   (" + sign + diff + ")", x, lineY);
+            lineY += 24;
+        }
+
+        int newEffect = game.itemEffect(carried);
+        int oldEffect = current >= 0 ? game.itemEffect(current) : Game.EFF_NONE;
+        if (newEffect != Game.EFF_NONE) {
+            graphics.setColor(DELTA_UP);
+            graphics.drawString("gain " + Game.effectLabel(newEffect), x, lineY);
+            lineY += 20;
+        }
+        if (oldEffect != Game.EFF_NONE && oldEffect != newEffect) {
+            graphics.setColor(DELTA_DOWN);
+            graphics.drawString("lose " + Game.effectLabel(oldEffect), x, lineY);
+            lineY += 20;
+        }
+        graphics.setColor(HUD_HINT);
+        graphics.drawString(current >= 0 ? "replaces " + Game.ITEM_NAME[current] : "fills an empty slot", x, lineY);
     }
 
     private String slotName(int item) {

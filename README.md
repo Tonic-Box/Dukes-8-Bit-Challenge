@@ -1,8 +1,9 @@
 # Duke's Descent
 
 A procedural dungeon crawler starring Duke, the Java mascot, built for the 8-bit
-challenge. Descend through randomly generated floors, fight Java-themed enemies, 
-level up, and see how deep you can get before you fall.
+challenge. Descend through randomly generated floors, fight Java-themed enemies,
+loot effect-bearing gear, crack open sealed vaults, topple floor bosses, and see
+how deep you can get before you fall.
 
 ![img.png](img.png)
 
@@ -23,19 +24,27 @@ Requires **JDK 25**.
 | Move | WASD / Arrow keys |
 | Attack | Space |
 | Drink potion (heal) | Q |
+| Open inventory | I |
+| Equip / drop selected item (in inventory) | Enter / D |
 | Talk to merchant / open shop | Enter |
 | Buy potion (in shop) | B |
+| Open a sealed vault door | Walk into it holding a key |
 | Descend / ascend | Walk onto the gold / red stairs |
+| Mute / unmute audio | M |
 | Pause (Resume / Quit) | Esc |
 
 ## Gameplay
 
 - **Goal:** descend as far as possible. Score is the deepest floor reached.
-- **Fog of war:** only tiles in line of sight are visible; explored tiles stay dimly remembered.
-- **Enemies** (Bug, NullPointer, MemoryLeak) wake only once they enter your light, then pursue in real time. Their numbers and stats scale gently with depth.
+- **Fog of war:** only tiles in line of sight are visible; explored tiles stay dimly remembered, and a minimap in the top corner tracks the layout, stairs, vault doors, and enemies you have uncovered.
+- **Enemies** (Bug, NullPointer, MemoryLeak, ForkBomb, Deadlock) wake only once they enter your light, then pursue in real time. Numbers and stats scale gently with depth; a ForkBomb splits into Bugs on death and a Deadlock is a slow, heavy brute.
+- **Gear & effects:** weapons, armor, and trinkets drop as loot and from chests. Beyond raw attack and defense they carry effects — lifesteal, crit, reach, poison, knockback, thorns, dodge, heal-on-kill, and trinket perks — that flash visibly when they proc. The inventory screen shows your stats and the exact +/- of equipping each item.
+- **Keys & vaults:** sealed vault rooms, gated by a locked door, hide a hoard of chests. A key dropped elsewhere on the floor opens one, and vaults grow more common the deeper you go.
+- **Bosses:** every fifth floor is an arena guarding the way down — a large multi-tile boss with a telegraphed area slam (its reach shown as highlighted danger tiles), an enrage at half health that summons minions, and a stairway that unseals only once it falls.
 - **Progression:** kills grant XP and gold; leveling raises max HP and attack. HP also regenerates slowly while exploring.
 - **Merchant:** a shopkeeper spawns on each floor and sells potions for gold.
-- **Audio:** procedural sound effects (slash, hit, footstep, stairs) and a looping chiptune track, all synthesized at runtime.
+- **Persistent floors:** a floor remembers itself — climb back up and your cleared enemies, opened doors, looted chests, and felled bosses stay as you left them.
+- **Audio:** procedural sound effects (slash, hit, footstep, stairs, key, boss slam) and a looping chiptune track, all synthesized at runtime.
 
 ## Architecture
 
@@ -54,7 +63,7 @@ Key decisions:
 - **Real-time over discrete logic.** Player, enemy, and attack actions run on independent millisecond clocks and are interpolated each frame.
 - **Fully procedural content.** Floors use rectangular rooms joined by corridors; visibility uses per-tile ray casting; sprites are composed of primitive shapes.
 - **Procedural audio.** Effects are short synthesized blips; the music is a sequencer loop routed into the same JDK synthesizer on its own channels. Nothing is loaded from disk, so the resources directory stays empty.
-- **Deterministic floors.** Layout, enemies, and the merchant are produced from a per-floor seed (`baseSeed + floor`), so revisited floors regenerate identically.
+- **Seeded then persistent floors.** A floor's first layout, enemies, and merchant are produced from a per-floor seed (`baseSeed + floor`); after that the floor's state is snapshotted and restored on return, so revisiting preserves your changes rather than regenerating.
 
 ## Code design notes
 
@@ -67,6 +76,8 @@ A few implementation choices and the reasoning behind them:
 - **Integer-rounded camera.** The camera follows Duke's interpolated sub-pixel position but is rounded to whole pixels before drawing, so the scrolling dungeon stays crisp instead of shimmering.
 - **Placement sanity checks.** The merchant is only placed where the surrounding 3×3 block is floor, guaranteeing it sits in open room space and can never wall off a corridor.
 - **Directional avatar.** Duke is drawn as four facing sprites (front / back / left / right); the right profile is the left one mirrored with a transform, so only one side is hand-built.
+- **Bosses.** A floor boss occupies a 3x3 footprint and lives in its own fields rather than the per-tile enemy arrays, keeping its multi-tile collision, telegraphed slam, and enrage phase cleanly separate from the lightweight regular enemies.
+- **Per-floor state snapshots.** Leaving a floor copies its tiles, fog memory, enemies, loot, and boss into a cache keyed by depth; returning restores that snapshot. First visits still generate from the seed, so determinism and persistence coexist.
 
 ## Optimization strategies
 

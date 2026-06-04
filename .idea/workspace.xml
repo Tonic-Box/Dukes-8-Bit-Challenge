@@ -4,9 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Let there be sound">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="Add replayability: gear effects, vaults, bosses, persistent floors, minimap&#10;- Effect-typed gear (lifesteal, crit, reach, poison, knockback, thorns, dodge, heal-on-kill) with proc flashes, plus a stats + equip-delta inventory screen and ~10 new items&#10;- Keys &amp; sealed vault rooms: locked doors gate treasure, with a key hidden elsewhere on the floor and vault odds that climb with depth&#10;- Arena bosses every 5th floor: a large 3x3 guardian with a telegraphed slam, an enrage that summons minions, and stairs sealed until it falls&#10;- Persistent floors: revisiting restores cleared enemies, opened doors, looted chests, and felled bosses instead of regenerating&#10;- Fog-aware minimap in the top-right tracking layout, stairs, and entities&#10;- README refreshed; floor snapshots packed into a primitive int[]">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Game.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Renderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Renderer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Sound.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Sound.java" afterDir="false" />
     </list>
@@ -71,22 +73,22 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "Tonic-Box"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Tonic-Box&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/Tonic-Box/Dukes-8-Bit-Challenge",
-    "accountId": "43f17d99-36a0-4d35-821c-30bec785e92e"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Tonic-Box/Dukes-8-Bit-Challenge&quot;,
+    &quot;accountId&quot;: &quot;43f17d99-36a0-4d35-821c-30bec785e92e&quot;
   }
-}]]></component>
+}</component>
   <component name="GradleScriptDefinitionsStorage" workingDir="$PROJECT_DIR$" gradleHome="C:\Users\zacke\.gradle\wrapper\dists\gradle-9.5.1-bin\iq79hdu3mqx29lgffhp8bfmx\gradle-9.5.1" javaHome="C:\Users\zacke\.jdks\jbr-25.0.3" gradleVersion="9.5.1" />
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 7
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
   <component name="ProjectId" id="3EXZ9WR392m60tikFXK7ierHVlo" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -97,6 +99,7 @@
     "Application.Main.executor": "Run",
     "Gradle.dukes8bit [run].executor": "Run",
     "Gradle.dukes8bit [size].executor": "Run",
+    "Gradle.dukes8bit [test].executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
@@ -169,8 +172,8 @@
     <recent_temporary>
       <list>
         <item itemvalue="Gradle.dukes8bit [size]" />
-        <item itemvalue="Gradle.dukes8bit [run]" />
         <item itemvalue="Application.Main" />
+        <item itemvalue="Gradle.dukes8bit [run]" />
       </list>
     </recent_temporary>
   </component>
@@ -257,6 +260,7 @@
     <MESSAGE value="- a few smaller size optimizations" />
     <MESSAGE value="- Updated the readme" />
     <MESSAGE value="- Let there be sound" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Let there be sound" />
+    <MESSAGE value="Add replayability: gear effects, vaults, bosses, persistent floors, minimap&#10;- Effect-typed gear (lifesteal, crit, reach, poison, knockback, thorns, dodge, heal-on-kill) with proc flashes, plus a stats + equip-delta inventory screen and ~10 new items&#10;- Keys &amp; sealed vault rooms: locked doors gate treasure, with a key hidden elsewhere on the floor and vault odds that climb with depth&#10;- Arena bosses every 5th floor: a large 3x3 guardian with a telegraphed slam, an enrage that summons minions, and stairs sealed until it falls&#10;- Persistent floors: revisiting restores cleared enemies, opened doors, looted chests, and felled bosses instead of regenerating&#10;- Fog-aware minimap in the top-right tracking layout, stairs, and entities&#10;- README refreshed; floor snapshots packed into a primitive int[]" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add replayability: gear effects, vaults, bosses, persistent floors, minimap&#10;- Effect-typed gear (lifesteal, crit, reach, poison, knockback, thorns, dodge, heal-on-kill) with proc flashes, plus a stats + equip-delta inventory screen and ~10 new items&#10;- Keys &amp; sealed vault rooms: locked doors gate treasure, with a key hidden elsewhere on the floor and vault odds that climb with depth&#10;- Arena bosses every 5th floor: a large 3x3 guardian with a telegraphed slam, an enrage that summons minions, and stairs sealed until it falls&#10;- Persistent floors: revisiting restores cleared enemies, opened doors, looted chests, and felled bosses instead of regenerating&#10;- Fog-aware minimap in the top-right tracking layout, stairs, and entities&#10;- README refreshed; floor snapshots packed into a primitive int[]" />
   </component>
 </project>

@@ -1,5 +1,7 @@
 package com.tonicbox.dukes8bit;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.awt.event.KeyEvent;
 
@@ -27,6 +29,7 @@ final class Game {
     static final int DOWN_STAIRS = 2;
     static final int UP_STAIRS = 3;
     static final int TRAP = 4;
+    static final int LOCKED_DOOR = 5;
 
     static final int PLAYING = 0;
     static final int DEAD = 1;
@@ -61,20 +64,90 @@ final class Game {
     static final int MAX_ENEMIES = 32;
     static final int POTION_COST = 12;
 
-    /** Item ids are indices into these tables; names carry the effect for display. */
+    // Equipment effect types. EFF_NONE is plain gear; the rest layer a behaviour on top of the slot's base stat.
+    static final int EFF_NONE = 0;
+    static final int EFF_LIFESTEAL = 1;
+    static final int EFF_CRIT = 2;
+    static final int EFF_REACH = 3;
+    static final int EFF_POISON = 4;
+    static final int EFF_KNOCKBACK = 5;
+    static final int EFF_THORNS = 6;
+    static final int EFF_DODGE = 7;
+    static final int EFF_HEAL_ON_KILL = 8;
+    static final int EFF_REGEN = 9;
+    static final int EFF_SIGHT = 10;
+    static final int EFF_GOLD = 11;
+    static final int EFF_XP = 12;
+    static final int EFF_SPEED = 13;
+    static final int EFF_KEYFIND = 14;
+
+    static final int WEAPON = 0;
+    static final int ARMOR = 1;
+    static final int TRINKET = 2;
+
+    /**
+     * Item ids are indices into these parallel tables. ITEM_VALUE is the slot's base stat
+     * (+ATK for weapons, +DEF for armor); ITEM_EFFECT/ITEM_EFFECT_MAG layer a special behaviour
+     * on top, so base combat math stays untouched and plain gear is simply EFF_NONE.
+     */
     static final String[] ITEM_NAME = {
         "Debugger Blade  +3 ATK", "Null Sword  +5 ATK", "Refactor Axe  +8 ATK",
+        "Garbage Collector  +4 ATK lifesteal", "Hot-Swap Dagger  +4 ATK crit",
+        "Stack-Trace Spear  +5 ATK reach", "Venom Linter  +4 ATK poison",
+        "Null-Cannon  +6 ATK knockback",
         "Try-Catch Vest  +2 DEF", "Final Plate  +4 DEF", "Sandbox Shield  +6 DEF",
+        "Exception Mail  +3 DEF thorns", "Async Cloak  +2 DEF dodge", "Daemon Plate  +4 DEF heal-kill",
         "Hot Coffee  regen+", "Lantern  sight+", "Lucky Coin  gold+",
+        "Profiler  xp+", "Caffeine IV  speed+", "Keyring  keys+",
     };
-    private static final int WEAPON = 0;
-    private static final int ARMOR = 1;
-    private static final int TRINKET = 2;
-    private static final int[] ITEM_SLOT = {WEAPON, WEAPON, WEAPON, ARMOR, ARMOR, ARMOR, TRINKET, TRINKET, TRINKET};
-    private static final int[] ITEM_VALUE = {3, 5, 8, 2, 4, 6, 0, 0, 0};
-    private static final int TRINKET_COFFEE = 6;
-    private static final int TRINKET_LANTERN = 7;
-    private static final int TRINKET_COIN = 8;
+    private static final int[] ITEM_SLOT = {
+        WEAPON, WEAPON, WEAPON, WEAPON, WEAPON, WEAPON, WEAPON, WEAPON,
+        ARMOR, ARMOR, ARMOR, ARMOR, ARMOR, ARMOR,
+        TRINKET, TRINKET, TRINKET, TRINKET, TRINKET, TRINKET,
+    };
+    private static final int[] ITEM_VALUE = {
+        3, 5, 8, 4, 4, 5, 4, 6,
+        2, 4, 6, 3, 2, 4,
+        0, 0, 0, 0, 0, 0,
+    };
+    private static final int[] ITEM_EFFECT = {
+        EFF_NONE, EFF_NONE, EFF_NONE, EFF_LIFESTEAL, EFF_CRIT, EFF_REACH, EFF_POISON, EFF_KNOCKBACK,
+        EFF_NONE, EFF_NONE, EFF_NONE, EFF_THORNS, EFF_DODGE, EFF_HEAL_ON_KILL,
+        EFF_REGEN, EFF_SIGHT, EFF_GOLD, EFF_XP, EFF_SPEED, EFF_KEYFIND,
+    };
+    private static final int[] ITEM_EFFECT_MAG = {
+        0, 0, 0, 25, 30, 0, 0, 3,
+        0, 0, 0, 3, 30, 3,
+        0, 0, 0, 50, 0, 14,
+    };
+
+    // Contiguous id ranges used by the loot roller; effect variants are the rarer half of each gear pool.
+    private static final int WEAPON_EFFECT_FIRST = 3;
+    private static final int WEAPON_EFFECT_COUNT = 5;
+    private static final int ARMOR_PLAIN_FIRST = 8;
+    private static final int ARMOR_EFFECT_FIRST = 11;
+    private static final int ARMOR_EFFECT_COUNT = 3;
+    private static final int TRINKET_FIRST = 14;
+    private static final int TRINKET_COUNT = 6;
+
+    private static final float POISON_DURATION_MS = 3000f;
+    private static final float POISON_TICK_MS = 600f;
+    private static final int POISON_DAMAGE = 2;
+
+    // A boss guards every fifth floor: a large multi-tile guardian whose arena seals the stairs down.
+    static final int BOSS_SIZE = 3;
+    private static final int BOSS_FLOOR_INTERVAL = 5;
+    private static final float BOSS_MOVE_MS = 430f;
+    private static final float BOSS_ATTACK_MS = 1100f;
+    private static final float BOSS_WINDUP_MS = 950f;
+    private static final float BOSS_SHOCKWAVE_MS = 360f;
+    // The slam only strikes the ring of tiles touching the footprint, so one step out of melee is safe.
+    static final int BOSS_SLAM_RADIUS = 1;
+    // The slam is an occasional punctuation: a long cooldown keeps regular bites flowing between slams.
+    private static final int BOSS_SLAM_CHANCE = 55;
+    private static final float BOSS_SLAM_COOLDOWN_MS = 4000f;
+    private static final int BOSS_IDLE = 0;
+    private static final int BOSS_WINDUP = 1;
 
     private static final int INVENTORY_SIZE = 8;
     private static final int LOOT_CAP = 16;
@@ -83,6 +156,8 @@ final class Game {
     private static final int MAX_ROOMS = 20;
     private static final int ROOM_MIN = 4;
     private static final int ROOM_MAX = 8;
+    // A vault's key is kept this many tiles from its door so it never sits in the same room.
+    private static final int KEY_DOOR_MIN_DISTANCE = 9;
     private static final float MOVE_DURATION_MS = 120f;
     private static final float ENEMY_DURATION_MS = 300f;
     private static final float ENEMY_ATTACK_MS = 600f;
@@ -97,6 +172,14 @@ final class Game {
     // Generation uses its own seeded RNG so floor layouts are reproducible, independent of combat rolls.
     private final Random genRandom = new Random();
     private final Sound sound = new Sound();
+    // Each visited floor is cached as one packed int[] so revisiting restores it rather than regenerating.
+    // Layout: an 11-int header, then 5 ints per enemy, 5 per loot, the map, and the explored mask.
+    private static final int SNAP_ENEMY_BASE = 11;
+    private static final int SNAP_LOOT_BASE = SNAP_ENEMY_BASE + MAX_ENEMIES * 5;
+    private static final int SNAP_MAP_BASE = SNAP_LOOT_BASE + LOOT_CAP * 5;
+    private static final int SNAP_EXPLORED_BASE = SNAP_MAP_BASE + MAP_WIDTH * MAP_HEIGHT;
+    private static final int SNAP_SIZE = SNAP_EXPLORED_BASE + MAP_WIDTH * MAP_HEIGHT;
+    private final Map<Integer, int[]> floorCache = new HashMap<>();
 
     final int[] map = new int[MAP_WIDTH * MAP_HEIGHT];
     final boolean[] explored = new boolean[MAP_WIDTH * MAP_HEIGHT];
@@ -107,6 +190,8 @@ final class Game {
     final int[] enemyY = new int[MAX_ENEMIES];
     final int[] enemyType = new int[MAX_ENEMIES];
     final float[] enemyHit = new float[MAX_ENEMIES];
+    final float[] enemyCrit = new float[MAX_ENEMIES];
+    final float[] enemyPoison = new float[MAX_ENEMIES];
     private final int[] enemyHp = new int[MAX_ENEMIES];
     private final int[] enemyPrevX = new int[MAX_ENEMIES];
     private final int[] enemyPrevY = new int[MAX_ENEMIES];
@@ -119,6 +204,7 @@ final class Game {
     final int[] lootY = new int[LOOT_CAP];
     final int[] lootItem = new int[LOOT_CAP];
     final boolean[] lootChest = new boolean[LOOT_CAP];
+    final boolean[] lootKey = new boolean[LOOT_CAP];
     int lootCount;
 
     int playerX;
@@ -132,6 +218,7 @@ final class Game {
     int playerXp;
     int gold;
     int potions;
+    int keys;
     int equippedWeapon;
     int equippedArmor;
     int equippedTrinket;
@@ -144,7 +231,31 @@ final class Game {
     int pauseSelection;
     boolean quitRequested;
     float attackProgress = 1f;
+    // Transient proc flashes on Duke, decayed each frame like enemyHit.
+    float playerHeal;
+    float playerDodge;
 
+    // The arena boss is a single large entity held outside the per-tile enemy arrays.
+    boolean bossActive;
+    int bossType;
+    int bossX;
+    int bossY;
+    int bossHp;
+    int bossMaxHp;
+    boolean bossEnraged;
+    float bossHit;
+    float bossWindup;
+    float bossShockwave;
+    float bossAnimTime;
+    private int bossPrevX;
+    private int bossPrevY;
+    private int bossState;
+    private float bossMoveProgress;
+    private float bossAttackCooldown;
+    private float bossSlamCooldown;
+
+    private int vaultDoorX;
+    private int vaultDoorY;
     private int previousX;
     private int previousY;
     private float moveProgress = 1f;
@@ -189,6 +300,7 @@ final class Game {
         playerXp = 0;
         gold = 0;
         potions = 0;
+        keys = 0;
         equippedWeapon = equippedArmor = equippedTrinket = -1;
         inventoryCount = 0;
         inventorySelection = 0;
@@ -200,6 +312,10 @@ final class Game {
         quaffHeld = buyHeld = enterHeld = escHeld = inventoryHeld = dropHeld = muteHeld = false;
         quaffRequested = buyRequested = talkRequested = equipRequested = dropRequested = false;
         regenTimer = 0f;
+        playerHeal = 0f;
+        playerDodge = 0f;
+        bossActive = false;
+        floorCache.clear();
         baseSeed = random.nextLong();
         generate(false);
     }
@@ -212,6 +328,108 @@ final class Game {
     /** Damage reduction from the equipped armor. */
     int defense() {
         return equippedArmor >= 0 ? ITEM_VALUE[equippedArmor] : 0;
+    }
+
+    int weaponEffect() {
+        return equippedWeapon >= 0 ? ITEM_EFFECT[equippedWeapon] : EFF_NONE;
+    }
+
+    int armorEffect() {
+        return equippedArmor >= 0 ? ITEM_EFFECT[equippedArmor] : EFF_NONE;
+    }
+
+    int trinketEffect() {
+        return equippedTrinket >= 0 ? ITEM_EFFECT[equippedTrinket] : EFF_NONE;
+    }
+
+    int weaponMag() {
+        return equippedWeapon >= 0 ? ITEM_EFFECT_MAG[equippedWeapon] : 0;
+    }
+
+    int armorMag() {
+        return equippedArmor >= 0 ? ITEM_EFFECT_MAG[equippedArmor] : 0;
+    }
+
+    int trinketMag() {
+        return equippedTrinket >= 0 ? ITEM_EFFECT_MAG[equippedTrinket] : 0;
+    }
+
+    /** Percent chance the equipped weapon lands a critical hit, 0 when it has no crit effect. */
+    int critChance() {
+        return weaponEffect() == EFF_CRIT ? weaponMag() : 0;
+    }
+
+    /** Percent of damage dealt returned as health, 0 without a lifesteal weapon. */
+    int lifestealPercent() {
+        return weaponEffect() == EFF_LIFESTEAL ? weaponMag() : 0;
+    }
+
+    /** Percent chance the equipped armor evades an incoming bite, 0 without a dodge effect. */
+    int dodgeChance() {
+        return armorEffect() == EFF_DODGE ? armorMag() : 0;
+    }
+
+    int itemSlot(int id) {
+        return ITEM_SLOT[id];
+    }
+
+    int itemValue(int id) {
+        return ITEM_VALUE[id];
+    }
+
+    int itemEffect(int id) {
+        return ITEM_EFFECT[id];
+    }
+
+    int itemMag(int id) {
+        return ITEM_EFFECT_MAG[id];
+    }
+
+    /** The item currently equipped in the same slot as {@code carriedId}, or -1 if that slot is empty. */
+    int equippedCounterpart(int carriedId) {
+        return switch (ITEM_SLOT[carriedId]) {
+            case WEAPON -> equippedWeapon;
+            case ARMOR -> equippedArmor;
+            default -> equippedTrinket;
+        };
+    }
+
+    /** Human-readable label for an effect type; empty for plain gear. */
+    static String effectLabel(int effect) {
+        return switch (effect) {
+            case EFF_LIFESTEAL -> "Lifesteal";
+            case EFF_CRIT -> "Crit";
+            case EFF_REACH -> "Reach";
+            case EFF_POISON -> "Poison";
+            case EFF_KNOCKBACK -> "Knockback";
+            case EFF_THORNS -> "Thorns";
+            case EFF_DODGE -> "Dodge";
+            case EFF_HEAL_ON_KILL -> "Heal on kill";
+            case EFF_REGEN -> "Regen";
+            case EFF_SIGHT -> "Sight";
+            case EFF_GOLD -> "Gold find";
+            case EFF_XP -> "XP boost";
+            case EFF_SPEED -> "Speed";
+            case EFF_KEYFIND -> "Key find";
+            default -> "";
+        };
+    }
+
+    /** Decays a timer toward zero by the given amount without overshooting below zero. */
+    private static float decay(float value, float amount) {
+        return value > amount ? value - amount : 0f;
+    }
+
+    /** Heals Duke up to his maximum and flags a green proc flash when any health is actually restored. */
+    private void healPlayer(int amount) {
+        if (amount <= 0) {
+            return;
+        }
+        int before = playerHp;
+        playerHp = Math.min(playerMaxHp, playerHp + amount);
+        if (playerHp > before) {
+            playerHeal = 1f;
+        }
     }
 
     /**
@@ -395,7 +613,7 @@ final class Game {
             }
         }
 
-        float regenInterval = equippedTrinket == TRINKET_COFFEE ? REGEN_INTERVAL_MS * 0.55f : REGEN_INTERVAL_MS;
+        float regenInterval = trinketEffect() == EFF_REGEN ? REGEN_INTERVAL_MS * 0.55f : REGEN_INTERVAL_MS;
         regenTimer += deltaMillis;
         if (regenTimer >= regenInterval) {
             regenTimer -= regenInterval;
@@ -403,8 +621,11 @@ final class Game {
                 playerHp++;
             }
         }
+        playerHeal = decay(playerHeal, deltaMillis / HIT_DURATION_MS);
+        playerDodge = decay(playerDodge, deltaMillis / HIT_DURATION_MS);
 
         enemyContacts(deltaMillis);
+        updateBoss(deltaMillis);
         if (state != PLAYING) {
             return;
         }
@@ -422,7 +643,8 @@ final class Game {
         }
 
         if (moveProgress < 1f) {
-            moveProgress = Math.min(1f, moveProgress + deltaMillis / MOVE_DURATION_MS);
+            float moveDuration = trinketEffect() == EFF_SPEED ? MOVE_DURATION_MS * 0.7f : MOVE_DURATION_MS;
+            moveProgress = Math.min(1f, moveProgress + deltaMillis / moveDuration);
             return;
         }
         int dx = (rightHeld ? 1 : 0) - (leftHeld ? 1 : 0);
@@ -454,11 +676,23 @@ final class Game {
             return;
         }
         int targetTile = map[index(nextX, nextY)];
-        if (targetTile == WALL || enemyAt(nextX, nextY) >= 0
+        if (targetTile == LOCKED_DOOR) {
+            if (keys > 0) {
+                keys--;
+                map[index(nextX, nextY)] = FLOOR;
+                computeFieldOfView();
+                sound.doorUnlock();
+            }
+            return;
+        }
+        if (targetTile == WALL || enemyAt(nextX, nextY) >= 0 || bossOccupies(nextX, nextY)
                 || (nextX == merchantX && nextY == merchantY)) {
             return;
         }
         if (targetTile == DOWN_STAIRS) {
+            if (bossActive) {
+                return;
+            }
             changeFloor(1, false);
             return;
         }
@@ -484,20 +718,78 @@ final class Game {
         moveProgress = 0f;
     }
 
-    /** A spinning slash that damages every enemy in the eight surrounding tiles. */
+    /**
+     * A spinning slash that damages every enemy in the surrounding tiles (two rings out with a reach
+     * weapon), applying the equipped weapon's effect — crit, lifesteal, poison, or knockback — to each hit.
+     */
     private void performAttack() {
         attackProgress = 0f;
         sound.swordAttack();
+        int effect = weaponEffect();
+        int reach = effect == EFF_REACH ? 2 : 1;
         for (int i = enemyCount - 1; i >= 0; i--) {
-            int dx = Math.abs(enemyX[i] - playerX);
-            int dy = Math.abs(enemyY[i] - playerY);
-            if (Math.max(dx, dy) == 1) {
-                enemyHp[i] -= Math.max(1, attackPower() + random.nextInt(3));
-                enemyHit[i] = 1f;
-                if (enemyHp[i] <= 0) {
-                    killEnemy(i);
-                }
+            int offsetX = enemyX[i] - playerX;
+            int offsetY = enemyY[i] - playerY;
+            int ring = Math.max(Math.abs(offsetX), Math.abs(offsetY));
+            if (ring < 1 || ring > reach) {
+                continue;
             }
+            int damage = Math.max(1, attackPower() + random.nextInt(3));
+            if (effect == EFF_CRIT && random.nextInt(100) < weaponMag()) {
+                damage *= 2;
+                enemyCrit[i] = 1f;
+            }
+            enemyHp[i] -= damage;
+            enemyHit[i] = 1f;
+            if (effect == EFF_LIFESTEAL) {
+                healPlayer(Math.max(1, damage * weaponMag() / 100));
+            } else if (effect == EFF_POISON) {
+                enemyPoison[i] = POISON_DURATION_MS;
+            } else if (effect == EFF_KNOCKBACK) {
+                knockbackEnemy(i, offsetX, offsetY);
+            }
+            if (enemyHp[i] <= 0) {
+                killEnemy(i);
+            }
+        }
+        if (bossActive) {
+            int distance = bossDistanceToPlayer();
+            if (distance >= 1 && distance <= reach) {
+                int damage = Math.max(1, attackPower() + random.nextInt(3));
+                if (effect == EFF_CRIT && random.nextInt(100) < weaponMag()) {
+                    damage *= 2;
+                }
+                if (effect == EFF_LIFESTEAL) {
+                    healPlayer(Math.max(1, damage * weaponMag() / 100));
+                }
+                damageBoss(damage);
+            }
+        }
+    }
+
+    /**
+     * Shoves an enemy one tile directly away from Duke along its dominant axis; the existing render
+     * interpolation animates the slide. A shove into a wall, Duke, or another enemy lands as impact damage.
+     */
+    private void knockbackEnemy(int i, int offsetX, int offsetY) {
+        int pushX = Integer.signum(offsetX);
+        int pushY = Integer.signum(offsetY);
+        if (Math.abs(offsetX) >= Math.abs(offsetY)) {
+            pushY = 0;
+        } else {
+            pushX = 0;
+        }
+        int nextX = enemyX[i] + pushX;
+        int nextY = enemyY[i] + pushY;
+        if (inBounds(nextX, nextY) && map[index(nextX, nextY)] != WALL
+                && !(nextX == playerX && nextY == playerY) && enemyAt(nextX, nextY) < 0) {
+            enemyPrevX[i] = enemyX[i];
+            enemyPrevY[i] = enemyY[i];
+            enemyX[i] = nextX;
+            enemyY[i] = nextY;
+        } else {
+            enemyHp[i] -= weaponMag();
+            enemyHit[i] = 1f;
         }
     }
 
@@ -505,11 +797,17 @@ final class Game {
         int deadType = enemyType[i];
         int deadX = enemyX[i];
         int deadY = enemyY[i];
-        gold += ENEMY_STATS[deadType * 4 + 2] + floor + (equippedTrinket == TRINKET_COIN ? floor : 0);
+        gold += ENEMY_STATS[deadType * 4 + 2] + floor + (trinketEffect() == EFF_GOLD ? floor : 0);
         grantXp(ENEMY_STATS[deadType * 4 + 3] + floor);
+        if (armorEffect() == EFF_HEAL_ON_KILL) {
+            healPlayer(armorMag());
+        }
         removeEnemy(i);
         if (deadType == FORKBOMB) {
             splitForkBomb(deadX, deadY);
+        }
+        if (trinketEffect() == EFF_KEYFIND && random.nextInt(100) < trinketMag()) {
+            spawnKey(deadX, deadY);
         }
         if (deadType == DEADLOCK || random.nextInt(6) == 0) {
             spawnLoot(deadX, deadY, rollItem(random), false);
@@ -551,6 +849,8 @@ final class Game {
         enemyType[slot] = type;
         enemyHp[slot] = ENEMY_STATS[type * 4] + floor / 2;
         enemyHit[slot] = 0f;
+        enemyCrit[slot] = 0f;
+        enemyPoison[slot] = 0f;
         aggroed[slot] = aggro;
         enemyCooldown[slot] = 0f;
     }
@@ -565,6 +865,8 @@ final class Game {
         enemyPrevX[i] = enemyPrevX[enemyCount];
         enemyPrevY[i] = enemyPrevY[enemyCount];
         enemyHit[i] = enemyHit[enemyCount];
+        enemyCrit[i] = enemyCrit[enemyCount];
+        enemyPoison[i] = enemyPoison[enemyCount];
         aggroed[i] = aggroed[enemyCount];
         enemyCooldown[i] = enemyCooldown[enemyCount];
     }
@@ -597,23 +899,55 @@ final class Game {
      * (reduced by armor), independent of how often it moves.
      */
     private void enemyContacts(long deltaMillis) {
-        for (int i = 0; i < enemyCount; i++) {
-            if (enemyHit[i] > 0f) {
-                enemyHit[i] = Math.max(0f, enemyHit[i] - deltaMillis / HIT_DURATION_MS);
-            }
-            if (enemyCooldown[i] > 0f) {
-                enemyCooldown[i] = Math.max(0f, enemyCooldown[i] - deltaMillis);
+        // Iterate downward: poison ticks and thorns can kill mid-loop, and killEnemy swap-removes the slot.
+        for (int i = enemyCount - 1; i >= 0; i--) {
+            enemyHit[i] = decay(enemyHit[i], deltaMillis / HIT_DURATION_MS);
+            enemyCrit[i] = decay(enemyCrit[i], deltaMillis / HIT_DURATION_MS);
+            enemyCooldown[i] = decay(enemyCooldown[i], deltaMillis);
+            if (enemyPoison[i] > 0f) {
+                tickPoison(i, deltaMillis);
+                if (enemyHp[i] <= 0) {
+                    killEnemy(i);
+                    continue;
+                }
             }
             if (distToPlayer(enemyX[i], enemyY[i]) == 1 && enemyCooldown[i] <= 0f) {
-                playerHp -= Math.max(1, ENEMY_STATS[enemyType[i] * 4 + 1] + floor / 4 + random.nextInt(2) - defense());
                 enemyCooldown[i] = ENEMY_ATTACK_MS;
                 aggroed[i] = true;
+                if (armorEffect() == EFF_DODGE && random.nextInt(100) < armorMag()) {
+                    playerDodge = 1f;
+                    continue;
+                }
+                playerHp -= Math.max(1, ENEMY_STATS[enemyType[i] * 4 + 1] + floor / 4 + random.nextInt(2) - defense());
                 sound.enemyAttack();
+                if (armorEffect() == EFF_THORNS) {
+                    enemyHp[i] -= armorMag();
+                    enemyHit[i] = 1f;
+                    if (enemyHp[i] <= 0) {
+                        killEnemy(i);
+                        continue;
+                    }
+                }
             }
         }
         if (playerHp <= 0) {
             playerHp = 0;
             state = DEAD;
+        }
+    }
+
+    /**
+     * Advances an enemy's poison timer and deals a fixed bite of damage for every tick interval it crosses,
+     * giving it a small hop so the green tint pulses; the kill itself is resolved by the caller.
+     */
+    private void tickPoison(int i, long deltaMillis) {
+        float before = enemyPoison[i];
+        float after = Math.max(0f, before - deltaMillis);
+        enemyPoison[i] = after;
+        int ticks = (int) (before / POISON_TICK_MS) - (int) (after / POISON_TICK_MS);
+        if (ticks > 0) {
+            enemyHp[i] -= ticks * POISON_DAMAGE;
+            enemyHit[i] = Math.max(enemyHit[i], 0.5f);
         }
     }
 
@@ -635,7 +969,11 @@ final class Game {
         }
         int nextX = enemyX[i] + dx;
         int nextY = enemyY[i] + dy;
-        if (!inBounds(nextX, nextY) || map[index(nextX, nextY)] == WALL || (nextX == playerX && nextY == playerY) || enemyAt(nextX, nextY) >= 0) {
+        if (!inBounds(nextX, nextY)) {
+            return false;
+        }
+        int tile = map[index(nextX, nextY)];
+        if (tile == WALL || tile == LOCKED_DOOR || (nextX == playerX && nextY == playerY) || enemyAt(nextX, nextY) >= 0) {
             return false;
         }
         enemyX[i] = nextX;
@@ -657,18 +995,30 @@ final class Game {
         return roll < 8 ? FORKBOMB : DEADLOCK;
     }
 
-    /** Picks an item id biased toward better tiers on deeper floors. */
+    /**
+     * Picks an item id. Trinkets and effect-bearing gear appear as the rarer slice of each roll; plain
+     * weapons and armor scale their tier with depth so deeper floors drop stronger base stats.
+     */
     private int rollItem(Random rng) {
-        int roll = rng.nextInt(10);
-        if (roll < 3) {
-            return TRINKET_COFFEE + rng.nextInt(3);
+        int roll = rng.nextInt(100);
+        if (roll < 28) {
+            return TRINKET_FIRST + rng.nextInt(TRINKET_COUNT);
+        }
+        boolean weapon = roll < 64;
+        if (rng.nextInt(3) == 0) {
+            return weapon
+                    ? WEAPON_EFFECT_FIRST + rng.nextInt(WEAPON_EFFECT_COUNT)
+                    : ARMOR_EFFECT_FIRST + rng.nextInt(ARMOR_EFFECT_COUNT);
         }
         int tier = Math.min(2, (floor - 1) / 4 + rng.nextInt(2));
-        return (roll < 6 ? 0 : 3) + tier;
+        return (weapon ? 0 : ARMOR_PLAIN_FIRST) + tier;
     }
 
     /** Adds experience and levels Duke up while he has enough, boosting his stats. */
     private void grantXp(int amount) {
+        if (trinketEffect() == EFF_XP) {
+            amount += amount * trinketMag() / 100;
+        }
         playerXp += amount;
         while (playerXp >= xpForNext()) {
             playerXp -= xpForNext();
@@ -761,6 +1111,20 @@ final class Game {
         lootY[lootCount] = y;
         lootItem[lootCount] = item;
         lootChest[lootCount] = chest;
+        lootKey[lootCount] = false;
+        lootCount++;
+    }
+
+    /** Drops a key pickup, the resource that opens sealed vault doors. */
+    private void spawnKey(int x, int y) {
+        if (lootCount >= LOOT_CAP || lootAt(x, y) >= 0) {
+            return;
+        }
+        lootX[lootCount] = x;
+        lootY[lootCount] = y;
+        lootItem[lootCount] = 0;
+        lootChest[lootCount] = false;
+        lootKey[lootCount] = true;
         lootCount++;
     }
 
@@ -770,26 +1134,152 @@ final class Game {
         lootY[i] = lootY[lootCount];
         lootItem[i] = lootItem[lootCount];
         lootChest[i] = lootChest[lootCount];
+        lootKey[i] = lootKey[lootCount];
     }
 
     private void pickUpAt(int x, int y) {
         int i = lootAt(x, y);
-        if (i >= 0 && inventoryCount < INVENTORY_SIZE) {
+        if (i < 0) {
+            return;
+        }
+        if (lootKey[i]) {
+            keys++;
+            sound.keyPickup();
+            removeLoot(i);
+        } else if (inventoryCount < INVENTORY_SIZE) {
             inventory[inventoryCount++] = lootItem[i];
             removeLoot(i);
         }
     }
 
     /**
-     * Moves between floors (delta +1 to descend, -1 to ascend), regenerating the
-     * destination and placing Duke on the matching arrival stairs.
+     * Moves between floors (delta +1 to descend, -1 to ascend). The floor being left is cached so its
+     * opened doors, taken chests, slain enemies, and felled boss persist; a previously visited
+     * destination is restored from that cache, and a fresh floor is generated only on a first visit.
      */
     private void changeFloor(int delta, boolean arriveAtDownStairs) {
         sound.stairs();
+        saveFloor();
         floor += delta;
-        generate(arriveAtDownStairs);
+        if (floorCache.containsKey(floor)) {
+            restoreFloor(arriveAtDownStairs);
+        } else {
+            generate(arriveAtDownStairs);
+        }
         state = PLAYING;
         leftHeld = rightHeld = upHeld = downHeld = attackHeld = false;
+    }
+
+    /**
+     * Snapshots the current floor into one packed int[] in the cache, keyed by floor number. Only
+     * durable state is stored; transient combat clocks and flashes are recreated on restore.
+     */
+    private void saveFloor() {
+        int[] snapshot = floorCache.computeIfAbsent(floor, key -> new int[SNAP_SIZE]);
+        snapshot[0] = enemyCount;
+        snapshot[1] = lootCount;
+        snapshot[2] = merchantX;
+        snapshot[3] = merchantY;
+        snapshot[4] = bossActive ? 1 : 0;
+        snapshot[5] = bossEnraged ? 1 : 0;
+        snapshot[6] = bossType;
+        snapshot[7] = bossX;
+        snapshot[8] = bossY;
+        snapshot[9] = bossHp;
+        snapshot[10] = bossMaxHp;
+        for (int i = 0; i < enemyCount; i++) {
+            int offset = SNAP_ENEMY_BASE + i * 5;
+            snapshot[offset] = enemyX[i];
+            snapshot[offset + 1] = enemyY[i];
+            snapshot[offset + 2] = enemyType[i];
+            snapshot[offset + 3] = enemyHp[i];
+            snapshot[offset + 4] = aggroed[i] ? 1 : 0;
+        }
+        for (int i = 0; i < lootCount; i++) {
+            int offset = SNAP_LOOT_BASE + i * 5;
+            snapshot[offset] = lootX[i];
+            snapshot[offset + 1] = lootY[i];
+            snapshot[offset + 2] = lootItem[i];
+            snapshot[offset + 3] = lootChest[i] ? 1 : 0;
+            snapshot[offset + 4] = lootKey[i] ? 1 : 0;
+        }
+        System.arraycopy(map, 0, snapshot, SNAP_MAP_BASE, map.length);
+        for (int i = 0; i < explored.length; i++) {
+            snapshot[SNAP_EXPLORED_BASE + i] = explored[i] ? 1 : 0;
+        }
+    }
+
+    /** Restores a cached floor from its packed snapshot and drops Duke onto the arrival stairs. */
+    private void restoreFloor(boolean arriveAtDownStairs) {
+        int[] snapshot = floorCache.get(floor);
+        enemyCount = snapshot[0];
+        lootCount = snapshot[1];
+        merchantX = snapshot[2];
+        merchantY = snapshot[3];
+        bossActive = snapshot[4] != 0;
+        bossEnraged = snapshot[5] != 0;
+        bossType = snapshot[6];
+        bossX = snapshot[7];
+        bossY = snapshot[8];
+        bossHp = snapshot[9];
+        bossMaxHp = snapshot[10];
+        for (int i = 0; i < enemyCount; i++) {
+            int offset = SNAP_ENEMY_BASE + i * 5;
+            enemyX[i] = snapshot[offset];
+            enemyY[i] = snapshot[offset + 1];
+            enemyType[i] = snapshot[offset + 2];
+            enemyHp[i] = snapshot[offset + 3];
+            aggroed[i] = snapshot[offset + 4] != 0;
+            enemyPrevX[i] = enemyX[i];
+            enemyPrevY[i] = enemyY[i];
+            enemyHit[i] = 0f;
+            enemyCrit[i] = 0f;
+            enemyPoison[i] = 0f;
+            enemyCooldown[i] = 0f;
+        }
+        for (int i = 0; i < lootCount; i++) {
+            int offset = SNAP_LOOT_BASE + i * 5;
+            lootX[i] = snapshot[offset];
+            lootY[i] = snapshot[offset + 1];
+            lootItem[i] = snapshot[offset + 2];
+            lootChest[i] = snapshot[offset + 3] != 0;
+            lootKey[i] = snapshot[offset + 4] != 0;
+        }
+        System.arraycopy(snapshot, SNAP_MAP_BASE, map, 0, map.length);
+        for (int i = 0; i < explored.length; i++) {
+            explored[i] = snapshot[SNAP_EXPLORED_BASE + i] != 0;
+        }
+        bossPrevX = bossX;
+        bossPrevY = bossY;
+        bossState = BOSS_IDLE;
+        bossWindup = 0f;
+        bossShockwave = 0f;
+        bossAnimTime = 0f;
+        bossHit = 0f;
+        bossMoveProgress = 0f;
+        bossAttackCooldown = BOSS_ATTACK_MS;
+        bossSlamCooldown = BOSS_SLAM_COOLDOWN_MS;
+        moveProgress = 1f;
+        enemyProgress = 0f;
+        attackProgress = 1f;
+        placeAtStairs(arriveAtDownStairs);
+    }
+
+    /** Lands Duke on this floor's down stairs (when climbing back down) or up stairs (when descending). */
+    private void placeAtStairs(boolean atDownStairs) {
+        int target = atDownStairs ? DOWN_STAIRS : UP_STAIRS;
+        for (int y = 0; y < MAP_HEIGHT; y++) {
+            for (int x = 0; x < MAP_WIDTH; x++) {
+                if (map[index(x, y)] == target) {
+                    playerX = x;
+                    playerY = y;
+                    previousX = x;
+                    previousY = y;
+                    computeFieldOfView();
+                    return;
+                }
+            }
+        }
     }
 
     /** Duke's interpolated pixel position, blending his previous and current tile for smooth motion. */
@@ -830,6 +1320,12 @@ final class Game {
         for (int i = 0; i < map.length; i++) {
             map[i] = WALL;
             explored[i] = false;
+        }
+
+        bossActive = false;
+        if (isBossFloor()) {
+            generateArena(arriveAtDownStairs);
+            return;
         }
 
         int floorWidth = Math.min(MAP_WIDTH, 20 + (floor - 1) * 5);
@@ -886,6 +1382,331 @@ final class Game {
         placeMerchant(floorWidth, floorHeight);
         placeChests(floorWidth, floorHeight);
         placeTraps(floorWidth, floorHeight);
+        if (placeVault(floorWidth, floorHeight)) {
+            placeFloorKey(floorWidth, floorHeight);
+        }
+    }
+
+    /**
+     * Carves a sealed treasure vault into solid rock and gates it with a single locked door, returning
+     * whether one was placed. The vault is a 3x3 room reached only through the door, so the key the floor
+     * also drops is the sole way in. Vaults begin appearing on the second floor.
+     */
+    private boolean placeVault(int floorWidth, int floorHeight) {
+        if (floor < 2 || genRandom.nextInt(100) >= vaultChancePercent()) {
+            return false;
+        }
+        for (int attempt = 0; attempt < 160; attempt++) {
+            int anchorX = 1 + genRandom.nextInt(floorWidth - 2);
+            int anchorY = 1 + genRandom.nextInt(floorHeight - 2);
+            if (map[index(anchorX, anchorY)] != FLOOR) {
+                continue;
+            }
+            int dir = genRandom.nextInt(4);
+            int forwardX = DIR_X[dir];
+            int forwardY = DIR_Y[dir];
+            int sideX = DIR_Y[dir];
+            int sideY = DIR_X[dir];
+            if (vaultRegionClear(anchorX, anchorY, forwardX, forwardY, sideX, sideY)) {
+                carveVault(anchorX, anchorY, forwardX, forwardY, sideX, sideY);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Vault odds: 25% on the second floor, climbing 7% per floor with depth and capped at 80%. */
+    private int vaultChancePercent() {
+        return Math.min(80, 25 + (floor - 2) * 7);
+    }
+
+    /**
+     * True only when the door tile and the whole 3x3 vault footprint sit in untouched rock with a solid
+     * wall border, guaranteeing the carved vault connects to the dungeon through its door alone.
+     */
+    private boolean vaultRegionClear(int ax, int ay, int forwardX, int forwardY, int sideX, int sideY) {
+        for (int along = 1; along <= 5; along++) {
+            for (int across = -2; across <= 2; across++) {
+                int x = ax + forwardX * along + sideX * across;
+                int y = ay + forwardY * along + sideY * across;
+                if (!inBounds(x, y) || map[index(x, y)] != WALL) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /** Opens the door, carves the 3x3 room, and fills it with three chests of floor-tier loot. */
+    private void carveVault(int ax, int ay, int forwardX, int forwardY, int sideX, int sideY) {
+        vaultDoorX = ax + forwardX;
+        vaultDoorY = ay + forwardY;
+        map[index(vaultDoorX, vaultDoorY)] = LOCKED_DOOR;
+        for (int along = 2; along <= 4; along++) {
+            for (int across = -1; across <= 1; across++) {
+                map[index(ax + forwardX * along + sideX * across, ay + forwardY * along + sideY * across)] = FLOOR;
+            }
+        }
+        spawnLoot(ax + forwardX * 3, ay + forwardY * 3, rollItem(genRandom), true);
+        spawnLoot(ax + forwardX * 4 + sideX, ay + forwardY * 4 + sideY, rollItem(genRandom), true);
+        spawnLoot(ax + forwardX * 4 - sideX, ay + forwardY * 4 - sideY, rollItem(genRandom), true);
+    }
+
+    /** Drops one key on an open floor tile a good walk away from the vault door, never in its room. */
+    private void placeFloorKey(int floorWidth, int floorHeight) {
+        for (int attempt = 0; attempt < 150; attempt++) {
+            int x = 1 + genRandom.nextInt(floorWidth - 2);
+            int y = 1 + genRandom.nextInt(floorHeight - 2);
+            if (openSpot(x, y) && Math.abs(x - vaultDoorX) + Math.abs(y - vaultDoorY) >= KEY_DOOR_MIN_DISTANCE) {
+                spawnKey(x, y);
+                return;
+            }
+        }
+    }
+
+    private boolean isBossFloor() {
+        return floor % BOSS_FLOOR_INTERVAL == 0;
+    }
+
+    /**
+     * Builds a boss floor: a single broad arena with Duke arriving at one end and a sealed stairway at
+     * the other, guarded by a large boss in the center. No merchant, traps, or wandering enemies share
+     * the room — the fight is the floor.
+     */
+    private void generateArena(boolean arriveAtDownStairs) {
+        enemyCount = 0;
+        lootCount = 0;
+        merchantX = -1;
+        merchantY = -1;
+        int roomWidth = Math.min(MAP_WIDTH - 2, 21);
+        int roomHeight = Math.min(MAP_HEIGHT - 2, 13);
+        int left = (MAP_WIDTH - roomWidth) / 2;
+        int top = (MAP_HEIGHT - roomHeight) / 2;
+        carveRoom(left, top, roomWidth, roomHeight);
+
+        int midY = top + roomHeight / 2;
+        int upX = left + 1;
+        int downX = left + roomWidth - 2;
+        map[index(upX, midY)] = UP_STAIRS;
+        map[index(downX, midY)] = DOWN_STAIRS;
+
+        if (arriveAtDownStairs) {
+            playerX = downX;
+            playerY = midY;
+        } else {
+            playerX = upX;
+            playerY = midY;
+        }
+        previousX = playerX;
+        previousY = playerY;
+        moveProgress = 1f;
+        enemyProgress = 0f;
+        spawnBoss(left + roomWidth / 2 - BOSS_SIZE / 2, midY - BOSS_SIZE / 2);
+        computeFieldOfView();
+    }
+
+    private void spawnBoss(int x, int y) {
+        bossActive = true;
+        bossType = floor / BOSS_FLOOR_INTERVAL - 1;
+        bossX = x;
+        bossY = y;
+        bossPrevX = x;
+        bossPrevY = y;
+        bossMaxHp = 60 + floor * 14;
+        bossHp = bossMaxHp;
+        bossState = BOSS_IDLE;
+        bossEnraged = false;
+        bossHit = 0f;
+        bossWindup = 0f;
+        bossShockwave = 0f;
+        bossAnimTime = 0f;
+        bossMoveProgress = 0f;
+        bossAttackCooldown = BOSS_ATTACK_MS;
+        bossSlamCooldown = BOSS_SLAM_COOLDOWN_MS;
+    }
+
+    /** True when the tile lies within the live boss's square footprint. */
+    boolean bossOccupies(int x, int y) {
+        return bossActive && x >= bossX && x < bossX + BOSS_SIZE && y >= bossY && y < bossY + BOSS_SIZE;
+    }
+
+    /** Chebyshev distance from Duke to the boss footprint; 1 means he stands right against it. */
+    private int bossDistanceToPlayer() {
+        int dx = Math.max(0, Math.max(bossX - playerX, playerX - (bossX + BOSS_SIZE - 1)));
+        int dy = Math.max(0, Math.max(bossY - playerY, playerY - (bossY + BOSS_SIZE - 1)));
+        return Math.max(dx, dy);
+    }
+
+    /** Telegraph intensity for the boss's slam wind-up: 0 when idle, rising toward 1 as the slam lands. */
+    float bossTelegraph() {
+        return bossState == BOSS_WINDUP ? 1f - bossWindup / BOSS_WINDUP_MS : 0f;
+    }
+
+    float bossRenderPixelX() {
+        return (bossPrevX + (bossX - bossPrevX) * bossMoveProgress) * TILE;
+    }
+
+    float bossRenderPixelY() {
+        return (bossPrevY + (bossY - bossPrevY) * bossMoveProgress) * TILE;
+    }
+
+    private float currentMoveInterval() {
+        return bossEnraged ? BOSS_MOVE_MS * 0.62f : BOSS_MOVE_MS;
+    }
+
+    private float currentAttackInterval() {
+        return bossEnraged ? BOSS_ATTACK_MS * 0.6f : BOSS_ATTACK_MS;
+    }
+
+    private int bossBiteDamage() {
+        return 4 + floor / 2 + (bossEnraged ? 2 : 0);
+    }
+
+    private int bossSlamDamage() {
+        return 7 + floor + (bossEnraged ? 3 : 0);
+    }
+
+    /**
+     * Drives the boss each frame: decays its flashes, resolves a telegraphed slam when its wind-up
+     * elapses, advances it toward Duke on its own clock, and—pressed against him—either bites or begins
+     * winding up a heavy area slam he must retreat from.
+     */
+    private void updateBoss(long deltaMillis) {
+        if (!bossActive) {
+            return;
+        }
+        bossAnimTime += deltaMillis;
+        bossHit = decay(bossHit, deltaMillis / HIT_DURATION_MS);
+        bossShockwave = decay(bossShockwave, deltaMillis / BOSS_SHOCKWAVE_MS);
+        bossAttackCooldown = decay(bossAttackCooldown, deltaMillis);
+        bossSlamCooldown = decay(bossSlamCooldown, deltaMillis);
+        if (bossState == BOSS_WINDUP) {
+            bossWindup -= deltaMillis;
+            if (bossWindup <= 0f) {
+                bossWindup = 0f;
+                bossState = BOSS_IDLE;
+                bossSlam();
+                bossAttackCooldown = currentAttackInterval();
+            }
+            return;
+        }
+        bossMoveProgress += deltaMillis / currentMoveInterval();
+        if (bossMoveProgress >= 1f) {
+            bossMoveProgress = 0f;
+            stepBoss();
+        }
+        if (bossDistanceToPlayer() == 1 && bossAttackCooldown <= 0f) {
+            if (bossSlamCooldown <= 0f && random.nextInt(100) < BOSS_SLAM_CHANCE) {
+                bossState = BOSS_WINDUP;
+                bossWindup = BOSS_WINDUP_MS;
+                bossSlamCooldown = BOSS_SLAM_COOLDOWN_MS;
+            } else {
+                applyBossHitToPlayer(bossBiteDamage());
+                bossAttackCooldown = currentAttackInterval();
+            }
+        }
+    }
+
+    private void stepBoss() {
+        bossPrevX = bossX;
+        bossPrevY = bossY;
+        int centerX = bossX + BOSS_SIZE / 2;
+        int centerY = bossY + BOSS_SIZE / 2;
+        int dx = Integer.signum(playerX - centerX);
+        int dy = Integer.signum(playerY - centerY);
+        if (Math.abs(playerX - centerX) >= Math.abs(playerY - centerY)) {
+            if (!moveBoss(dx, 0)) {
+                moveBoss(0, dy);
+            }
+        } else if (!moveBoss(0, dy)) {
+            moveBoss(dx, 0);
+        }
+    }
+
+    /** Slides the whole footprint one tile only if every destination tile is clear of walls, Duke, and enemies. */
+    private boolean moveBoss(int dx, int dy) {
+        if (dx == 0 && dy == 0) {
+            return false;
+        }
+        int nextX = bossX + dx;
+        int nextY = bossY + dy;
+        for (int oy = 0; oy < BOSS_SIZE; oy++) {
+            for (int ox = 0; ox < BOSS_SIZE; ox++) {
+                int cx = nextX + ox;
+                int cy = nextY + oy;
+                if (!inBounds(cx, cy) || map[index(cx, cy)] == WALL || map[index(cx, cy)] == LOCKED_DOOR
+                        || (cx == playerX && cy == playerY) || enemyAt(cx, cy) >= 0) {
+                    return false;
+                }
+            }
+        }
+        bossX = nextX;
+        bossY = nextY;
+        return true;
+    }
+
+    /** A telegraphed area slam: everything within {@link #BOSS_SLAM_RADIUS} of the footprint is struck. */
+    private void bossSlam() {
+        bossShockwave = 1f;
+        sound.bossSlam();
+        if (bossDistanceToPlayer() <= BOSS_SLAM_RADIUS) {
+            applyBossHitToPlayer(bossSlamDamage());
+        }
+    }
+
+    /** Applies boss damage to Duke, honoring dodge and reflecting thorns back into the boss. */
+    private void applyBossHitToPlayer(int damage) {
+        if (armorEffect() == EFF_DODGE && random.nextInt(100) < armorMag()) {
+            playerDodge = 1f;
+            return;
+        }
+        playerHp -= Math.max(1, damage - defense());
+        sound.enemyAttack();
+        if (armorEffect() == EFF_THORNS) {
+            damageBoss(armorMag());
+        }
+        if (playerHp <= 0) {
+            playerHp = 0;
+            state = DEAD;
+        }
+    }
+
+    /** Records damage on the boss, triggering its enrage-and-summon phase at half health and its death. */
+    private void damageBoss(int amount) {
+        bossHp -= amount;
+        bossHit = 1f;
+        if (!bossEnraged && bossHp <= bossMaxHp / 2 && bossHp > 0) {
+            bossEnraged = true;
+            summonAdds();
+        }
+        if (bossHp <= 0) {
+            killBoss();
+        }
+    }
+
+    /** The enraged boss calls a few minions in around its bulk to pressure Duke. */
+    private void summonAdds() {
+        int placed = 0;
+        for (int attempt = 0; attempt < 60 && placed < 3; attempt++) {
+            int x = bossX - 1 + random.nextInt(BOSS_SIZE + 2);
+            int y = bossY - 1 + random.nextInt(BOSS_SIZE + 2);
+            if (!inBounds(x, y) || map[index(x, y)] != FLOOR || bossOccupies(x, y)
+                    || enemyAt(x, y) >= 0 || (x == playerX && y == playerY)) {
+                continue;
+            }
+            addEnemy(x, y, random.nextInt(2) == 0 ? NULLPTR : BUG, true);
+            placed++;
+        }
+    }
+
+    /** Felling the boss unseals the stairs and showers Duke with gold, experience, and treasure. */
+    private void killBoss() {
+        bossActive = false;
+        gold += 40 + floor * 6;
+        grantXp(50 + floor * 8);
+        spawnLoot(bossX, bossY, rollItem(random), true);
+        spawnLoot(bossX + BOSS_SIZE - 1, bossY + BOSS_SIZE - 1, rollItem(random), true);
+        sound.bossDefeat();
     }
 
     private void placeMerchant(int floorWidth, int floorHeight) {
@@ -1027,7 +1848,7 @@ final class Game {
         for (int i = 0; i < visible.length; i++) {
             visible[i] = false;
         }
-        int radius = FOV_RADIUS + (equippedTrinket == TRINKET_LANTERN ? 2 : 0);
+        int radius = FOV_RADIUS + (trinketEffect() == EFF_SIGHT ? 2 : 0);
         for (int y = playerY - radius; y <= playerY + radius; y++) {
             for (int x = playerX - radius; x <= playerX + radius; x++) {
                 int dx = x - playerX;
@@ -1051,7 +1872,7 @@ final class Game {
             int idx = index(x, y);
             visible[idx] = true;
             explored[idx] = true;
-            if (map[idx] == WALL || (x == targetX && y == targetY)) {
+            if (map[idx] == WALL || map[idx] == LOCKED_DOOR || (x == targetX && y == targetY)) {
                 return;
             }
             int doubled = 2 * error;

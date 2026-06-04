@@ -66,7 +66,7 @@ public final class Main extends Frame implements KeyEventDispatcher {
                 Thread.sleep(16);
             }
             //Broad exception saves 11 bytes here
-            catch (Exception interrupted) {
+            catch (Exception _) {
             }
         }
     }

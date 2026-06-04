@@ -147,6 +147,46 @@ final class Sound {
         note(CHIME_CHANNEL, 84, 98, 210, 220);
     }
 
+    /** A bright two-note chime when Duke pockets a key. */
+    void keyPickup() {
+        if (channels == null) {
+            return;
+        }
+        note(CHIME_CHANNEL, 83, 90, 0, 90);
+        note(CHIME_CHANNEL, 88, 96, 80, 150);
+    }
+
+    /** A heavy latch clunk resolving into a rising chime as a sealed vault door swings open. */
+    void doorUnlock() {
+        if (channels == null) {
+            return;
+        }
+        note(ENEMY_CHANNEL, 40, 104, 0, 120);
+        note(CHIME_CHANNEL, 76, 90, 130, 130);
+        note(CHIME_CHANNEL, 83, 98, 240, 220);
+    }
+
+    /** A deep, percussive boom as the boss brings down an area slam. */
+    void bossSlam() {
+        if (channels == null) {
+            return;
+        }
+        note(ENEMY_CHANNEL, 31, 122, 0, 90);
+        note(ENEMY_CHANNEL, 28, 122, 45, 160);
+        note(ENEMY_CHANNEL, 24, 126, 95, 230);
+    }
+
+    /** A bright descending fanfare when the boss is finally felled. */
+    void bossDefeat() {
+        if (channels == null) {
+            return;
+        }
+        note(CHIME_CHANNEL, 84, 98, 0, 150);
+        note(CHIME_CHANNEL, 79, 98, 150, 150);
+        note(CHIME_CHANNEL, 76, 98, 300, 150);
+        note(CHIME_CHANNEL, 72, 104, 450, 320);
+    }
+
     /** Toggles all audio: pauses or resumes the music loop and silences any sounding notes. */
     void toggleMute() {
         if (channels == null) {
