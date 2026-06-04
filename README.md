@@ -50,6 +50,10 @@ Requires **JDK 25**.
 - **Persistent floors:** a floor remembers itself - climb back up and your cleared enemies, opened doors, looted chests, smashed scenery, and felled bosses stay as you left them.
 - **Audio:** procedural sound effects (slash, hit, footstep, stairs, key, chest break, mimic, pit fall, boss slam) and a looping chiptune track, all synthesized at runtime. Mute everything with **M** or just the music with **T**.
 
+## Overview
+
+![img_1.png](img_1.png)
+
 ## Architecture
 
 Four classes, each with a single responsibility:
