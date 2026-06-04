@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- General cleanup">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Reworked items to have more variety and uniqueness via stat rolling and randomized names&#10;- balanced loot drops, rarity chances, and chest spawns a bit better&#10;- Balanced attack speeds and movement speeds of player and npcs&#10;- Standardized controls a bit better&#10;- Added 15% chance for opening chests to spawn a mimic">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Game.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Renderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Renderer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Sound.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Sound.java" afterDir="false" />
@@ -121,7 +120,7 @@
     "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle"
   }
 }]]></component>
-  <component name="RunManager" selected="Application.Main">
+  <component name="RunManager" selected="Gradle.dukes8bit [size]">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.tonicbox.dukes8bit.Main" />
       <module name="dukes8bit.main" />
@@ -203,9 +202,9 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.Main" />
         <item itemvalue="Gradle.dukes8bit [size]" />
         <item itemvalue="Gradle.dukes8bit [run]" />
+        <item itemvalue="Application.Main" />
         <item itemvalue="Gradle.dukes8bit [build]" />
       </list>
     </recent_temporary>
@@ -323,7 +322,15 @@
       <option name="project" value="LOCAL" />
       <updated>1780545899667</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="- Reworked items to have more variety and uniqueness via stat rolling and randomized names&#10;- balanced loot drops, rarity chances, and chest spawns a bit better&#10;- Balanced attack speeds and movement speeds of player and npcs&#10;- Standardized controls a bit better&#10;- Added 15% chance for opening chests to spawn a mimic">
+      <option name="closed" value="true" />
+      <created>1780558008474</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1780558008474</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -349,6 +356,7 @@
     <MESSAGE value="- Added shaded jar task&#10;- added output shaded jar size to size task output" />
     <MESSAGE value="Runtime memory optimizations&#10;- Pre-allocate static polygon scratch arrays in Renderer&#10;- Replace AffineTransform save/restore in drawDukeRight with paired inverse transforms&#10;- Swap HashMap&lt;Integer,int[]&gt; floor cache for a direct int[][] array" />
     <MESSAGE value="- General cleanup" />
-    <option name="LAST_COMMIT_MESSAGE" value="- General cleanup" />
+    <MESSAGE value="- Reworked items to have more variety and uniqueness via stat rolling and randomized names&#10;- balanced loot drops, rarity chances, and chest spawns a bit better&#10;- Balanced attack speeds and movement speeds of player and npcs&#10;- Standardized controls a bit better&#10;- Added 15% chance for opening chests to spawn a mimic" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Reworked items to have more variety and uniqueness via stat rolling and randomized names&#10;- balanced loot drops, rarity chances, and chest spawns a bit better&#10;- Balanced attack speeds and movement speeds of player and npcs&#10;- Standardized controls a bit better&#10;- Added 15% chance for opening chests to spawn a mimic" />
   </component>
 </project>

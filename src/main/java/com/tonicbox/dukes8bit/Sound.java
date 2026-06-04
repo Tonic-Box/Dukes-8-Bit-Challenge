@@ -68,6 +68,7 @@ final class Sound {
     private final ScheduledExecutorService scheduler;
     private final Sequencer sequencer;
     private boolean muted;
+    private boolean musicMuted;
     private long lastFootstepNanos;
 
     Sound() {
@@ -166,6 +167,24 @@ final class Sound {
         note(CHIME_CHANNEL, 83, 98, 240, 220);
     }
 
+    /** A sharp percussive crack when a breakable prop is smashed. */
+    void sceneryBreak() {
+        if (channels == null) return;
+        note(ATTACK_CHANNEL, 76, 118, 0, 40);
+        note(ENEMY_CHANNEL, 48, 104, 10, 80);
+        note(ATTACK_CHANNEL, 60, 80, 55, 60);
+    }
+
+    /** A descending bass sequence as Duke tumbles into a pit. */
+    void pitFall() {
+        if (channels == null) return;
+        note(ATTACK_CHANNEL, 72, 100, 0, 80);
+        note(ATTACK_CHANNEL, 65, 100, 100, 80);
+        note(ATTACK_CHANNEL, 57, 100, 200, 80);
+        note(ATTACK_CHANNEL, 50, 110, 300, 100);
+        note(ENEMY_CHANNEL, 36, 122, 420, 420);
+    }
+
     /** A harsh dissonant cluster hit when a mimic chest springs to life. */
     void mimicReveal() {
         if (channels == null) return;
@@ -199,20 +218,23 @@ final class Sound {
 
     /** Toggles all audio: pauses or resumes the music loop and silences any sounding notes. */
     void toggleMute() {
-        if (channels == null) {
-            return;
-        }
+        if (channels == null) return;
         muted = !muted;
         if (muted) {
-            if (sequencer != null) {
-                sequencer.stop();
-            }
-            for (MidiChannel channel : channels) {
-                channel.allSoundOff();
-            }
-        } else if (sequencer != null) {
-            sequencer.start();
+            if (sequencer != null) sequencer.stop();
+            for (MidiChannel channel : channels) channel.allSoundOff();
+        } else {
+            if (sequencer != null && !musicMuted) sequencer.start();
         }
+    }
+
+    /** Toggles only the music track; sound effects are unaffected. */
+    void toggleMusicMute() {
+        if (channels == null) return;
+        musicMuted = !musicMuted;
+        if (sequencer == null) return;
+        if (musicMuted) sequencer.stop();
+        else if (!muted) sequencer.start();
     }
 
     /** Schedules one note: key on at {@code startMs}, off {@code durationMs} later. */

@@ -28,6 +28,8 @@ final class Game {
     static final int UP_STAIRS = 3;
     static final int TRAP = 4;
     static final int LOCKED_DOOR = 5;
+    static final int PIT = 6;
+    static final int SCENERY = 7;
 
     static final int PLAYING = 0;
     static final int DEAD = 1;
@@ -176,6 +178,21 @@ final class Game {
     private static final int[] DIR_X = {0, 0, -1, 1};
     private static final int[] DIR_Y = {-1, 1, 0, 0};
 
+    private static final float FALL_DURATION_MS = 900f;
+    private static final float LIGHT_RISE_MS = 120f;
+    private static final float LIGHT_FALL_MS = 200f;
+    private static final int BREAK_CAP = 8;
+    private static final float BREAK_MS = 350f;
+
+    boolean falling;
+    float fallProgress;
+    private int fallFloors;
+
+    final int[] breakX = new int[BREAK_CAP];
+    final int[] breakY = new int[BREAK_CAP];
+    final float[] breakTimer = new float[BREAK_CAP];
+    int breakCount;
+
     private final Random random = new Random();
     // Generation uses its own seeded RNG so floor layouts are reproducible, independent of combat rolls.
     private final Random genRandom = new Random();
@@ -194,6 +211,7 @@ final class Game {
     final int[] map = new int[MAP_WIDTH * MAP_HEIGHT];
     final boolean[] explored = new boolean[MAP_WIDTH * MAP_HEIGHT];
     final boolean[] visible = new boolean[MAP_WIDTH * MAP_HEIGHT];
+    final float[] lightLevel = new float[MAP_WIDTH * MAP_HEIGHT];
 
     // Parallel primitive arrays per enemy slot — no entity objects, no per-enemy allocation.
     final int[] enemyX = new int[MAX_ENEMIES];
@@ -286,6 +304,7 @@ final class Game {
     private boolean inventoryHeld;
     private boolean dropHeld;
     private boolean muteHeld;
+    private boolean trackHeld;
     private boolean interactHeld;
     private boolean quaffRequested;
     private boolean buyRequested;
@@ -326,13 +345,16 @@ final class Game {
         attackProgress = 1f;
         leftHeld = rightHeld = upHeld = downHeld = attackHeld = false;
         pauseSelection = 0;
-        quaffHeld = enterHeld = escHeld = inventoryHeld = dropHeld = muteHeld = interactHeld = false;
+        quaffHeld = enterHeld = escHeld = inventoryHeld = dropHeld = muteHeld = trackHeld = interactHeld = false;
         quaffRequested = buyRequested = talkRequested = equipRequested = dropRequested = false;
         regenTimer = 0f;
         playerHeal = 0f;
         playerDodge = 0f;
         bossActive = false;
-        //manual loop over Arrays::fill saves on constpool
+        falling = false;
+        fallProgress = 0f;
+        breakCount = 0;
+        for (int i = 0; i < lightLevel.length; i++) lightLevel[i] = 0f;
         for (int i = 0; i < FLOOR_CACHE_CAP; i++) floorCache[i] = null;
         baseSeed = random.nextLong();
         generate(false);
@@ -461,10 +483,11 @@ final class Game {
      */
     void keyDown(int code) {
         if (code == KeyEvent.VK_M) {
-            if (!muteHeld) {
-                muteHeld = true;
-                sound.toggleMute();
-            }
+            if (!muteHeld) { muteHeld = true; sound.toggleMute(); }
+            return;
+        }
+        if (code == KeyEvent.VK_T) {
+            if (!trackHeld) { trackHeld = true; sound.toggleMusicMute(); }
             return;
         }
         // Key events only set flags for the loop to drain; edge-detect so a held key fires once, not on OS repeat.
@@ -573,9 +596,8 @@ final class Game {
         if (code == KeyEvent.VK_D) {
             dropHeld = false;
         }
-        if (code == KeyEvent.VK_M) {
-            muteHeld = false;
-        }
+        if (code == KeyEvent.VK_M) muteHeld = false;
+        if (code == KeyEvent.VK_T) trackHeld = false;
         if (code == KeyEvent.VK_E) {
             interactHeld = false;
         }
@@ -599,6 +621,13 @@ final class Game {
      * states (dead, paused, shop, inventory) freeze the world.
      */
     void update(long deltaMillis) {
+        float rise = deltaMillis / LIGHT_RISE_MS;
+        float fall = deltaMillis / LIGHT_FALL_MS;
+        for (int i = 0; i < lightLevel.length; i++) {
+            if (!explored[i]) continue;
+            if (visible[i]) { if (lightLevel[i] < 1f) lightLevel[i] = Math.min(1f, lightLevel[i] + rise); }
+            else             { if (lightLevel[i] > 0f) lightLevel[i] = Math.max(0f, lightLevel[i] - fall); }
+        }
         if (state == DEAD) {
             if (restartRequested) {
                 restartRequested = false;
@@ -624,6 +653,30 @@ final class Game {
             if (dropRequested) {
                 dropRequested = false;
                 dropSelected();
+            }
+            return;
+        }
+        for (int i = breakCount - 1; i >= 0; i--) {
+            breakTimer[i] -= deltaMillis / BREAK_MS;
+            if (breakTimer[i] <= 0f) {
+                breakCount--;
+                breakX[i] = breakX[breakCount];
+                breakY[i] = breakY[breakCount];
+                breakTimer[i] = breakTimer[breakCount];
+            }
+        }
+        if (falling) {
+            fallProgress = Math.min(1f, fallProgress + deltaMillis / FALL_DURATION_MS);
+            if (fallProgress >= 1f) {
+                falling = false;
+                playerHp = Math.max(0, playerHp - fallFloors * 4);
+                if (playerHp <= 0) {
+                    playerHp = 0;
+                    state = DEAD;
+                    return;
+                }
+                changeFloor(fallFloors, false);
+                placeAtRandom();
             }
             return;
         }
@@ -713,8 +766,8 @@ final class Game {
             }
             return;
         }
-        if (targetTile == WALL || enemyAt(nextX, nextY) >= 0 || bossOccupies(nextX, nextY)
-                || (nextX == merchantX && nextY == merchantY)) {
+        if (targetTile == WALL || targetTile == SCENERY || enemyAt(nextX, nextY) >= 0
+                || bossOccupies(nextX, nextY) || (nextX == merchantX && nextY == merchantY)) {
             return;
         }
         if (targetTile == DOWN_STAIRS) {
@@ -742,6 +795,14 @@ final class Game {
         }
         computeFieldOfView();
         pickUpAt(nextX, nextY);
+        if (targetTile == PIT) {
+            falling = true;
+            fallProgress = 0f;
+            fallFloors = 1 + random.nextInt(3);
+            moveProgress = 1f;
+            sound.pitFall();
+            return;
+        }
         sound.footstep();
         moveProgress = 0f;
     }
@@ -792,6 +853,28 @@ final class Game {
                 }
                 damageBoss(damage);
             }
+        }
+        for (int dy = -reach; dy <= reach; dy++) {
+            for (int dx = -reach; dx <= reach; dx++) {
+                if (Math.max(Math.abs(dx), Math.abs(dy)) < 1) continue;
+                int tx = playerX + dx, ty = playerY + dy;
+                if (inBounds(tx, ty) && map[index(tx, ty)] == SCENERY) {
+                    breakScenery(tx, ty);
+                }
+            }
+        }
+    }
+
+    private void breakScenery(int x, int y) {
+        map[index(x, y)] = FLOOR;
+        sound.sceneryBreak();
+        if (random.nextInt(100) < 20) {
+            spawnLoot(x, y, rollItem(random), false);
+        }
+        if (breakCount < BREAK_CAP) {
+            breakX[breakCount] = x;
+            breakY[breakCount] = y;
+            breakTimer[breakCount++] = 1f;
         }
     }
 
@@ -1003,7 +1086,8 @@ final class Game {
             return false;
         }
         int tile = map[index(nextX, nextY)];
-        if (tile == WALL || tile == LOCKED_DOOR || (nextX == playerX && nextY == playerY) || enemyAt(nextX, nextY) >= 0) {
+        if (tile == WALL || tile == LOCKED_DOOR || tile == PIT || tile == SCENERY
+                || (nextX == playerX && nextY == playerY) || enemyAt(nextX, nextY) >= 0) {
             return false;
         }
         enemyX[i] = nextX;
@@ -1228,6 +1312,8 @@ final class Game {
         sound.stairs();
         saveFloor();
         floor += delta;
+        // Start the new floor dark so its lit area fades in rather than snapping on arrival.
+        for (int i = 0; i < lightLevel.length; i++) lightLevel[i] = 0f;
         if (floor >= 1 && floor <= FLOOR_CACHE_CAP && floorCache[floor - 1] != null) {
             restoreFloor(arriveAtDownStairs);
         } else {
@@ -1332,6 +1418,21 @@ final class Game {
         enemyProgress = 0f;
         attackProgress = 1f;
         placeAtStairs(arriveAtDownStairs);
+    }
+
+    /** Drops Duke onto a random open floor tile after a pit fall. */
+    private void placeAtRandom() {
+        for (int attempt = 0; attempt < 200; attempt++) {
+            int x = 1 + random.nextInt(MAP_WIDTH - 2);
+            int y = 1 + random.nextInt(MAP_HEIGHT - 2);
+            if (map[index(x, y)] == FLOOR && enemyAt(x, y) < 0
+                    && !bossOccupies(x, y) && !(x == merchantX && y == merchantY)) {
+                playerX = x; playerY = y;
+                previousX = x; previousY = y;
+                computeFieldOfView();
+                return;
+            }
+        }
     }
 
     /** Lands Duke on this floor's down stairs (when climbing back down) or up stairs (when descending). */
@@ -1451,6 +1552,8 @@ final class Game {
         placeMerchant(floorWidth, floorHeight);
         placeChests(floorWidth, floorHeight);
         placeTraps(floorWidth, floorHeight);
+        placePits(floorWidth, floorHeight);
+        placeScenery(floorWidth, floorHeight, roomCount);
         if (placeVault(floorWidth, floorHeight)) {
             placeFloorKey(floorWidth, floorHeight);
         }
@@ -1706,6 +1809,7 @@ final class Game {
                 int cx = nextX + ox;
                 int cy = nextY + oy;
                 if (!inBounds(cx, cy) || map[index(cx, cy)] == WALL || map[index(cx, cy)] == LOCKED_DOOR
+                        || map[index(cx, cy)] == PIT || map[index(cx, cy)] == SCENERY
                         || (cx == playerX && cy == playerY) || enemyAt(cx, cy) >= 0) {
                     return false;
                 }
@@ -1778,6 +1882,54 @@ final class Game {
         spawnLoot(bossX, bossY, rollItem(random, 20), true);
         spawnLoot(bossX + BOSS_SIZE - 1, bossY + BOSS_SIZE - 1, rollItem(random, 20), true);
         sound.bossDefeat();
+    }
+
+    /**
+     * Carves pit clusters into room interiors. Each pit is 1–4 tiles grown from a room-interior seed;
+     * every tile must pass isOpenTile so corridors and room edges are never touched.
+     */
+    private void placePits(int floorWidth, int floorHeight) {
+        if (floor < 2) return;
+        int count = Math.min(3, 1 + (floor - 2) / 3);
+        int[] cx = new int[5], cy = new int[5];
+        for (int p = 0; p < count; p++) {
+            for (int attempt = 0; attempt < 40; attempt++) {
+                int sx = 1 + genRandom.nextInt(floorWidth - 2);
+                int sy = 1 + genRandom.nextInt(floorHeight - 2);
+                if (map[index(sx, sy)] != FLOOR || !isOpenTile(sx, sy) || distToPlayer(sx, sy) < 5
+                        || (sx == merchantX && sy == merchantY)) continue;
+                cx[0] = sx; cy[0] = sy;
+                int n = 1;
+                int extra = genRandom.nextInt(4);
+                for (int g = 0; g < extra && n < 5; g++) {
+                    int bi = genRandom.nextInt(n);
+                    for (int d = 0; d < 4; d++) {
+                        int nx = cx[bi] + DIR_X[d], ny = cy[bi] + DIR_Y[d];
+                        if (map[index(nx, ny)] != FLOOR || !isOpenTile(nx, ny)
+                                || (nx == merchantX && ny == merchantY)) continue;
+                        boolean dup = false;
+                        for (int k = 0; k < n; k++) if (cx[k] == nx && cy[k] == ny) { dup = true; break; }
+                        if (!dup) { cx[n] = nx; cy[n++] = ny; break; }
+                    }
+                }
+                for (int k = 0; k < n; k++) map[index(cx[k], cy[k])] = PIT;
+                break;
+            }
+        }
+    }
+
+    private void placeScenery(int floorWidth, int floorHeight, int roomCount) {
+        int count = Math.max(1, roomCount / 3) + genRandom.nextInt(2);
+        int placed = 0;
+        for (int attempt = 0; attempt < count * 20 && placed < count; attempt++) {
+            int x = 1 + genRandom.nextInt(floorWidth - 2);
+            int y = 1 + genRandom.nextInt(floorHeight - 2);
+            if (map[index(x, y)] != FLOOR) continue;
+            if (x == merchantX && y == merchantY) continue;
+            if (distToPlayer(x, y) < 3) continue;
+            map[index(x, y)] = SCENERY;
+            placed++;
+        }
     }
 
     private void placeMerchant(int floorWidth, int floorHeight) {
@@ -1943,7 +2095,7 @@ final class Game {
             int idx = index(x, y);
             visible[idx] = true;
             explored[idx] = true;
-            if (map[idx] == WALL || map[idx] == LOCKED_DOOR || (x == targetX && y == targetY)) {
+            if (map[idx] == WALL || map[idx] == LOCKED_DOOR || map[idx] == SCENERY || (x == targetX && y == targetY)) {
                 return;
             }
             int doubled = 2 * error;

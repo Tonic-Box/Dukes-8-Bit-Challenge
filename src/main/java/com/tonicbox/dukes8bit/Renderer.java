@@ -11,20 +11,17 @@ import java.awt.Stroke;
  * Draws a Game's current state to an AWT Graphics. Stateless: every visual is
  * derived from the Game and generated procedurally, so no asset files ship. A
  * camera follows the player so Duke stays centered while the dungeon scrolls.
- * Colors live as constants so no Color objects are allocated while rendering.
+ * Colors live as constants (and a small fog-overlay lookup table) so no Color
+ * objects are allocated while rendering.
  */
 final class Renderer {
 
     private static final Color BACKGROUND = new Color(8, 8, 12);
     private static final Color FLOOR_LIT = new Color(64, 60, 78);
-    private static final Color FLOOR_DIM = new Color(26, 24, 32);
     private static final Color WALL_LIT = new Color(112, 106, 142);
-    private static final Color WALL_DIM = new Color(46, 44, 60);
     private static final Color WALL_EDGE = new Color(150, 144, 184);
     private static final Color STAIRS_LIT = new Color(236, 206, 92);
-    private static final Color STAIRS_DIM = new Color(92, 80, 42);
     private static final Color UP_STAIRS_LIT = new Color(228, 84, 84);
-    private static final Color UP_STAIRS_DIM = new Color(96, 40, 40);
     private static final Color HUD_BACKGROUND = new Color(18, 18, 26);
     private static final Color HUD_TEXT = Color.WHITE;
     private static final Color HUD_HINT = new Color(150, 150, 172);
@@ -46,7 +43,6 @@ final class Renderer {
     private static final Color SWORD_TRAIL_2 = new Color(224, 226, 240, 70);
     private static final BasicStroke SWORD_STROKE = new BasicStroke(3f);
     private static final Color FLOOR_LIT_ALT = new Color(56, 52, 70);
-    private static final Color FLOOR_DIM_ALT = new Color(22, 20, 28);
     private static final Color WALL_SHADOW = new Color(30, 28, 40);
     private static final Color DUKE_OUTLINE = new Color(22, 28, 70);
     private static final Color DUKE_BELLY = new Color(236, 239, 246);
@@ -60,6 +56,18 @@ final class Renderer {
     private static final Color MERCHANT_HAT = new Color(96, 64, 32);
     private static final Color PROMPT = new Color(245, 240, 210);
     private static final Color TRAP_COLOR = new Color(212, 78, 68);
+    private static final Color PIT_OUTER = new Color(16, 10, 16);
+    private static final Color PIT_INNER = new Color(6, 4, 8);
+    private static final Color MINIMAP_PIT = new Color(22, 14, 24);
+    private static final Color POT_BODY = new Color(178, 90, 54);
+    private static final Color POT_RIM = new Color(210, 130, 80);
+    private static final Color BOX_BODY = new Color(168, 128, 72);
+    private static final Color BOX_EDGE = new Color(110, 78, 38);
+    private static final Color VASE_BODY = new Color(88, 128, 170);
+    private static final Color VASE_NECK = new Color(112, 158, 200);
+    private static final Color[] SCENERY_DEBRIS = {
+        new Color(190, 110, 60), new Color(180, 140, 75), new Color(100, 140, 185),
+    };
     private static final Color CHEST_BODY = new Color(150, 96, 40);
     private static final Color CHEST_LID = new Color(220, 174, 72);
     private static final Color MIMIC_BODY = new Color(120, 28, 28);
@@ -73,11 +81,8 @@ final class Renderer {
     private static final Color DELTA_UP = new Color(120, 224, 132);
     private static final Color DELTA_DOWN = new Color(232, 96, 96);
     private static final Color DOOR_FRAME_LIT = new Color(120, 88, 52);
-    private static final Color DOOR_FRAME_DIM = new Color(54, 40, 26);
     private static final Color DOOR_PANEL_LIT = new Color(168, 120, 66);
-    private static final Color DOOR_PANEL_DIM = new Color(74, 54, 32);
     private static final Color DOOR_LOCK_LIT = new Color(232, 200, 110);
-    private static final Color DOOR_LOCK_DIM = new Color(96, 82, 46);
     private static final Color KEY_COLOR = new Color(238, 206, 96);
     private static final Color KEY_SHADE = new Color(176, 142, 52);
     private static final Color BOSS_SHADOW = new Color(0, 0, 0, 96);
@@ -118,6 +123,18 @@ final class Renderer {
     private static final Color BOSS_BAR_FILL = new Color(206, 60, 72);
     private static final Color BOSS_BAR_FILL_ENRAGED = new Color(240, 120, 60);
 
+    // Fog-of-war is drawn by laying every tile in its lit form, then overlaying one of these
+    // translucent-black steps sized by the tile's light level. At light 0 the overlay's 60% black
+    // reproduces the old dim look; at light 1 it is fully transparent. Smoothly interpolating the
+    // light level per tile makes the lighting glide with the player instead of snapping.
+    private static final int FOG_STEPS = 16;
+    private static final Color[] FOG = new Color[FOG_STEPS];
+    static {
+        for (int i = 0; i < FOG_STEPS; i++) {
+            FOG[i] = new Color(0, 0, 0, i * 153 / (FOG_STEPS - 1));
+        }
+    }
+
     // Reusable polygon scratch arrays — render loop is single-threaded so sharing is safe.
     private static final int[] POLY_X3 = new int[3];
     private static final int[] POLY_Y3 = new int[3];
@@ -152,14 +169,33 @@ final class Renderer {
                 int sx = x * Game.TILE - cameraX;
                 int sy = y * Game.TILE - cameraY;
                 int tile = game.map[idx];
-                boolean lit = game.visible[idx];
-                drawTile(graphics, sx, sy, tile, lit, ((x + y) & 1) == 1);
-                if (tile == Game.TRAP && lit && Math.abs(x - game.playerX) + Math.abs(y - game.playerY) <= 2) {
+                drawTile(graphics, sx, sy, tile, ((x + y) & 1) == 1, x, y);
+                if (tile == Game.TRAP && game.visible[idx] && Math.abs(x - game.playerX) + Math.abs(y - game.playerY) <= 2) {
                     drawTrap(graphics, sx, sy);
+                }
+                float light = game.lightLevel[idx];
+                if (light < 0.997f) {
+                    graphics.setColor(FOG[Math.round((1f - light) * (FOG_STEPS - 1))]);
+                    graphics.fillRect(sx, sy, Game.TILE, Game.TILE);
                 }
             }
         }
 
+        for (int i = 0; i < game.breakCount; i++) {
+            float t = game.breakTimer[i];
+            int bx = game.breakX[i], by = game.breakY[i];
+            int cx = bx * Game.TILE + Game.TILE / 2 - cameraX;
+            int cy = by * Game.TILE + Game.TILE / 2 - cameraY;
+            int spread = (int) ((1f - t) * 14) + 1;
+            int sz = Math.max(1, (int) (t * 4));
+            graphics.setColor(SCENERY_DEBRIS[(bx * 7 + by * 3) % 3]);
+            for (int f = 0; f < 6; f++) {
+                double angle = f * Math.PI / 3;
+                int fx = cx + (int) (Math.cos(angle) * spread);
+                int fy = cy + (int) (Math.sin(angle) * spread);
+                graphics.fillRect(fx - sz / 2, fy - sz / 2, sz, sz);
+            }
+        }
         for (int i = 0; i < game.lootCount; i++) {
             if (game.visible[Game.index(game.lootX[i], game.lootY[i])]) {
                 int sx = game.lootX[i] * Game.TILE - cameraX;
@@ -218,7 +254,23 @@ final class Renderer {
 
         int dukeX = Math.round(game.renderPixelX()) - cameraX;
         int dukeY = Math.round(game.renderPixelY()) - cameraY;
-        drawDuke(graphics, dukeX, dukeY, game.facing, game.playerHeal, game.playerDodge);
+        if (game.falling && game.fallProgress > 0f) {
+            float s = 1f - game.fallProgress;
+            if (s > 0.02f) {
+                Graphics2D g2 = (Graphics2D) graphics;
+                int cx = dukeX + Game.TILE / 2;
+                int cy = dukeY + Game.TILE / 2;
+                g2.translate(cx, cy);
+                g2.scale(s, s);
+                g2.translate(-cx, -cy);
+                drawDuke(graphics, dukeX, dukeY, game.facing, 0f, 0f);
+                g2.translate(cx, cy);
+                g2.scale(1.0 / s, 1.0 / s);
+                g2.translate(-cx, -cy);
+            }
+        } else {
+            drawDuke(graphics, dukeX, dukeY, game.facing, game.playerHeal, game.playerDodge);
+        }
         if (game.attackProgress < 1f) {
             drawSword(graphics, dukeX + Game.TILE / 2, dukeY + Game.TILE / 2, game.attackProgress);
         }
@@ -241,32 +293,45 @@ final class Renderer {
         }
     }
 
-    private void drawTile(Graphics graphics, int px, int py, int tile, boolean lit, boolean alt) {
+    /**
+     * Draws a tile in its fully-lit form; the caller overlays a fog step afterward to dim it by the
+     * tile's current light level, so this method never needs to know how lit the tile is.
+     */
+    private void drawTile(Graphics graphics, int px, int py, int tile, boolean alt, int tx, int ty) {
         if (tile == Game.WALL) {
-            graphics.setColor(lit ? WALL_LIT : WALL_DIM);
+            graphics.setColor(WALL_LIT);
             graphics.fillRect(px, py, Game.TILE, Game.TILE);
-            if (lit) {
-                graphics.setColor(WALL_EDGE);
-                graphics.fillRect(px, py, Game.TILE, 3);
-                graphics.setColor(WALL_SHADOW);
-                graphics.fillRect(px, py + Game.TILE - 3, Game.TILE, 3);
-            }
+            graphics.setColor(WALL_EDGE);
+            graphics.fillRect(px, py, Game.TILE, 3);
+            graphics.setColor(WALL_SHADOW);
+            graphics.fillRect(px, py + Game.TILE - 3, Game.TILE, 3);
             return;
         }
         if (tile == Game.LOCKED_DOOR) {
-            drawLockedDoor(graphics, px, py, lit);
+            drawLockedDoor(graphics, px, py);
             return;
         }
-        if (lit) {
+        if (tile == Game.SCENERY) {
             graphics.setColor(alt ? FLOOR_LIT_ALT : FLOOR_LIT);
-        } else {
-            graphics.setColor(alt ? FLOOR_DIM_ALT : FLOOR_DIM);
+            graphics.fillRect(px, py, Game.TILE, Game.TILE);
+            drawScenery(graphics, px, py, (tx * 7 + ty * 3) % 3);
+            return;
         }
+        if (tile == Game.PIT) {
+            graphics.setColor(PIT_OUTER);
+            graphics.fillRect(px, py, Game.TILE, Game.TILE);
+            graphics.setColor(PIT_INNER);
+            graphics.fillOval(px + 3, py + 3, Game.TILE - 6, Game.TILE - 6);
+            graphics.setColor(Color.BLACK);
+            graphics.fillOval(px + 7, py + 7, Game.TILE - 14, Game.TILE - 14);
+            return;
+        }
+        graphics.setColor(alt ? FLOOR_LIT_ALT : FLOOR_LIT);
         graphics.fillRect(px, py, Game.TILE, Game.TILE);
         if (tile == Game.DOWN_STAIRS) {
-            drawStairs(graphics, px, py, lit ? STAIRS_LIT : STAIRS_DIM);
+            drawStairs(graphics, px, py, STAIRS_LIT);
         } else if (tile == Game.UP_STAIRS) {
-            drawStairs(graphics, px, py, lit ? UP_STAIRS_LIT : UP_STAIRS_DIM);
+            drawStairs(graphics, px, py, UP_STAIRS_LIT);
         }
     }
 
@@ -289,14 +354,41 @@ final class Renderer {
         }
     }
 
-    /** A studded vault door with a brass lock plate and keyhole; dims when out of the light. */
-    private void drawLockedDoor(Graphics graphics, int px, int py, boolean lit) {
-        graphics.setColor(lit ? DOOR_FRAME_LIT : DOOR_FRAME_DIM);
+    private void drawScenery(Graphics graphics, int px, int py, int type) {
+        switch (type) {
+            case 0 -> {
+                graphics.setColor(POT_BODY);
+                graphics.fillOval(px + 5, py + 9, 14, 11);
+                graphics.fillRect(px + 8, py + 6, 8, 5);
+                graphics.setColor(POT_RIM);
+                graphics.fillRect(px + 7, py + 5, 10, 3);
+            }
+            case 1 -> {
+                graphics.setColor(BOX_BODY);
+                graphics.fillRect(px + 4, py + 6, 16, 13);
+                graphics.setColor(BOX_EDGE);
+                graphics.drawRect(px + 4, py + 6, 16, 13);
+                graphics.drawLine(px + 4, py + 12, px + 20, py + 12);
+                graphics.drawLine(px + 12, py + 6, px + 12, py + 19);
+            }
+            default -> {
+                graphics.setColor(VASE_NECK);
+                graphics.fillOval(px + 5, py + 4, 14, 6);
+                graphics.setColor(VASE_BODY);
+                graphics.fillRect(px + 8, py + 8, 8, 8);
+                graphics.fillOval(px + 4, py + 13, 16, 7);
+            }
+        }
+    }
+
+    /** A studded vault door with a brass lock plate and keyhole; the fog overlay dims it out of light. */
+    private void drawLockedDoor(Graphics graphics, int px, int py) {
+        graphics.setColor(DOOR_FRAME_LIT);
         graphics.fillRect(px, py, Game.TILE, Game.TILE);
-        graphics.setColor(lit ? DOOR_PANEL_LIT : DOOR_PANEL_DIM);
+        graphics.setColor(DOOR_PANEL_LIT);
         graphics.fillRect(px + 3, py + 2, Game.TILE - 6, Game.TILE - 4);
         int cx = px + Game.TILE / 2;
-        graphics.setColor(lit ? DOOR_LOCK_LIT : DOOR_LOCK_DIM);
+        graphics.setColor(DOOR_LOCK_LIT);
         graphics.fillRect(cx - 3, py + Game.TILE / 2 - 3, 6, 8);
         graphics.setColor(ENEMY_EYE);
         graphics.fillRect(cx - 1, py + Game.TILE / 2 - 1, 2, 2);
@@ -711,6 +803,8 @@ final class Renderer {
             case Game.DOWN_STAIRS -> MINIMAP_DOWN;
             case Game.UP_STAIRS -> MINIMAP_UP;
             case Game.LOCKED_DOOR -> MINIMAP_DOOR;
+            case Game.PIT -> MINIMAP_PIT;
+            case Game.SCENERY -> MINIMAP_BORDER;
             default -> lit ? MINIMAP_FLOOR_LIT : MINIMAP_FLOOR_DIM;
         };
     }
@@ -744,7 +838,7 @@ final class Renderer {
         graphics.fillRect(barX, xpY, barWidth * Math.min(game.playerXp, game.xpForNext()) / game.xpForNext(), 7);
 
         graphics.setColor(HUD_HINT);
-        graphics.drawString("WASD move   Space attack   Q potion   I inventory   E interact   M mute   Stairs descend",
+        graphics.drawString("WASD move   Space attack   Q potion   I inventory   E interact   M mute all   T mute music   Stairs descend",
                 12, top + 58);
     }
 
