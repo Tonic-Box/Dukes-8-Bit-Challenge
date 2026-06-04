@@ -21,13 +21,13 @@ Requires **JDK 25**.
 
 | Action | Key |
 | --- | --- |
-| Move | WASD / Arrow keys |
+| Move | WASD |
 | Attack | Space |
 | Drink potion (heal) | Q |
 | Open inventory | I |
 | Equip / drop selected item (in inventory) | E / D |
-| Talk to merchant / open shop | E |
-| Buy potion (in shop) | B |
+| Talk to merchant / open shop / buy potion | E |
+| Leave shop | Q |
 | Open a sealed vault door | Walk into it holding a key |
 | Descend / ascend | Walk onto the gold / red stairs |
 | Mute / unmute audio | M |

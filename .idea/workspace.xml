@@ -4,9 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="Runtime memory optimizations&#10;- Pre-allocate static polygon scratch arrays in Renderer&#10;- Replace AffineTransform save/restore in drawDukeRight with paired inverse transforms&#10;- Swap HashMap&lt;Integer,int[]&gt; floor cache for a direct int[][] array">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- General cleanup">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Game.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Renderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Renderer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Sound.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Sound.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,6 +64,13 @@
       </state>
     </system>
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
@@ -111,7 +121,7 @@
     "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle"
   }
 }]]></component>
-  <component name="RunManager" selected="Gradle.dukes8bit [size]">
+  <component name="RunManager" selected="Application.Main">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.tonicbox.dukes8bit.Main" />
       <module name="dukes8bit.main" />
@@ -193,10 +203,10 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.dukes8bit [size]" />
         <item itemvalue="Application.Main" />
-        <item itemvalue="Gradle.dukes8bit [build]" />
+        <item itemvalue="Gradle.dukes8bit [size]" />
         <item itemvalue="Gradle.dukes8bit [run]" />
+        <item itemvalue="Gradle.dukes8bit [build]" />
       </list>
     </recent_temporary>
   </component>
@@ -305,8 +315,27 @@
       <option name="project" value="LOCAL" />
       <updated>1780545747937</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="- General cleanup">
+      <option name="closed" value="true" />
+      <created>1780545899667</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1780545899667</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="init" />
@@ -319,6 +348,7 @@
     <MESSAGE value="- Fixed sizing of minimap&#10;- Implemented stretching and resizability for the game view" />
     <MESSAGE value="- Added shaded jar task&#10;- added output shaded jar size to size task output" />
     <MESSAGE value="Runtime memory optimizations&#10;- Pre-allocate static polygon scratch arrays in Renderer&#10;- Replace AffineTransform save/restore in drawDukeRight with paired inverse transforms&#10;- Swap HashMap&lt;Integer,int[]&gt; floor cache for a direct int[][] array" />
-    <option name="LAST_COMMIT_MESSAGE" value="Runtime memory optimizations&#10;- Pre-allocate static polygon scratch arrays in Renderer&#10;- Replace AffineTransform save/restore in drawDukeRight with paired inverse transforms&#10;- Swap HashMap&lt;Integer,int[]&gt; floor cache for a direct int[][] array" />
+    <MESSAGE value="- General cleanup" />
+    <option name="LAST_COMMIT_MESSAGE" value="- General cleanup" />
   </component>
 </project>

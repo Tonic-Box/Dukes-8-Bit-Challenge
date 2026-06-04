@@ -32,7 +32,7 @@ final class Renderer {
     private static final Color HP_FILL = new Color(210, 64, 64);
     private static final Color XP_BACK = new Color(24, 28, 46);
     private static final Color XP_FILL = new Color(96, 140, 230);
-    private static final Color DUKE_BODY = new Color(60, 92, 212);
+    private static final Color DUKE_BODY = new Color(20, 20, 24);
     private static final Color DUKE_NOSE = new Color(232, 44, 44);
     private static final Color BUG_COLOR = new Color(214, 70, 64);
     private static final Color NULL_COLOR = new Color(158, 96, 214);
@@ -51,7 +51,7 @@ final class Renderer {
     private static final Color DUKE_OUTLINE = new Color(22, 28, 70);
     private static final Color DUKE_BELLY = new Color(236, 239, 246);
     private static final Color DUKE_FOOT = new Color(242, 170, 44);
-    private static final Color DUKE_FLIPPER = new Color(40, 60, 150);
+    private static final Color DUKE_FLIPPER = new Color(20, 20, 24);
     private static final Color BUG_LEG = new Color(120, 32, 28);
     private static final Color LEAK_DRIP = new Color(156, 232, 174);
     private static final Color MERCHANT_ROBE = new Color(150, 110, 60);
@@ -62,6 +62,9 @@ final class Renderer {
     private static final Color TRAP_COLOR = new Color(212, 78, 68);
     private static final Color CHEST_BODY = new Color(150, 96, 40);
     private static final Color CHEST_LID = new Color(220, 174, 72);
+    private static final Color MIMIC_BODY = new Color(120, 28, 28);
+    private static final Color MIMIC_LID = new Color(192, 44, 44);
+    private static final Color MIMIC_EYE = new Color(248, 220, 60);
     private static final Color LOOT_GEM = new Color(118, 210, 232);
     private static final Color POISON_TINT = new Color(90, 220, 110, 115);
     private static final Color CRIT_FLASH = new Color(255, 232, 90, 150);
@@ -79,7 +82,10 @@ final class Renderer {
     private static final Color KEY_SHADE = new Color(176, 142, 52);
     private static final Color BOSS_SHADOW = new Color(0, 0, 0, 96);
     private static final Color[] BOSS_BODIES = {
-        new Color(58, 36, 74), new Color(34, 54, 76), new Color(54, 62, 34), new Color(70, 44, 36),
+            new Color(58, 36, 74),
+            new Color(34, 54, 76),
+            new Color(54, 62, 34),
+            new Color(70, 44, 36),
     };
     private static final Color BOSS_BODY_ENRAGED = new Color(96, 32, 44);
     private static final Color BOSS_EDGE = new Color(158, 104, 200);
@@ -172,7 +178,7 @@ final class Renderer {
             if (game.visible[Game.index(game.enemyX[i], game.enemyY[i])]) {
                 int hop = Math.round(game.enemyHit[i] * 6f);
                 drawEnemy(graphics, Math.round(game.enemyRenderPixelX(i)) - cameraX, Math.round(game.enemyRenderPixelY(i)) - cameraY - hop,
-                        game.enemyType[i], game.enemyCrit[i], game.enemyPoison[i] > 0f);
+                        game.enemyType[i], game.enemyCrit[i], game.enemyPoison[i] > 0f, game.enemyAttack[i]);
             }
         }
 
@@ -198,6 +204,15 @@ final class Renderer {
             if (game.adjacentToMerchant()) {
                 graphics.setColor(PROMPT);
                 drawCenteredAt(graphics, "E", mx + Game.TILE / 2, my - 4);
+            }
+        }
+        for (int i = 0; i < game.lootCount; i++) {
+            if (game.lootChest[i] && game.visible[Game.index(game.lootX[i], game.lootY[i])]
+                    && Math.abs(game.lootX[i] - game.playerX) + Math.abs(game.lootY[i] - game.playerY) <= 1) {
+                graphics.setColor(PROMPT);
+                drawCenteredAt(graphics, "E", game.lootX[i] * Game.TILE - cameraX + Game.TILE / 2,
+                        game.lootY[i] * Game.TILE - cameraY - 4);
+                break;
             }
         }
 
@@ -433,7 +448,19 @@ final class Renderer {
         g2.drawLine(hiltX, hiltY, tipX, tipY);
     }
 
-    private void drawEnemy(Graphics graphics, int px, int py, int type, float crit, boolean poisoned) {
+    private void drawEnemy(Graphics graphics, int px, int py, int type, float crit, boolean poisoned, float attack) {
+        Graphics2D g2 = null;
+        float scale = 1f;
+        int cx = 0, cy = 0;
+        if (attack > 0f) {
+            scale = 1f + attack * 0.25f;
+            cx = px + Game.TILE / 2;
+            cy = py + Game.TILE / 2;
+            g2 = (Graphics2D) graphics;
+            g2.translate(cx, cy);
+            g2.scale(scale, scale);
+            g2.translate(-cx, -cy);
+        }
         switch (type) {
             case Game.NULLPTR -> {
                 graphics.setColor(NULL_COLOR);
@@ -456,6 +483,23 @@ final class Renderer {
                 graphics.setColor(DEADLOCK_COLOR);
                 graphics.fillRect(px + 3, py + 4, Game.TILE - 6, Game.TILE - 7);
             }
+            case Game.MIMIC -> {
+                graphics.setColor(MIMIC_BODY);
+                graphics.fillRect(px + 3, py + 14, Game.TILE - 6, 9);
+                graphics.setColor(MIMIC_LID);
+                graphics.fillRect(px + 3, py + 4, Game.TILE - 6, 8);
+                graphics.setColor(Color.WHITE);
+                for (int t = 0; t < 4; t++) {
+                    graphics.fillRect(px + 5 + t * 4, py + 11, 2, 3);
+                    graphics.fillRect(px + 6 + t * 4, py + 14, 2, 3);
+                }
+                graphics.setColor(MIMIC_EYE);
+                graphics.fillOval(px + 6, py + 5, 4, 4);
+                graphics.fillOval(px + 14, py + 5, 4, 4);
+                graphics.setColor(ENEMY_EYE);
+                graphics.fillOval(px + 7, py + 6, 2, 2);
+                graphics.fillOval(px + 15, py + 6, 2, 2);
+            }
             default -> {
                 graphics.setColor(BUG_LEG);
                 graphics.fillRect(px + 5, py + Game.TILE - 6, 2, 5);
@@ -465,9 +509,11 @@ final class Renderer {
                 graphics.fillOval(px + 4, py + 6, Game.TILE - 8, Game.TILE - 10);
             }
         }
-        graphics.setColor(ENEMY_EYE);
-        graphics.fillRect(px + 8, py + 10, 3, 3);
-        graphics.fillRect(px + Game.TILE - 11, py + 10, 3, 3);
+        if (type != Game.MIMIC) {
+            graphics.setColor(ENEMY_EYE);
+            graphics.fillRect(px + 8, py + 10, 3, 3);
+            graphics.fillRect(px + Game.TILE - 11, py + 10, 3, 3);
+        }
         if (poisoned) {
             graphics.setColor(POISON_TINT);
             graphics.fillRect(px + 2, py + 2, Game.TILE - 4, Game.TILE - 4);
@@ -475,6 +521,11 @@ final class Renderer {
         if (crit > 0f) {
             graphics.setColor(CRIT_FLASH);
             graphics.fillRect(px + 1, py + 1, Game.TILE - 2, Game.TILE - 2);
+        }
+        if (g2 != null) {
+            g2.translate(cx, cy);
+            g2.scale(1.0 / scale, 1.0 / scale);
+            g2.translate(-cx, -cy);
         }
     }
 
@@ -693,7 +744,7 @@ final class Renderer {
         graphics.fillRect(barX, xpY, barWidth * Math.min(game.playerXp, game.xpForNext()) / game.xpForNext(), 7);
 
         graphics.setColor(HUD_HINT);
-        graphics.drawString("Move WASD/Arrows   Space attack   Q potion   I inventory   M mute   E shop   Stairs descend",
+        graphics.drawString("WASD move   Space attack   Q potion   I inventory   E interact   M mute   Stairs descend",
                 12, top + 58);
     }
 
@@ -712,8 +763,8 @@ final class Renderer {
         graphics.setColor(HUD_TEXT);
         drawCentered(graphics, "DUKE FINDS A MERCHANT", Game.PLAY_HEIGHT / 2 - 52);
         drawCentered(graphics, "Gold: " + game.gold + "      Potions: " + game.potions, Game.PLAY_HEIGHT / 2 - 20);
-        drawCentered(graphics, "[B]  Buy a potion  -  " + Game.POTION_COST + " gold", Game.PLAY_HEIGHT / 2 + 12);
-        drawCentered(graphics, "[E]  Leave the merchant", Game.PLAY_HEIGHT / 2 + 40);
+        drawCentered(graphics, "[E]  Buy a potion  -  " + Game.POTION_COST + " gold", Game.PLAY_HEIGHT / 2 + 12);
+        drawCentered(graphics, "[Q]  Leave the merchant", Game.PLAY_HEIGHT / 2 + 40);
     }
 
     private void drawPause(Graphics graphics, Game game) {
@@ -726,7 +777,7 @@ final class Renderer {
         graphics.setColor(game.pauseSelection == 1 ? PROMPT : HUD_HINT);
         drawCentered(graphics, (game.pauseSelection == 1 ? "> " : "  ") + "Quit", Game.PLAY_HEIGHT / 2 + 30);
         graphics.setColor(HUD_HINT);
-        drawCentered(graphics, "Up / Down to choose      Enter to confirm      Esc to resume", Game.PLAY_HEIGHT / 2 + 64);
+        drawCentered(graphics, "W / S to choose      E to confirm      Esc to resume", Game.PLAY_HEIGHT / 2 + 64);
     }
 
     private void drawInventory(Graphics graphics, Game game) {
@@ -751,9 +802,9 @@ final class Renderer {
         graphics.setColor(HUD_HINT);
         graphics.drawString("EQUIPPED", rightX, 84);
         graphics.setColor(HUD_TEXT);
-        graphics.drawString("Weapon   " + slotName(game.equippedWeapon), rightX, 108);
-        graphics.drawString("Armor    " + slotName(game.equippedArmor), rightX, 128);
-        graphics.drawString("Trinket  " + slotName(game.equippedTrinket), rightX, 148);
+        graphics.drawString("Weapon   " + slotName(game, game.equippedWeapon), rightX, 108);
+        graphics.drawString("Armor    " + slotName(game, game.equippedArmor), rightX, 128);
+        graphics.drawString("Trinket  " + slotName(game, game.equippedTrinket), rightX, 148);
 
         graphics.setColor(HUD_HINT);
         graphics.drawString("CARRIED", leftX, 252);
@@ -764,13 +815,13 @@ final class Renderer {
             for (int i = 0; i < game.inventoryCount; i++) {
                 boolean selected = i == game.inventorySelection;
                 graphics.setColor(selected ? PROMPT : HUD_TEXT);
-                graphics.drawString((selected ? "> " : "  ") + Game.ITEM_NAME[game.inventory[i]], leftX, 276 + i * 20);
+                graphics.drawString((selected ? "> " : "  ") + game.itemName(game.inventory[i]), leftX, 276 + i * 20);
             }
             drawEquipDelta(graphics, game, rightX);
         }
 
         graphics.setColor(HUD_HINT);
-        drawCentered(graphics, "[Up/Down] select    [E] equip    [D] drop    [I/Esc] close",
+        drawCentered(graphics, "[Up/Down] select    [E] equip    [D] drop    [Q/Esc] close",
                 Game.VIEW_HEIGHT - 22);
     }
 
@@ -820,11 +871,11 @@ final class Renderer {
             lineY += 20;
         }
         graphics.setColor(HUD_HINT);
-        graphics.drawString(current >= 0 ? "replaces " + Game.ITEM_NAME[current] : "fills an empty slot", x, lineY);
+        graphics.drawString(current >= 0 ? "replaces " + game.itemName(current) : "fills an empty slot", x, lineY);
     }
 
-    private String slotName(int item) {
-        return item >= 0 ? Game.ITEM_NAME[item] : "(none)";
+    private String slotName(Game game, int packed) {
+        return packed >= 0 ? game.itemName(packed) : "(none)";
     }
 
     private void drawMerchant(Graphics graphics, int px, int py) {

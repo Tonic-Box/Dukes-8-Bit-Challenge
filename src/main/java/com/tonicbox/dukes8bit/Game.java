@@ -45,6 +45,7 @@ final class Game {
     static final int LEAK = 2;
     static final int FORKBOMB = 3;
     static final int DEADLOCK = 4;
+    static final int MIMIC = 5;
 
     /**
      * Per-enemy-type base stats packed as {maxHp, attack, gold, xp} per type id and read as
@@ -57,6 +58,7 @@ final class Game {
         8, 3, 7, 14,
         6, 2, 5, 10,
         16, 4, 12, 22,
+        20, 4, 12, 24,
     };
 
     static final int MAX_ENEMIES = 32;
@@ -88,15 +90,14 @@ final class Game {
      * (+ATK for weapons, +DEF for armor); ITEM_EFFECT/ITEM_EFFECT_MAG layer a special behaviour
      * on top, so base combat math stays untouched and plain gear is simply EFF_NONE.
      */
-    static final String[] ITEM_NAME = {
-        "Debugger Blade  +3 ATK", "Null Sword  +5 ATK", "Refactor Axe  +8 ATK",
-        "Garbage Collector  +4 ATK lifesteal", "Hot-Swap Dagger  +4 ATK crit",
-        "Stack-Trace Spear  +5 ATK reach", "Venom Linter  +4 ATK poison",
-        "Null-Cannon  +6 ATK knockback",
-        "Try-Catch Vest  +2 DEF", "Final Plate  +4 DEF", "Sandbox Shield  +6 DEF",
-        "Exception Mail  +3 DEF thorns", "Async Cloak  +2 DEF dodge", "Daemon Plate  +4 DEF heal-kill",
-        "Hot Coffee  regen+", "Lantern  sight+", "Lucky Coin  gold+",
-        "Profiler  xp+", "Caffeine IV  speed+", "Keyring  keys+",
+    private static final String[] ITEM_BASE_NAME = {
+        "Debugger Blade", "Null Sword", "Refactor Axe",
+        "Garbage Collector", "Hot-Swap Dagger",
+        "Stack-Trace Spear", "Venom Linter", "Null-Cannon",
+        "Try-Catch Vest", "Final Plate", "Sandbox Shield",
+        "Exception Mail", "Async Cloak", "Daemon Plate",
+        "Hot Coffee", "Lantern", "Lucky Coin",
+        "Profiler", "Caffeine IV", "Keyring",
     };
     private static final int[] ITEM_SLOT = {
         WEAPON, WEAPON, WEAPON, WEAPON, WEAPON, WEAPON, WEAPON, WEAPON,
@@ -116,8 +117,17 @@ final class Game {
     private static final int[] ITEM_EFFECT_MAG = {
         0, 0, 0, 25, 30, 0, 0, 3,
         0, 0, 0, 3, 30, 3,
-        0, 0, 0, 50, 0, 14,
+        0, 0, 0, 50, 0, 8,
     };
+
+    static final int COMMON = 0;
+    static final int RARE = 1;
+    static final int LEGENDARY = 2;
+    private static final String[] RARITY_LABEL = {"", " [Rare]", " [Legendary]"};
+    // Flat stat added to ITEM_VALUE per tier; effect magnitudes are scaled separately.
+    private static final int[] RARITY_STAT_BONUS = {0, 2, 5};
+    // Multiplier numerator for effect magnitudes (denominator 10): ×1.0 / ×1.5 / ×2.5.
+    private static final int[] RARITY_MAG_SCALE = {10, 15, 25};
 
     // Contiguous id ranges used by the loot roller; effect variants are the rarer half of each gear pool.
     private static final int WEAPON_EFFECT_FIRST = 3;
@@ -156,10 +166,10 @@ final class Game {
     private static final int ROOM_MAX = 8;
     // A vault's key is kept this many tiles from its door so it never sits in the same room.
     private static final int KEY_DOOR_MIN_DISTANCE = 9;
-    private static final float MOVE_DURATION_MS = 120f;
-    private static final float ENEMY_DURATION_MS = 300f;
+    private static final float MOVE_DURATION_MS = 228f;
+    private static final float ENEMY_DURATION_MS = 450f;
     private static final float ENEMY_ATTACK_MS = 600f;
-    private static final float ATTACK_DURATION_MS = 220f;
+    private static final float ATTACK_DURATION_MS = 500f;
     private static final float HIT_DURATION_MS = 180f;
     private static final float REGEN_INTERVAL_MS = 6500f;
     private static final int HP_PER_LEVEL = 4;
@@ -192,6 +202,7 @@ final class Game {
     final float[] enemyHit = new float[MAX_ENEMIES];
     final float[] enemyCrit = new float[MAX_ENEMIES];
     final float[] enemyPoison = new float[MAX_ENEMIES];
+    final float[] enemyAttack = new float[MAX_ENEMIES];
     private final int[] enemyHp = new int[MAX_ENEMIES];
     private final int[] enemyPrevX = new int[MAX_ENEMIES];
     private final int[] enemyPrevY = new int[MAX_ENEMIES];
@@ -270,7 +281,6 @@ final class Game {
     private boolean downHeld;
     private boolean attackHeld;
     private boolean quaffHeld;
-    private boolean buyHeld;
     private boolean enterHeld;
     private boolean escHeld;
     private boolean inventoryHeld;
@@ -292,6 +302,12 @@ final class Game {
         return y * MAP_WIDTH + x;
     }
 
+    /** Extracts the template id from a packed item int (bits 0-4). */
+    static int itemId(int packed) { return packed & 0x1F; }
+
+    /** Extracts the rarity tier from a packed item int (bits 5-6). */
+    static int itemRarity(int packed) { return (packed >> 5) & 0x3; }
+
     private void startNewGame() {
         floor = 1;
         playerMaxHp = 20;
@@ -310,12 +326,13 @@ final class Game {
         attackProgress = 1f;
         leftHeld = rightHeld = upHeld = downHeld = attackHeld = false;
         pauseSelection = 0;
-        quaffHeld = buyHeld = enterHeld = escHeld = inventoryHeld = dropHeld = muteHeld = interactHeld = false;
+        quaffHeld = enterHeld = escHeld = inventoryHeld = dropHeld = muteHeld = interactHeld = false;
         quaffRequested = buyRequested = talkRequested = equipRequested = dropRequested = false;
         regenTimer = 0f;
         playerHeal = 0f;
         playerDodge = 0f;
         bossActive = false;
+        //manual loop over Arrays::fill saves on constpool
         for (int i = 0; i < FLOOR_CACHE_CAP; i++) floorCache[i] = null;
         baseSeed = random.nextLong();
         generate(false);
@@ -323,37 +340,29 @@ final class Game {
 
     /** Effective attack including the equipped weapon. */
     int attackPower() {
-        return playerAtk + (equippedWeapon >= 0 ? ITEM_VALUE[equippedWeapon] : 0);
+        return playerAtk + (equippedWeapon >= 0 ? itemValue(equippedWeapon) : 0);
     }
 
     /** Damage reduction from the equipped armor. */
     int defense() {
-        return equippedArmor >= 0 ? ITEM_VALUE[equippedArmor] : 0;
+        return equippedArmor >= 0 ? itemValue(equippedArmor) : 0;
     }
 
     int weaponEffect() {
-        return equippedWeapon >= 0 ? ITEM_EFFECT[equippedWeapon] : EFF_NONE;
+        return equippedWeapon >= 0 ? ITEM_EFFECT[itemId(equippedWeapon)] : EFF_NONE;
     }
 
     int armorEffect() {
-        return equippedArmor >= 0 ? ITEM_EFFECT[equippedArmor] : EFF_NONE;
+        return equippedArmor >= 0 ? ITEM_EFFECT[itemId(equippedArmor)] : EFF_NONE;
     }
 
     int trinketEffect() {
-        return equippedTrinket >= 0 ? ITEM_EFFECT[equippedTrinket] : EFF_NONE;
+        return equippedTrinket >= 0 ? ITEM_EFFECT[itemId(equippedTrinket)] : EFF_NONE;
     }
 
-    int weaponMag() {
-        return equippedWeapon >= 0 ? ITEM_EFFECT_MAG[equippedWeapon] : 0;
-    }
-
-    int armorMag() {
-        return equippedArmor >= 0 ? ITEM_EFFECT_MAG[equippedArmor] : 0;
-    }
-
-    int trinketMag() {
-        return equippedTrinket >= 0 ? ITEM_EFFECT_MAG[equippedTrinket] : 0;
-    }
+    int weaponMag() { return equippedWeapon >= 0 ? itemMag(equippedWeapon) : 0; }
+    int armorMag()  { return equippedArmor  >= 0 ? itemMag(equippedArmor)  : 0; }
+    int trinketMag(){ return equippedTrinket >= 0 ? itemMag(equippedTrinket): 0; }
 
     /** Percent chance the equipped weapon lands a critical hit, 0 when it has no crit effect. */
     int critChance() {
@@ -370,25 +379,14 @@ final class Game {
         return armorEffect() == EFF_DODGE ? armorMag() : 0;
     }
 
-    int itemSlot(int id) {
-        return ITEM_SLOT[id];
-    }
+    int itemSlot(int packed)   { return ITEM_SLOT[itemId(packed)]; }
+    int itemValue(int packed)  { return ITEM_VALUE[itemId(packed)] + RARITY_STAT_BONUS[itemRarity(packed)]; }
+    int itemEffect(int packed) { return ITEM_EFFECT[itemId(packed)]; }
+    int itemMag(int packed)    { return ITEM_EFFECT_MAG[itemId(packed)] * RARITY_MAG_SCALE[itemRarity(packed)] / 10; }
 
-    int itemValue(int id) {
-        return ITEM_VALUE[id];
-    }
-
-    int itemEffect(int id) {
-        return ITEM_EFFECT[id];
-    }
-
-    int itemMag(int id) {
-        return ITEM_EFFECT_MAG[id];
-    }
-
-    /** The item currently equipped in the same slot as {@code carriedId}, or -1 if that slot is empty. */
-    int equippedCounterpart(int carriedId) {
-        return switch (ITEM_SLOT[carriedId]) {
+    /** The item currently equipped in the same slot as {@code carried}, or -1 if that slot is empty. */
+    int equippedCounterpart(int carried) {
+        return switch (ITEM_SLOT[itemId(carried)]) {
             case WEAPON -> equippedWeapon;
             case ARMOR -> equippedArmor;
             default -> equippedTrinket;
@@ -411,9 +409,32 @@ final class Game {
             case EFF_GOLD -> "Gold find";
             case EFF_XP -> "XP boost";
             case EFF_SPEED -> "Speed";
-            case EFF_KEYFIND -> "Key find";
+            case EFF_KEYFIND -> "Vault luck";
             default -> "";
         };
+    }
+
+    /** Builds the display string for a packed item: base name, scaled stats, scaled effect, and rarity label. */
+    String itemName(int packed) {
+        int id = itemId(packed);
+        int rar = itemRarity(packed);
+        int slot = ITEM_SLOT[id];
+        int val = itemValue(packed);
+        StringBuilder sb = new StringBuilder(ITEM_BASE_NAME[id]);
+        if (slot == WEAPON) sb.append("  +").append(val).append(" ATK");
+        else if (slot == ARMOR) sb.append("  +").append(val).append(" DEF");
+        int eff = ITEM_EFFECT[id];
+        if (eff != EFF_NONE) {
+            sb.append("  ").append(effectLabel(eff));
+            int mag = itemMag(packed);
+            if (mag > 0) {
+                sb.append(' ').append(mag);
+                if (eff == EFF_CRIT || eff == EFF_LIFESTEAL || eff == EFF_DODGE || eff == EFF_KEYFIND || eff == EFF_XP)
+                    sb.append('%');
+            }
+        }
+        if (rar > COMMON) sb.append(RARITY_LABEL[rar]);
+        return sb.toString();
     }
 
     /** Decays a timer toward zero by the given amount without overshooting below zero. */
@@ -476,22 +497,21 @@ final class Game {
             return;
         }
         if (state == SHOP) {
-            if (interactEdge || escEdge) {
+            if (code == KeyEvent.VK_Q || escEdge) {
                 state = PLAYING;
-            } else if (code == KeyEvent.VK_B && !buyHeld) {
+            } else if (interactEdge) {
                 buyRequested = true;
-                buyHeld = true;
             }
             return;
         }
         if (state == PAUSED) {
             if (escEdge) {
                 state = PLAYING;
-            } else if (code == KeyEvent.VK_UP || code == KeyEvent.VK_W) {
+            } else if (code == KeyEvent.VK_W) {
                 pauseSelection = 0;
-            } else if (code == KeyEvent.VK_DOWN || code == KeyEvent.VK_S) {
+            } else if (code == KeyEvent.VK_S) {
                 pauseSelection = 1;
-            } else if (enterEdge) {
+            } else if (interactEdge) {
                 if (pauseSelection == 0) {
                     state = PLAYING;
                 } else {
@@ -501,11 +521,11 @@ final class Game {
             return;
         }
         if (state == INVENTORY) {
-            if (inventoryEdge || escEdge) {
+            if (code == KeyEvent.VK_Q || escEdge) {
                 state = PLAYING;
-            } else if ((code == KeyEvent.VK_UP || code == KeyEvent.VK_W) && inventorySelection > 0) {
+            } else if (code == KeyEvent.VK_W && inventorySelection > 0) {
                 inventorySelection--;
-            } else if ((code == KeyEvent.VK_DOWN || code == KeyEvent.VK_S) && inventorySelection < inventoryCount - 1) {
+            } else if (code == KeyEvent.VK_S && inventorySelection < inventoryCount - 1) {
                 inventorySelection++;
             } else if (interactEdge) {
                 equipRequested = true;
@@ -538,9 +558,6 @@ final class Game {
     /** Clears the held and edge state for a released key. */
     void keyUp(int code) {
         setHeld(code, false);
-        if (code == KeyEvent.VK_B) {
-            buyHeld = false;
-        }
         if (code == KeyEvent.VK_Q) {
             quaffHeld = false;
         }
@@ -566,10 +583,10 @@ final class Game {
 
     private void setHeld(int code, boolean held) {
         switch (code) {
-            case KeyEvent.VK_LEFT, KeyEvent.VK_A -> leftHeld = held;
-            case KeyEvent.VK_RIGHT, KeyEvent.VK_D -> rightHeld = held;
-            case KeyEvent.VK_UP, KeyEvent.VK_W -> upHeld = held;
-            case KeyEvent.VK_DOWN, KeyEvent.VK_S -> downHeld = held;
+            case KeyEvent.VK_A -> leftHeld = held;
+            case KeyEvent.VK_D -> rightHeld = held;
+            case KeyEvent.VK_W -> upHeld = held;
+            case KeyEvent.VK_S -> downHeld = held;
             case KeyEvent.VK_SPACE -> attackHeld = held;
         }
     }
@@ -620,6 +637,7 @@ final class Game {
                 state = SHOP;
                 return;
             }
+            openAdjacentChest();
         }
 
         float regenInterval = trinketEffect() == EFF_REGEN ? REGEN_INTERVAL_MS * 0.55f : REGEN_INTERVAL_MS;
@@ -640,7 +658,8 @@ final class Game {
         }
 
         if (attackProgress < 1f) {
-            attackProgress = Math.min(1f, attackProgress + deltaMillis / ATTACK_DURATION_MS);
+            float attackDuration = trinketEffect() == EFF_SPEED ? ATTACK_DURATION_MS * 0.8f : ATTACK_DURATION_MS;
+            attackProgress = Math.min(1f, attackProgress + deltaMillis / attackDuration);
         } else if (attackHeld) {
             performAttack();
         }
@@ -815,10 +834,9 @@ final class Game {
         if (deadType == FORKBOMB) {
             splitForkBomb(deadX, deadY);
         }
-        if (trinketEffect() == EFF_KEYFIND && random.nextInt(100) < trinketMag()) {
-            spawnKey(deadX, deadY);
-        }
-        if (deadType == DEADLOCK || random.nextInt(6) == 0) {
+        if (deadType == MIMIC) {
+            spawnLoot(deadX, deadY, rollItem(random, 0, true), false);
+        } else if (deadType == DEADLOCK || random.nextInt(6) == 0) {
             spawnLoot(deadX, deadY, rollItem(random), false);
         }
     }
@@ -860,6 +878,7 @@ final class Game {
         enemyHit[slot] = 0f;
         enemyCrit[slot] = 0f;
         enemyPoison[slot] = 0f;
+        enemyAttack[slot] = 0f;
         aggroed[slot] = aggro;
         enemyCooldown[slot] = 0f;
     }
@@ -876,6 +895,7 @@ final class Game {
         enemyHit[i] = enemyHit[enemyCount];
         enemyCrit[i] = enemyCrit[enemyCount];
         enemyPoison[i] = enemyPoison[enemyCount];
+        enemyAttack[i] = enemyAttack[enemyCount];
         aggroed[i] = aggroed[enemyCount];
         enemyCooldown[i] = enemyCooldown[enemyCount];
     }
@@ -912,6 +932,7 @@ final class Game {
         for (int i = enemyCount - 1; i >= 0; i--) {
             enemyHit[i] = decay(enemyHit[i], deltaMillis / HIT_DURATION_MS);
             enemyCrit[i] = decay(enemyCrit[i], deltaMillis / HIT_DURATION_MS);
+            enemyAttack[i] = decay(enemyAttack[i], deltaMillis / 220f);
             enemyCooldown[i] = decay(enemyCooldown[i], deltaMillis);
             if (enemyPoison[i] > 0f) {
                 tickPoison(i, deltaMillis);
@@ -922,6 +943,7 @@ final class Game {
             }
             if (distToPlayer(enemyX[i], enemyY[i]) == 1 && enemyCooldown[i] <= 0f) {
                 enemyCooldown[i] = ENEMY_ATTACK_MS;
+                enemyAttack[i] = 1f;
                 aggroed[i] = true;
                 if (armorEffect() == EFF_DODGE && random.nextInt(100) < armorMag()) {
                     playerDodge = 1f;
@@ -1004,22 +1026,35 @@ final class Game {
     }
 
     /**
-     * Picks an item id. Trinkets and effect-bearing gear appear as the rarer slice of each roll; plain
-     * weapons and armor scale their tier with depth so deeper floors drop stronger base stats.
+     * Picks a packed item int: rolls rarity (floor-biased toward higher tiers at depth), then picks the
+     * template. Trinkets and effect-bearing gear are the rarer slice; plain gear tier scales with floor.
      */
-    private int rollItem(Random rng) {
+    private int rollItem(Random rng) { return rollItem(rng, 0, false); }
+    private int rollItem(Random rng, int rarityBonus) { return rollItem(rng, rarityBonus, false); }
+
+    private int rollItem(Random rng, int rarityBonus, boolean minRare) {
+        int legendary = Math.max(0, Math.min(25, (floor - 6) * 4));
+        int rare = Math.min(55, floor * 2 + rarityBonus);
+        int rv = rng.nextInt(100);
+        int rarity = minRare
+                ? (rv < legendary ? LEGENDARY : RARE)
+                : (rv < legendary ? LEGENDARY : rv < legendary + rare ? RARE : COMMON);
+
         int roll = rng.nextInt(100);
+        int id;
         if (roll < 28) {
-            return TRINKET_FIRST + rng.nextInt(TRINKET_COUNT);
+            id = TRINKET_FIRST + rng.nextInt(TRINKET_COUNT);
+        } else {
+            boolean weapon = roll < 64;
+            if (rng.nextInt(3) == 0) {
+                id = weapon ? WEAPON_EFFECT_FIRST + rng.nextInt(WEAPON_EFFECT_COUNT)
+                            : ARMOR_EFFECT_FIRST + rng.nextInt(ARMOR_EFFECT_COUNT);
+            } else {
+                int tier = Math.min(2, (floor - 1) / 4 + rng.nextInt(2));
+                id = (weapon ? 0 : ARMOR_PLAIN_FIRST) + tier;
+            }
         }
-        boolean weapon = roll < 64;
-        if (rng.nextInt(3) == 0) {
-            return weapon
-                    ? WEAPON_EFFECT_FIRST + rng.nextInt(WEAPON_EFFECT_COUNT)
-                    : ARMOR_EFFECT_FIRST + rng.nextInt(ARMOR_EFFECT_COUNT);
-        }
-        int tier = Math.min(2, (floor - 1) / 4 + rng.nextInt(2));
-        return (weapon ? 0 : ARMOR_PLAIN_FIRST) + tier;
+        return (rarity << 5) | id;
     }
 
     /** Adds experience and levels Duke up while he has enough, boosting his stats. */
@@ -1062,7 +1097,7 @@ final class Game {
         }
         int item = inventory[inventorySelection];
         int previous;
-        switch (ITEM_SLOT[item]) {
+        switch (ITEM_SLOT[itemId(item)]) {
             case WEAPON -> {
                 previous = equippedWeapon;
                 equippedWeapon = item;
@@ -1147,16 +1182,40 @@ final class Game {
 
     private void pickUpAt(int x, int y) {
         int i = lootAt(x, y);
-        if (i < 0) {
-            return;
-        }
+        if (i < 0) return;
         if (lootKey[i]) {
             keys++;
             sound.keyPickup();
             removeLoot(i);
-        } else if (inventoryCount < INVENTORY_SIZE) {
+        } else if (!lootChest[i] && inventoryCount < INVENTORY_SIZE) {
             inventory[inventoryCount++] = lootItem[i];
             removeLoot(i);
+        }
+    }
+
+    private void openAdjacentChest() {
+        for (int i = 0; i < lootCount; i++) {
+            if (lootChest[i] && Math.abs(lootX[i] - playerX) + Math.abs(lootY[i] - playerY) <= 1) {
+                int cx = lootX[i], cy = lootY[i];
+                if (random.nextInt(100) < 15) {
+                    removeLoot(i);
+                    int mx = cx, my = cy;
+                    if (mx == playerX && my == playerY) {
+                        for (int d = 0; d < 4; d++) {
+                            int nx = cx + DIR_X[d], ny = cy + DIR_Y[d];
+                            if (inBounds(nx, ny) && map[index(nx, ny)] == FLOOR && enemyAt(nx, ny) < 0) {
+                                mx = nx; my = ny; break;
+                            }
+                        }
+                    }
+                    addEnemy(mx, my, MIMIC, true);
+                    sound.mimicReveal();
+                } else if (inventoryCount < INVENTORY_SIZE) {
+                    inventory[inventoryCount++] = lootItem[i];
+                    removeLoot(i);
+                }
+                return;
+            }
         }
     }
 
@@ -1425,9 +1484,10 @@ final class Game {
         return false;
     }
 
-    /** Vault odds: 25% on the second floor, climbing 7% per floor with depth and capped at 80%. */
+    /** Vault odds: 25% on the second floor, climbing 7% per floor with depth and capped at 80%. Keyring adds a small flat bonus. */
     private int vaultChancePercent() {
-        return Math.min(80, 25 + (floor - 2) * 7);
+        int bonus = trinketEffect() == EFF_KEYFIND ? trinketMag() : 0;
+        return Math.min(80, 25 + (floor - 2) * 7 + bonus);
     }
 
     /**
@@ -1458,8 +1518,10 @@ final class Game {
             }
         }
         spawnLoot(ax + forwardX * 3, ay + forwardY * 3, rollItem(genRandom), true);
-        spawnLoot(ax + forwardX * 4 + sideX, ay + forwardY * 4 + sideY, rollItem(genRandom), true);
-        spawnLoot(ax + forwardX * 4 - sideX, ay + forwardY * 4 - sideY, rollItem(genRandom), true);
+        if (genRandom.nextBoolean())
+            spawnLoot(ax + forwardX * 4 + sideX, ay + forwardY * 4 + sideY, rollItem(genRandom), true);
+        if (genRandom.nextInt(100) < 15)
+            spawnLoot(ax + forwardX * 4 - sideX, ay + forwardY * 4 - sideY, rollItem(genRandom), true);
     }
 
     /** Drops one key on an open floor tile a good walk away from the vault door, never in its room. */
@@ -1713,8 +1775,8 @@ final class Game {
         bossActive = false;
         gold += 40 + floor * 6;
         grantXp(50 + floor * 8);
-        spawnLoot(bossX, bossY, rollItem(random), true);
-        spawnLoot(bossX + BOSS_SIZE - 1, bossY + BOSS_SIZE - 1, rollItem(random), true);
+        spawnLoot(bossX, bossY, rollItem(random, 20), true);
+        spawnLoot(bossX + BOSS_SIZE - 1, bossY + BOSS_SIZE - 1, rollItem(random, 20), true);
         sound.bossDefeat();
     }
 

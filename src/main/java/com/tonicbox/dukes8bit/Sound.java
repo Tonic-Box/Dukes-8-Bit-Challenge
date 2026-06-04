@@ -42,7 +42,7 @@ final class Sound {
     private static final int FOOTSTEP_CUTOFF = 20;
     private static final int MUSIC_VOLUME = 78;
 
-    private static final long FOOTSTEP_THROTTLE_NANOS = 170_000_000L;
+    private static final long FOOTSTEP_THROTTLE_NANOS = 230_000_000L;
 
     private static final int TICKS_PER_EIGHTH = 2;
     private static final float MUSIC_TEMPO_BPM = 96f;
@@ -164,6 +164,16 @@ final class Sound {
         note(ENEMY_CHANNEL, 40, 104, 0, 120);
         note(CHIME_CHANNEL, 76, 90, 130, 130);
         note(CHIME_CHANNEL, 83, 98, 240, 220);
+    }
+
+    /** A harsh dissonant cluster hit when a mimic chest springs to life. */
+    void mimicReveal() {
+        if (channels == null) return;
+        note(ENEMY_CHANNEL, 55, 126, 0, 80);
+        note(ENEMY_CHANNEL, 56, 126, 0, 80);
+        note(CHIME_CHANNEL, 96, 110, 0, 60);
+        note(CHIME_CHANNEL, 84, 104, 70, 120);
+        note(ENEMY_CHANNEL, 43, 118, 100, 160);
     }
 
     /** A deep, percussive boom as the boss brings down an area slam. */
