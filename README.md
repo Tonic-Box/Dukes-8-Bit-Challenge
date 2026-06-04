@@ -25,8 +25,8 @@ Requires **JDK 25**.
 | Attack | Space |
 | Drink potion (heal) | Q |
 | Open inventory | I |
-| Equip / drop selected item (in inventory) | Enter / D |
-| Talk to merchant / open shop | Enter |
+| Equip / drop selected item (in inventory) | E / D |
+| Talk to merchant / open shop | E |
 | Buy potion (in shop) | B |
 | Open a sealed vault door | Walk into it holding a key |
 | Descend / ascend | Walk onto the gold / red stairs |

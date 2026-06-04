@@ -1,33 +1,50 @@
 package com.tonicbox.dukes8bit;
 
+import java.awt.AWTEvent;
+import java.awt.Canvas;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.KeyboardFocusManager;
 import java.awt.KeyEventDispatcher;
 import java.awt.image.BufferStrategy;
+import java.awt.image.BufferedImage;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
 
 /**
- * Window, render loop, and keyboard input for Duke's Descent. The loop redraws
- * every frame and advances the game's time-based movement animation; turn logic
- * itself only fires when a step commits. Input forwards held-key state to the
- * game so movement glides continuously while a direction is held.
+ * Window, render loop, and keyboard input for Duke's Descent. The game is drawn at a fixed logical
+ * resolution into an off-screen buffer, which is then stretched to fill a resizable canvas, so the
+ * whole picture scales with the window without seams. The loop redraws every frame and advances the
+ * game's time-based movement animation; turn logic itself only fires when a step commits.
  */
 public final class Main extends Frame implements KeyEventDispatcher {
 
+    private final Canvas canvas = new Canvas();
     private final BufferStrategy strategy;
     private final Game game = new Game();
     private final Renderer renderer = new Renderer();
+    private final BufferedImage scene =
+            new BufferedImage(Game.VIEW_WIDTH, Game.VIEW_HEIGHT, BufferedImage.TYPE_INT_RGB);
+    private final Graphics2D sceneGraphics = scene.createGraphics();
 
     private Main() {
         setTitle("Duke's Descent");
-        setResizable(false);
-        setSize(Game.VIEW_WIDTH, Game.VIEW_HEIGHT);
+        setIgnoreRepaint(true);
+        canvas.setIgnoreRepaint(true);
+        canvas.setBackground(Color.BLACK);
+        // The canvas fills the frame's content area; packing makes it exactly the logical size to start.
+        canvas.setPreferredSize(new Dimension(Game.VIEW_WIDTH, Game.VIEW_HEIGHT));
+        add(canvas);
+        pack();
         setLocationRelativeTo(null);
         setVisible(true);
-        createBufferStrategy(2);
-        strategy = getBufferStrategy();
+        canvas.createBufferStrategy(2);
+        strategy = canvas.getBufferStrategy();
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
+        enableEvents(AWTEvent.WINDOW_EVENT_MASK);
     }
 
     /**
@@ -44,9 +61,18 @@ public final class Main extends Frame implements KeyEventDispatcher {
         return false;
     }
 
+    /** Closing the window from the title-bar X exits the game, like choosing Quit from the pause menu. */
+    @Override
+    protected void processWindowEvent(WindowEvent event) {
+        if (event.getID() == WindowEvent.WINDOW_CLOSING) {
+            System.exit(0);
+        }
+        super.processWindowEvent(event);
+    }
+
     /**
-     * The frame loop: advance the game's clocks by the elapsed time, redraw, honor a
-     * quit request, then pace to roughly 60 frames per second.
+     * The frame loop: advance the game's clocks by the elapsed time, redraw the fixed-size scene and
+     * blit it scaled to the current canvas, honor a quit request, then pace to roughly 60 frames per second.
      */
     private void run() {
         long last = System.nanoTime();
@@ -58,8 +84,14 @@ public final class Main extends Frame implements KeyEventDispatcher {
             if (game.quitRequested) {
                 System.exit(0);
             }
+            renderer.render(sceneGraphics, game);
+
+            int width = canvas.getWidth();
+            int height = canvas.getHeight();
             Graphics graphics = strategy.getDrawGraphics();
-            renderer.render(graphics, game);
+            if (width > 0 && height > 0) {
+                graphics.drawImage(scene, 0, 0, width, height, null);
+            }
             graphics.dispose();
             strategy.show();
             try {

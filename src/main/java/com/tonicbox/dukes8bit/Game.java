@@ -276,6 +276,7 @@ final class Game {
     private boolean inventoryHeld;
     private boolean dropHeld;
     private boolean muteHeld;
+    private boolean interactHeld;
     private boolean quaffRequested;
     private boolean buyRequested;
     private boolean talkRequested;
@@ -309,7 +310,7 @@ final class Game {
         attackProgress = 1f;
         leftHeld = rightHeld = upHeld = downHeld = attackHeld = false;
         pauseSelection = 0;
-        quaffHeld = buyHeld = enterHeld = escHeld = inventoryHeld = dropHeld = muteHeld = false;
+        quaffHeld = buyHeld = enterHeld = escHeld = inventoryHeld = dropHeld = muteHeld = interactHeld = false;
         quaffRequested = buyRequested = talkRequested = equipRequested = dropRequested = false;
         regenTimer = 0f;
         playerHeal = 0f;
@@ -461,6 +462,11 @@ final class Game {
             inventoryEdge = !inventoryHeld;
             inventoryHeld = true;
         }
+        boolean interactEdge = false;
+        if (code == KeyEvent.VK_E) {
+            interactEdge = !interactHeld;
+            interactHeld = true;
+        }
         if (state == DEAD) {
             if (code == KeyEvent.VK_SPACE || enterEdge) {
                 restartRequested = true;
@@ -470,7 +476,7 @@ final class Game {
             return;
         }
         if (state == SHOP) {
-            if (enterEdge || escEdge) {
+            if (interactEdge || escEdge) {
                 state = PLAYING;
             } else if (code == KeyEvent.VK_B && !buyHeld) {
                 buyRequested = true;
@@ -501,7 +507,7 @@ final class Game {
                 inventorySelection--;
             } else if ((code == KeyEvent.VK_DOWN || code == KeyEvent.VK_S) && inventorySelection < inventoryCount - 1) {
                 inventorySelection++;
-            } else if (enterEdge) {
+            } else if (interactEdge) {
                 equipRequested = true;
             } else if (code == KeyEvent.VK_D && !dropHeld) {
                 dropRequested = true;
@@ -524,7 +530,7 @@ final class Game {
             quaffRequested = true;
             quaffHeld = true;
         }
-        if (enterEdge) {
+        if (interactEdge) {
             talkRequested = true;
         }
     }
@@ -552,6 +558,9 @@ final class Game {
         }
         if (code == KeyEvent.VK_M) {
             muteHeld = false;
+        }
+        if (code == KeyEvent.VK_E) {
+            interactHeld = false;
         }
     }
 

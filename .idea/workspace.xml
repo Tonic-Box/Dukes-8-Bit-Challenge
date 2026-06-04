@@ -10,7 +10,6 @@
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Game.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Renderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Renderer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Sound.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Sound.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -250,7 +249,15 @@
       <option name="project" value="LOCAL" />
       <updated>1780467436643</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Add replayability: gear effects, vaults, bosses, persistent floors, minimap&#10;- Effect-typed gear (lifesteal, crit, reach, poison, knockback, thorns, dodge, heal-on-kill) with proc flashes, plus a stats + equip-delta inventory screen and ~10 new items&#10;- Keys &amp; sealed vault rooms: locked doors gate treasure, with a key hidden elsewhere on the floor and vault odds that climb with depth&#10;- Arena bosses every 5th floor: a large 3x3 guardian with a telegraphed slam, an enrage that summons minions, and stairs sealed until it falls&#10;- Persistent floors: revisiting restores cleared enemies, opened doors, looted chests, and felled bosses instead of regenerating&#10;- Fog-aware minimap in the top-right tracking layout, stairs, and entities&#10;- README refreshed; floor snapshots packed into a primitive int[]">
+      <option name="closed" value="true" />
+      <created>1780532594643</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1780532594643</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">

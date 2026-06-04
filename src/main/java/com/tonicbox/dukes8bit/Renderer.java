@@ -94,9 +94,11 @@ final class Renderer {
     private static final Color SHOCKWAVE_FAINT = new Color(255, 150, 90, 90);
     private static final Color SLAM_DANGER = new Color(228, 64, 52, 120);
     private static final Color SLAM_DANGER_FAINT = new Color(228, 64, 52, 60);
-    private static final int MINIMAP_CELL = 2;
+    private static final int MINIMAP_CELL_W = 2;
+    private static final int MINIMAP_CELL_H = 3;
+    private static final int MINIMAP_PAD_X = 5;
     private static final int MINIMAP_MARGIN = 28;
-    private static final int MINIMAP_TOP = 48;
+    private static final int MINIMAP_TOP = 26;
     private static final Color MINIMAP_BACK = new Color(10, 10, 16, 220);
     private static final Color MINIMAP_BORDER = new Color(84, 80, 110);
     private static final Color MINIMAP_FLOOR_LIT = new Color(118, 114, 148);
@@ -188,7 +190,7 @@ final class Renderer {
             drawMerchant(graphics, mx, my);
             if (game.adjacentToMerchant()) {
                 graphics.setColor(PROMPT);
-                drawCenteredAt(graphics, "ENTER", mx + Game.TILE / 2, my - 4);
+                drawCenteredAt(graphics, "E", mx + Game.TILE / 2, my - 4);
             }
         }
 
@@ -599,16 +601,18 @@ final class Renderer {
      * currently lit), stairs, sealed vault doors, visible enemies and the boss, and Duke as a bright dot.
      */
     private void drawMinimap(Graphics graphics, Game game) {
-        int cell = MINIMAP_CELL;
-        int width = Game.MAP_WIDTH * cell;
-        int height = Game.MAP_HEIGHT * cell;
-        int originX = Game.VIEW_WIDTH - width - MINIMAP_MARGIN;
+        int cellW = MINIMAP_CELL_W;
+        int cellH = MINIMAP_CELL_H;
+        int height = Game.MAP_HEIGHT * cellH;
+        int panelWidth = Game.MAP_WIDTH * cellW + MINIMAP_PAD_X * 2;
+        int originX = Game.VIEW_WIDTH - panelWidth - MINIMAP_MARGIN;
         int originY = MINIMAP_TOP;
+        int gridX = originX + MINIMAP_PAD_X;
 
         graphics.setColor(MINIMAP_BACK);
-        graphics.fillRect(originX - 3, originY - 3, width + 6, height + 6);
+        graphics.fillRect(originX - 3, originY - 3, panelWidth + 6, height + 6);
         graphics.setColor(MINIMAP_BORDER);
-        graphics.drawRect(originX - 3, originY - 3, width + 5, height + 5);
+        graphics.drawRect(originX - 3, originY - 3, panelWidth + 5, height + 5);
 
         for (int ty = 0; ty < Game.MAP_HEIGHT; ty++) {
             for (int tx = 0; tx < Game.MAP_WIDTH; tx++) {
@@ -621,25 +625,25 @@ final class Renderer {
                     continue;
                 }
                 graphics.setColor(color);
-                graphics.fillRect(originX + tx * cell, originY + ty * cell, cell, cell);
+                graphics.fillRect(gridX + tx * cellW, originY + ty * cellH, cellW, cellH);
             }
         }
 
         graphics.setColor(MINIMAP_ENEMY);
         for (int i = 0; i < game.enemyCount; i++) {
             if (game.visible[Game.index(game.enemyX[i], game.enemyY[i])]) {
-                graphics.fillRect(originX + game.enemyX[i] * cell, originY + game.enemyY[i] * cell, cell, cell);
+                graphics.fillRect(gridX + game.enemyX[i] * cellW, originY + game.enemyY[i] * cellH, cellW, cellH);
             }
         }
 
         if (game.bossActive && bossVisible(game)) {
             graphics.setColor(MINIMAP_BOSS);
-            graphics.fillRect(originX + game.bossX * cell, originY + game.bossY * cell,
-                    Game.BOSS_SIZE * cell, Game.BOSS_SIZE * cell);
+            graphics.fillRect(gridX + game.bossX * cellW, originY + game.bossY * cellH,
+                    Game.BOSS_SIZE * cellW, Game.BOSS_SIZE * cellH);
         }
 
         graphics.setColor(MINIMAP_PLAYER);
-        graphics.fillRect(originX + game.playerX * cell - 1, originY + game.playerY * cell - 1, cell + 2, cell + 2);
+        graphics.fillRect(gridX + game.playerX * cellW - 1, originY + game.playerY * cellH - 1, cellW + 2, cellH + 2);
     }
 
     /** Minimap colour for a tile: null hides unseen walls; floors dim when only remembered, not lit. */
@@ -682,7 +686,7 @@ final class Renderer {
         graphics.fillRect(barX, xpY, barWidth * Math.min(game.playerXp, game.xpForNext()) / game.xpForNext(), 7);
 
         graphics.setColor(HUD_HINT);
-        graphics.drawString("Move WASD/Arrows   Space attack   Q potion   I inventory   M mute   Enter shop   Stairs descend",
+        graphics.drawString("Move WASD/Arrows   Space attack   Q potion   I inventory   M mute   E shop   Stairs descend",
                 12, top + 58);
     }
 
@@ -702,7 +706,7 @@ final class Renderer {
         drawCentered(graphics, "DUKE FINDS A MERCHANT", Game.PLAY_HEIGHT / 2 - 52);
         drawCentered(graphics, "Gold: " + game.gold + "      Potions: " + game.potions, Game.PLAY_HEIGHT / 2 - 20);
         drawCentered(graphics, "[B]  Buy a potion  -  " + Game.POTION_COST + " gold", Game.PLAY_HEIGHT / 2 + 12);
-        drawCentered(graphics, "[Enter]  Leave the merchant", Game.PLAY_HEIGHT / 2 + 40);
+        drawCentered(graphics, "[E]  Leave the merchant", Game.PLAY_HEIGHT / 2 + 40);
     }
 
     private void drawPause(Graphics graphics, Game game) {
@@ -759,7 +763,7 @@ final class Renderer {
         }
 
         graphics.setColor(HUD_HINT);
-        drawCentered(graphics, "[Up/Down] select    [Enter] equip    [D] drop    [I/Esc] close",
+        drawCentered(graphics, "[Up/Down] select    [E] equip    [D] drop    [I/Esc] close",
                 Game.VIEW_HEIGHT - 22);
     }
 
