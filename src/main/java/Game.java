@@ -48,17 +48,17 @@ final class Game {
     static final int MIMIC = 5;
 
     /**
-     * Per-enemy-type base stats packed as {maxHp, attack, gold, xp} per type id and read as
-     * ENEMY_STATS[type * 4 + stat]; depth scaling is added at each call site. Rows are types in
+     * Per-enemy-type base stats packed as {maxHp, attack, gold, xp, def} per type id and read as
+     * ENEMY_STATS[type * 5 + stat]; depth scaling is added at each call site. Rows are types in
      * id order: BUG, NULLPTR, LEAK, FORKBOMB, DEADLOCK, MIMIC.
      */
     private static final int[] ENEMY_STATS = {
-        3, 1, 2, 4,
-        5, 2, 4, 8,
-        8, 3, 7, 14,
-        6, 2, 5, 10,
-        16, 4, 12, 22,
-        20, 4, 12, 24,
+        4, 1, 2, 4, 0,
+        6, 2, 4, 8, 1,
+        9, 3, 7, 14, 1,
+        7, 2, 5, 10, 1,
+        17, 4, 12, 22, 2,
+        21, 4, 12, 24, 2,
     };
 
     static final int MAX_ENEMIES = 32;
@@ -776,7 +776,7 @@ final class Game {
             if (ring < 1 || ring > reach) {
                 continue;
             }
-            int damage = Math.max(1, attackPower() + random.nextInt(3));
+            int damage = Math.max(1, attackPower() + random.nextInt(3) - ENEMY_STATS[enemyType[i] * 5 + 4] - floor / 6);
             if (effect == EFF_CRIT && random.nextInt(100) < magOf(equippedWeapon)) {
                 damage *= 2;
                 enemyCrit[i] = 1f;
@@ -861,8 +861,8 @@ final class Game {
         int deadType = enemyType[i];
         int deadX = enemyX[i];
         int deadY = enemyY[i];
-        gold += ENEMY_STATS[deadType * 4 + 2] + floor + (effectOf(equippedTrinket) == EFF_GOLD ? floor : 0);
-        grantXp(ENEMY_STATS[deadType * 4 + 3] + floor);
+        gold += ENEMY_STATS[deadType * 5 + 2] + floor + (effectOf(equippedTrinket) == EFF_GOLD ? floor : 0);
+        grantXp(ENEMY_STATS[deadType * 5 + 3] + floor);
         if (effectOf(equippedArmor) == EFF_HEAL_ON_KILL) {
             healPlayer(magOf(equippedArmor));
         }
@@ -910,7 +910,7 @@ final class Game {
         enemyPrevX[slot] = x;
         enemyPrevY[slot] = y;
         enemyType[slot] = type;
-        enemyHp[slot] = ENEMY_STATS[type * 4] + floor / 2;
+        enemyHp[slot] = ENEMY_STATS[type * 5] + floor / 2;
         enemyHit[slot] = 0f;
         enemyCrit[slot] = 0f;
         enemyPoison[slot] = 0f;
@@ -985,7 +985,7 @@ final class Game {
                     playerDodge = 1f;
                     continue;
                 }
-                playerHp -= Math.max(1, ENEMY_STATS[enemyType[i] * 4 + 1] + floor / 4 + random.nextInt(2) - defense());
+                playerHp -= Math.max(1, ENEMY_STATS[enemyType[i] * 5 + 1] + floor / 4 + random.nextInt(2) - defense());
                 sound.enemyAttack();
                 if (effectOf(equippedArmor) == EFF_THORNS) {
                     enemyHp[i] -= magOf(equippedArmor);
