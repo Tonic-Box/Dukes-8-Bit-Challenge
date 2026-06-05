@@ -54,7 +54,6 @@ final class Renderer {
     private static final Color TRAP_COLOR = new Color(212, 78, 68);
     private static final Color PIT_OUTER = new Color(16, 10, 16);
     private static final Color PIT_INNER = new Color(6, 4, 8);
-    private static final Color MINIMAP_PIT = new Color(22, 14, 24);
     private static final Color POT_BODY = new Color(178, 90, 54);
     private static final Color POT_RIM = new Color(210, 130, 80);
     private static final Color BOX_BODY = new Color(168, 128, 72);
@@ -79,7 +78,6 @@ final class Renderer {
     private static final Color DOOR_FRAME_LIT = new Color(120, 88, 52);
     private static final Color DOOR_PANEL_LIT = new Color(168, 120, 66);
     private static final Color DOOR_LOCK_LIT = new Color(232, 200, 110);
-    private static final Color KEY_COLOR = new Color(238, 206, 96);
     private static final Color KEY_SHADE = new Color(176, 142, 52);
     private static final Color BOSS_SHADOW = new Color(0, 0, 0, 96);
     private static final Color[] BOSS_BODIES = {
@@ -93,7 +91,6 @@ final class Renderer {
     private static final Color BOSS_CORE = new Color(236, 96, 72);
     private static final Color BOSS_CORE_HOT = new Color(255, 198, 104);
     private static final Color BOSS_EYE = new Color(248, 232, 120);
-    private static final Color BOSS_EYE_DARK = new Color(20, 12, 20);
     private static final Color BOSS_TELEGRAPH = new Color(255, 70, 60, 130);
     private static final Color BOSS_FLASH = new Color(255, 255, 255, 160);
     private static final Color SHOCKWAVE_BRIGHT = new Color(255, 150, 90, 200);
@@ -108,7 +105,6 @@ final class Renderer {
     private static final Color MINIMAP_BACK = new Color(10, 10, 16, 220);
     private static final Color MINIMAP_BORDER = new Color(84, 80, 110);
     private static final Color MINIMAP_FLOOR_LIT = new Color(118, 114, 148);
-    private static final Color MINIMAP_FLOOR_DIM = new Color(58, 56, 76);
     private static final Color MINIMAP_DOOR = new Color(200, 150, 70);
     private static final Color MINIMAP_ENEMY = new Color(222, 70, 64);
     private static final Color MINIMAP_BOSS = new Color(244, 60, 72);
@@ -407,9 +403,9 @@ final class Renderer {
     private void drawKey(Graphics graphics, int px, int py) {
         int cx = px + Game.TILE / 2;
         int cy = py + Game.TILE / 2;
-        oval(graphics, KEY_COLOR, cx - 7, cy - 5, 7, 7);
+        oval(graphics, STAIRS_LIT, cx - 7, cy - 5, 7, 7);
         oval(graphics, BACKGROUND, cx - 5, cy - 3, 3, 3);
-        rect(graphics, KEY_COLOR, cx - 1, cy - 2, 8, 2);
+        rect(graphics, STAIRS_LIT, cx - 1, cy - 2, 8, 2);
         rect(graphics, KEY_SHADE, cx + 3, cy, 2, 3);
         graphics.fillRect(cx + 6, cy, 2, 3);
     }
@@ -643,11 +639,11 @@ final class Renderer {
         graphics.fillOval(px + 16, eyeY, 9, 9);
         graphics.fillOval(px + size - 25, eyeY, 9, 9);
         graphics.fillOval(px + size / 2 - 4, py + 17, 8, 8);
-        oval(graphics, BOSS_EYE_DARK, px + 19, eyeY + 3, 3, 3);
+        oval(graphics, ENEMY_EYE, px + 19, eyeY + 3, 3, 3);
         graphics.fillOval(px + size - 22, eyeY + 3, 3, 3);
         graphics.fillOval(px + size / 2 - 1, py + 20, 3, 3);
 
-        graphics.setColor(BOSS_EYE_DARK);
+        graphics.setColor(ENEMY_EYE);
         int mawY = py + size - 28;
         POLY_X5[0] = px + 22; POLY_X5[1] = px + 30; POLY_X5[2] = px + 38; POLY_X5[3] = px + 46; POLY_X5[4] = px + 54;
         POLY_Y5[0] = mawY; POLY_Y5[1] = mawY + 9; POLY_Y5[2] = mawY; POLY_Y5[3] = mawY + 9; POLY_Y5[4] = mawY;
@@ -773,9 +769,9 @@ final class Renderer {
             case Game.DOWN_STAIRS -> STAIRS_LIT;
             case Game.UP_STAIRS -> UP_STAIRS_LIT;
             case Game.LOCKED_DOOR -> MINIMAP_DOOR;
-            case Game.PIT -> MINIMAP_PIT;
+            case Game.PIT -> ENEMY_EYE;
             case Game.SCENERY -> MINIMAP_BORDER;
-            default -> lit ? MINIMAP_FLOOR_LIT : MINIMAP_FLOOR_DIM;
+            default -> lit ? MINIMAP_FLOOR_LIT : FLOOR_LIT_ALT;
         };
     }
 
