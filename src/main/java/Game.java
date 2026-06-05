@@ -295,19 +295,8 @@ final class Game {
     private float regenTimer;
     private long baseSeed;
     private boolean restartRequested;
-    private boolean leftHeld;
-    private boolean rightHeld;
-    private boolean upHeld;
-    private boolean downHeld;
-    private boolean attackHeld;
-    private boolean quaffHeld;
-    private boolean enterHeld;
-    private boolean escHeld;
-    private boolean inventoryHeld;
-    private boolean dropHeld;
-    private boolean muteHeld;
-    private boolean trackHeld;
-    private boolean interactHeld;
+    // Key-down state indexed by AWT key code; covers both held movement and edge-detected one-shots.
+    private final boolean[] held = new boolean[256];
     private boolean quaffRequested;
     private boolean buyRequested;
     private boolean talkRequested;
@@ -345,9 +334,8 @@ final class Game {
         state = PLAYING;
         facing = FACE_DOWN;
         attackProgress = 1f;
-        leftHeld = rightHeld = upHeld = downHeld = attackHeld = false;
+        for (int i = 0; i < held.length; i++) held[i] = false;
         pauseSelection = 0;
-        quaffHeld = enterHeld = escHeld = inventoryHeld = dropHeld = muteHeld = trackHeld = interactHeld = false;
         quaffRequested = buyRequested = talkRequested = equipRequested = dropRequested = false;
         regenTimer = 0f;
         playerHeal = 0f;
@@ -490,35 +478,24 @@ final class Game {
      * death states.
      */
     void keyDown(int code) {
+        if (code < 0 || code >= held.length) {
+            return;
+        }
+        // Edge-detect: a press only counts as "fresh" on the up→down transition, never on OS key-repeat.
+        boolean fresh = !held[code];
+        held[code] = true;
         if (code == KeyEvent.VK_M) {
-            if (!muteHeld) { muteHeld = true; sound.toggleMute(); }
+            if (fresh) sound.toggleMute();
             return;
         }
         if (code == KeyEvent.VK_T) {
-            if (!trackHeld) { trackHeld = true; sound.toggleMusicMute(); }
+            if (fresh) sound.toggleMusicMute();
             return;
         }
-        // Key events only set flags for the loop to drain; edge-detect so a held key fires once, not on OS repeat.
-        boolean enterEdge = false;
-        if (code == KeyEvent.VK_ENTER) {
-            enterEdge = !enterHeld;
-            enterHeld = true;
-        }
-        boolean escEdge = false;
-        if (code == KeyEvent.VK_ESCAPE) {
-            escEdge = !escHeld;
-            escHeld = true;
-        }
-        boolean inventoryEdge = false;
-        if (code == KeyEvent.VK_I) {
-            inventoryEdge = !inventoryHeld;
-            inventoryHeld = true;
-        }
-        boolean interactEdge = false;
-        if (code == KeyEvent.VK_E) {
-            interactEdge = !interactHeld;
-            interactHeld = true;
-        }
+        boolean enterEdge = fresh && code == KeyEvent.VK_ENTER;
+        boolean escEdge = fresh && code == KeyEvent.VK_ESCAPE;
+        boolean inventoryEdge = fresh && code == KeyEvent.VK_I;
+        boolean interactEdge = fresh && code == KeyEvent.VK_E;
         if (state == DEAD) {
             if (code == KeyEvent.VK_SPACE || enterEdge) {
                 restartRequested = true;
@@ -560,9 +537,8 @@ final class Game {
                 inventorySelection++;
             } else if (interactEdge) {
                 equipRequested = true;
-            } else if (code == KeyEvent.VK_D && !dropHeld) {
+            } else if (code == KeyEvent.VK_D && fresh) {
                 dropRequested = true;
-                dropHeld = true;
             }
             return;
         }
@@ -576,48 +552,18 @@ final class Game {
             inventorySelection = 0;
             return;
         }
-        setHeld(code, true);
-        if (code == KeyEvent.VK_Q && !quaffHeld) {
+        if (code == KeyEvent.VK_Q && fresh) {
             quaffRequested = true;
-            quaffHeld = true;
         }
         if (interactEdge) {
             talkRequested = true;
         }
     }
 
-    /** Clears the held and edge state for a released key. */
+    /** Clears the key-down state for a released key so its next press edge-detects fresh. */
     void keyUp(int code) {
-        setHeld(code, false);
-        if (code == KeyEvent.VK_Q) {
-            quaffHeld = false;
-        }
-        if (code == KeyEvent.VK_ENTER) {
-            enterHeld = false;
-        }
-        if (code == KeyEvent.VK_ESCAPE) {
-            escHeld = false;
-        }
-        if (code == KeyEvent.VK_I) {
-            inventoryHeld = false;
-        }
-        if (code == KeyEvent.VK_D) {
-            dropHeld = false;
-        }
-        if (code == KeyEvent.VK_M) muteHeld = false;
-        if (code == KeyEvent.VK_T) trackHeld = false;
-        if (code == KeyEvent.VK_E) {
-            interactHeld = false;
-        }
-    }
-
-    private void setHeld(int code, boolean held) {
-        switch (code) {
-            case KeyEvent.VK_A -> leftHeld = held;
-            case KeyEvent.VK_D -> rightHeld = held;
-            case KeyEvent.VK_W -> upHeld = held;
-            case KeyEvent.VK_S -> downHeld = held;
-            case KeyEvent.VK_SPACE -> attackHeld = held;
+        if (code >= 0 && code < held.length) {
+            held[code] = false;
         }
     }
 
@@ -720,7 +666,7 @@ final class Game {
         if (attackProgress < 1f) {
             float attackDuration = effectOf(equippedTrinket) == EFF_SPEED ? ATTACK_DURATION_MS * 0.8f : ATTACK_DURATION_MS;
             attackProgress = Math.min(1f, attackProgress + deltaMillis / attackDuration);
-        } else if (attackHeld) {
+        } else if (held[KeyEvent.VK_SPACE]) {
             performAttack();
         }
 
@@ -735,8 +681,8 @@ final class Game {
             moveProgress = Math.min(1f, moveProgress + deltaMillis / moveDuration);
             return;
         }
-        int dx = (rightHeld ? 1 : 0) - (leftHeld ? 1 : 0);
-        int dy = (downHeld ? 1 : 0) - (upHeld ? 1 : 0);
+        int dx = (held[KeyEvent.VK_D] ? 1 : 0) - (held[KeyEvent.VK_A] ? 1 : 0);
+        int dy = (held[KeyEvent.VK_S] ? 1 : 0) - (held[KeyEvent.VK_W] ? 1 : 0);
         if (dx != 0) {
             attemptMove(dx, 0);
         } else if (dy != 0) {
@@ -1326,7 +1272,7 @@ final class Game {
             generate(arriveAtDownStairs);
         }
         state = PLAYING;
-        leftHeld = rightHeld = upHeld = downHeld = attackHeld = false;
+        for (int i = 0; i < held.length; i++) held[i] = false;
     }
 
     /**
