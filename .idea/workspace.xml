@@ -4,13 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Drop balancing">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Replace 13 per-key Held fields with one held[] array">
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Game.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Renderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Renderer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/tonicbox/dukes8bit/Sound.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Sound.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Game.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Sound.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Sound.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -122,7 +119,7 @@
     "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle"
   }
 }]]></component>
-  <component name="RunManager" selected="Gradle.dukes8bit [run]">
+  <component name="RunManager" selected="Gradle.dukes8bit [size]">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Main" />
       <module name="dukes8bit.main" />
@@ -204,8 +201,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.dukes8bit [run]" />
         <item itemvalue="Gradle.dukes8bit [size]" />
+        <item itemvalue="Gradle.dukes8bit [run]" />
         <item itemvalue="Application.Main" />
         <item itemvalue="Gradle.dukes8bit [build]" />
       </list>
@@ -404,7 +401,23 @@
       <option name="project" value="LOCAL" />
       <updated>1780670308864</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="- Moved classes to root package&#10;- Merge 4 exact-duplicate Color constants&#10;- Inline the itemDepth() accessor&#10;- Fold the common setColor+fill idiom into static rect()/oval() helpers">
+      <option name="closed" value="true" />
+      <created>1780672697911</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1780672697913</updated>
+    </task>
+    <task id="LOCAL-00025" summary="- Replace 13 per-key Held fields with one held[] array">
+      <option name="closed" value="true" />
+      <created>1780673950200</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1780673950200</updated>
+    </task>
+    <option name="localTasksCounter" value="26" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -441,6 +454,8 @@
     <MESSAGE value="- Added Size breakdown section to readme&#10;- Fixed some local names" />
     <MESSAGE value="- Added a design overview dot graph" />
     <MESSAGE value="- Drop balancing" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Drop balancing" />
+    <MESSAGE value="- Moved classes to root package&#10;- Merge 4 exact-duplicate Color constants&#10;- Inline the itemDepth() accessor&#10;- Fold the common setColor+fill idiom into static rect()/oval() helpers" />
+    <MESSAGE value="- Replace 13 per-key Held fields with one held[] array" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Replace 13 per-key Held fields with one held[] array" />
   </component>
 </project>

@@ -1038,8 +1038,7 @@ final class Game {
         if (!inBounds(nextX, nextY)) {
             return false;
         }
-        int tile = map[index(nextX, nextY)];
-        if (tile == WALL || tile == LOCKED_DOOR || tile == PIT || tile == SCENERY
+        if (blocksMovement(map[index(nextX, nextY)])
                 || (nextX == playerX && nextY == playerY) || enemyAt(nextX, nextY) >= 0) {
             return false;
         }
@@ -1521,8 +1520,8 @@ final class Game {
             return false;
         }
         for (int attempt = 0; attempt < 160; attempt++) {
-            int anchorX = 1 + genRandom.nextInt(floorWidth - 2);
-            int anchorY = 1 + genRandom.nextInt(floorHeight - 2);
+            int anchorX = randInterior(floorWidth);
+            int anchorY = randInterior(floorHeight);
             if (map[index(anchorX, anchorY)] != FLOOR) {
                 continue;
             }
@@ -1582,8 +1581,8 @@ final class Game {
     /** Drops one key on an open floor tile a good walk away from the vault door, never in its room. */
     private void placeFloorKey(int floorWidth, int floorHeight) {
         for (int attempt = 0; attempt < 150; attempt++) {
-            int x = 1 + genRandom.nextInt(floorWidth - 2);
-            int y = 1 + genRandom.nextInt(floorHeight - 2);
+            int x = randInterior(floorWidth);
+            int y = randInterior(floorHeight);
             if (openSpot(x, y) && Math.abs(x - vaultDoorX) + Math.abs(y - vaultDoorY) >= KEY_DOOR_MIN_DISTANCE) {
                 spawnKey(x, y);
                 return;
@@ -1760,8 +1759,7 @@ final class Game {
             for (int ox = 0; ox < BOSS_SIZE; ox++) {
                 int cx = nextX + ox;
                 int cy = nextY + oy;
-                if (!inBounds(cx, cy) || map[index(cx, cy)] == WALL || map[index(cx, cy)] == LOCKED_DOOR
-                        || map[index(cx, cy)] == PIT || map[index(cx, cy)] == SCENERY
+                if (!inBounds(cx, cy) || blocksMovement(map[index(cx, cy)])
                         || (cx == playerX && cy == playerY) || enemyAt(cx, cy) >= 0) {
                     return false;
                 }
@@ -1846,8 +1844,8 @@ final class Game {
         int[] cx = new int[5], cy = new int[5];
         for (int p = 0; p < count; p++) {
             for (int attempt = 0; attempt < 40; attempt++) {
-                int sx = 1 + genRandom.nextInt(floorWidth - 2);
-                int sy = 1 + genRandom.nextInt(floorHeight - 2);
+                int sx = randInterior(floorWidth);
+                int sy = randInterior(floorHeight);
                 if (map[index(sx, sy)] != FLOOR || !isOpenTile(sx, sy) || distToPlayer(sx, sy) < 5
                         || (sx == merchantX && sy == merchantY)) continue;
                 cx[0] = sx; cy[0] = sy;
@@ -1874,8 +1872,8 @@ final class Game {
         int count = Math.max(1, roomCount / 3) + genRandom.nextInt(2);
         int placed = 0;
         for (int attempt = 0; attempt < count * 20 && placed < count; attempt++) {
-            int x = 1 + genRandom.nextInt(floorWidth - 2);
-            int y = 1 + genRandom.nextInt(floorHeight - 2);
+            int x = randInterior(floorWidth);
+            int y = randInterior(floorHeight);
             if (map[index(x, y)] != FLOOR) continue;
             if (x == merchantX && y == merchantY) continue;
             if (distToPlayer(x, y) < 3) continue;
@@ -1888,8 +1886,8 @@ final class Game {
         merchantX = -1;
         merchantY = -1;
         for (int attempt = 0; attempt < 200; attempt++) {
-            int x = 1 + genRandom.nextInt(floorWidth - 2);
-            int y = 1 + genRandom.nextInt(floorHeight - 2);
+            int x = randInterior(floorWidth);
+            int y = randInterior(floorHeight);
             if (!isOpenTile(x, y) || enemyAt(x, y) >= 0) {
                 continue;
             }
@@ -1906,8 +1904,8 @@ final class Game {
         int chests = Math.min(3, floor / 3);
         int placed = 0;
         for (int attempt = 0; attempt < chests * 30 && placed < chests; attempt++) {
-            int x = 1 + genRandom.nextInt(floorWidth - 2);
-            int y = 1 + genRandom.nextInt(floorHeight - 2);
+            int x = randInterior(floorWidth);
+            int y = randInterior(floorHeight);
             if (!openSpot(x, y)) {
                 continue;
             }
@@ -1920,8 +1918,8 @@ final class Game {
         int traps = Math.min(8, floor / 2);
         int placed = 0;
         for (int attempt = 0; attempt < traps * 20 && placed < traps; attempt++) {
-            int x = 1 + genRandom.nextInt(floorWidth - 2);
-            int y = 1 + genRandom.nextInt(floorHeight - 2);
+            int x = randInterior(floorWidth);
+            int y = randInterior(floorHeight);
             if (!openSpot(x, y) || !isOpenTile(x, y) || distToPlayer(x, y) < 5) {
                 continue;
             }
@@ -1935,6 +1933,11 @@ final class Game {
         return map[index(x, y)] == FLOOR && lootAt(x, y) < 0 && enemyAt(x, y) < 0
                 && !(x == merchantX && y == merchantY)
                 && distToPlayer(x, y) >= 4;
+    }
+
+    /** A random interior coordinate in [1, span-2] from the generation RNG, never on the border. */
+    private int randInterior(int span) {
+        return 1 + genRandom.nextInt(span - 2);
     }
 
     boolean adjacentToMerchant() {
@@ -1960,8 +1963,8 @@ final class Game {
         enemyCount = 0;
         int target = Math.min(MAX_ENEMIES, 1 + (int) (2.5 * Math.log(floor)));
         for (int attempt = 0; attempt < target * 20 && enemyCount < target; attempt++) {
-            int x = 1 + genRandom.nextInt(floorWidth - 2);
-            int y = 1 + genRandom.nextInt(floorHeight - 2);
+            int x = randInterior(floorWidth);
+            int y = randInterior(floorHeight);
             if (map[index(x, y)] != FLOOR || enemyAt(x, y) >= 0) {
                 continue;
             }
@@ -2064,6 +2067,11 @@ final class Game {
 
     private boolean inBounds(int x, int y) {
         return x >= 0 && y >= 0 && x < MAP_WIDTH && y < MAP_HEIGHT;
+    }
+
+    /** Tiles that stop a walking entity: walls, locked vault doors, pits, and breakable scenery. */
+    private static boolean blocksMovement(int tile) {
+        return tile == WALL || tile == LOCKED_DOOR || tile == PIT || tile == SCENERY;
     }
 
     /** Manhattan distance from Duke to a tile. */

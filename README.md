@@ -108,7 +108,7 @@ Size is measured as the compiled `.class` files under `build/classes/java/main`.
 
 - **Debug info stripped** (`-g:none`): line-number, local-variable, and source-file tables are removed from the bytecode while source remains fully readable.
 - **No asset files:** both graphics and audio are generated at runtime.
-- **Compact data:** enemy stats use small lookup tables, trivial one-call helpers are inlined, and the music score is packed into strings instead of array-init bytecode.
+- **Compact data:** enemy stats use small lookup tables, trivial one-call helpers are inlined, and both the music score and the sound-effect note sequences are packed into printable-char strings instead of array-init bytecode.
 - **No per-frame allocation:** colors and the fog-overlay palette are hoisted into constants and lookup tables, polygon scratch buffers are shared, and entities are reused in fixed arrays, keeping peak memory low.
 - **Root Package:** The classes are dropped down to the root package to save on constant pool reference sizes
 - Other minor optimizations explained inline with comments.
@@ -119,8 +119,8 @@ Measured from a clean build (`./gradlew size`). There are **no runtime asset fil
 
 | File | Size | Share |
 | --- | ---: | ---: |
-| `Game.class` | 30,311 B | 49% |
-| `Renderer.class` | 22,142 B | 35% |
-| `Sound.class` | 6,795 B | 11% |
-| `Main.class` | 3,197 B | 5% |
-| **Total** | **62,445 B (60.98 KB)** | |
+| `Game.class` | 29,535 B | 49% |
+| `Renderer.class` | 21,660 B | 36% |
+| `Sound.class` | 6,329 B | 10% |
+| `Main.class` | 3,059 B | 5% |
+| **Total** | **60,583 B (59.16 KB)** | |

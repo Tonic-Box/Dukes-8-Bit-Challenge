@@ -105,22 +105,10 @@ final class Sound {
     }
 
     /** A fast, bright two-note downward slash for Duke's spin attack. */
-    void swordAttack() {
-        if (channels == null) {
-            return;
-        }
-        note(ATTACK_CHANNEL, 88, 80, 0, 60);
-        note(ATTACK_CHANNEL, 81, 80, 45, 80);
-    }
+    void swordAttack() { play("0p:!-0i:*1"); }
 
     /** A low, blunt two-note thud when an enemy lands a hit on Duke. */
-    void enemyAttack() {
-        if (channels == null) {
-            return;
-        }
-        note(ENEMY_CHANNEL, 43, 112, 0, 90);
-        note(ENEMY_CHANNEL, 36, 112, 55, 130);
-    }
+    void enemyAttack() { play("1CZ!31<Z,;"); }
 
     /** A soft, dampened low thud for a footstep, throttled so rapid steps stay natural. */
     void footstep() {
@@ -136,82 +124,41 @@ final class Sound {
     }
 
     /** A short rising glockenspiel arpeggio when Duke takes the stairs. */
-    void stairs() {
-        if (channels == null) {
-            return;
-        }
-        note(CHIME_CHANNEL, 72, 92, 0, 120);
-        note(CHIME_CHANNEL, 76, 92, 70, 120);
-        note(CHIME_CHANNEL, 79, 92, 140, 120);
-        note(CHIME_CHANNEL, 84, 98, 210, 220);
-    }
+    void stairs() { play("2`F!92dF/92gF=92lLKM"); }
 
     /** A bright two-note chime when Duke pockets a key. */
-    void keyPickup() {
-        if (channels == null) {
-            return;
-        }
-        note(CHIME_CHANNEL, 83, 90, 0, 90);
-        note(CHIME_CHANNEL, 88, 96, 80, 150);
-    }
+    void keyPickup() { play("2kD!32pJ1?"); }
 
     /** A heavy latch clunk resolving into a rising chime as a sealed vault door swings open. */
-    void doorUnlock() {
-        if (channels == null) {
-            return;
-        }
-        note(ENEMY_CHANNEL, 40, 104, 0, 120);
-        note(CHIME_CHANNEL, 76, 90, 130, 130);
-        note(CHIME_CHANNEL, 83, 98, 240, 220);
-    }
+    void doorUnlock() { play("1@R!92dD;;2kLQM"); }
 
     /** A sharp percussive crack when a breakable prop is smashed. */
-    void sceneryBreak() {
-        if (channels == null) return;
-        note(ATTACK_CHANNEL, 76, 118, 0, 40);
-        note(ENEMY_CHANNEL, 48, 104, 10, 80);
-        note(ATTACK_CHANNEL, 60, 80, 55, 60);
-    }
+    void sceneryBreak() { play("0d`!)1HR#10T:,-"); }
 
     /** A descending bass sequence as Duke tumbles into a pit. */
-    void pitFall() {
-        if (channels == null) return;
-        note(ATTACK_CHANNEL, 72, 100, 0, 80);
-        note(ATTACK_CHANNEL, 65, 100, 100, 80);
-        note(ATTACK_CHANNEL, 57, 100, 200, 80);
-        note(ATTACK_CHANNEL, 50, 110, 300, 100);
-        note(ENEMY_CHANNEL, 36, 122, 420, 420);
-    }
+    void pitFall() { play("0`N!10YN510QNI10JX]51<duu"); }
 
     /** A harsh dissonant cluster hit when a mimic chest springs to life. */
-    void mimicReveal() {
-        if (channels == null) return;
-        note(ENEMY_CHANNEL, 55, 126, 0, 80);
-        note(ENEMY_CHANNEL, 56, 126, 0, 80);
-        note(CHIME_CHANNEL, 96, 110, 0, 60);
-        note(CHIME_CHANNEL, 84, 104, 70, 120);
-        note(ENEMY_CHANNEL, 43, 118, 100, 160);
-    }
+    void mimicReveal() { play("1Oh!11Ph!12xX!-2lR/91C`5A"); }
 
     /** A deep, percussive boom as the boss brings down an area slam. */
-    void bossSlam() {
-        if (channels == null) {
-            return;
-        }
-        note(ENEMY_CHANNEL, 31, 122, 0, 90);
-        note(ENEMY_CHANNEL, 28, 122, 45, 160);
-        note(ENEMY_CHANNEL, 24, 126, 95, 230);
-    }
+    void bossSlam() { play("17d!314d*A10h4O"); }
 
     /** A bright descending fanfare when the boss is finally felled. */
-    void bossDefeat() {
+    void bossDefeat() { play("2lL!?2gL??2dL]?2`R{a"); }
+
+    /**
+     * Plays a packed sound effect: five chars per note — channel+48, key+24, velocity-22,
+     * (startMs/5)+33, (durationMs/5)+33 — biased so every byte stays printable, mirroring the music pack.
+     */
+    private void play(String packed) {
         if (channels == null) {
             return;
         }
-        note(CHIME_CHANNEL, 84, 98, 0, 150);
-        note(CHIME_CHANNEL, 79, 98, 150, 150);
-        note(CHIME_CHANNEL, 76, 98, 300, 150);
-        note(CHIME_CHANNEL, 72, 104, 450, 320);
+        for (int i = 0; i < packed.length(); i += 5) {
+            note(packed.charAt(i) - 48, packed.charAt(i + 1) - 24, packed.charAt(i + 2) + 22,
+                    (packed.charAt(i + 3) - 33) * 5, (packed.charAt(i + 4) - 33) * 5);
+        }
     }
 
     /** Toggles all audio: pauses or resumes the music loop and silences any sounding notes. */
