@@ -111,16 +111,19 @@ Size is measured as the compiled `.class` files under `build/classes/java/main`.
 - **Compact data:** enemy stats use small lookup tables, trivial one-call helpers are inlined, and both the music score and the sound-effect note sequences are packed into printable-char strings instead of array-init bytecode.
 - **No per-frame allocation:** colors and the fog-overlay palette are hoisted into constants and lookup tables, polygon scratch buffers are shared, and entities are reused in fixed arrays, keeping peak memory low.
 - **Root Package:** The classes are dropped down to the root package to save on constant pool reference sizes
+- **ProGuard minify pass:** `build`/`run` finish with a ProGuard step that shrinks and shortens member names (class names are kept readable) in place, reclaiming bytecode the compiler leaves behind.
 - Other minor optimizations explained inline with comments.
 
 ### Size breakdown
 
-Measured from a clean build (`./gradlew size`). There are **no runtime asset files** — all graphics and audio are generated procedurally — so the total is purely compiled bytecode.
+Measured from a build (`./gradlew size`). There are **no runtime asset files** — all graphics and audio are generated procedurally — so the total is purely compiled bytecode, after the ProGuard minify pass.
 
 | File | Size | Share |
 | --- | ---: | ---: |
-| `Game.class` | 29,589 B | 49% |
-| `Renderer.class` | 21,660 B | 36% |
-| `Sound.class` | 6,329 B | 10% |
-| `Main.class` | 3,059 B | 5% |
-| **Total** | **60,637 B (59.22 KB)** | |
+| `Game.class` | 24,949 B | 48% |
+| `Renderer.class` | 19,340 B | 37% |
+| `Sound.class` | 4,832 B | 9% |
+| `Main.class` | 2,958 B | 6% |
+| **Total** | **52,079 B (50.86 KB)** | |
+
+(Before the ProGuard pass the same build is 60,637 B; minification reclaims ~8.5 KB with no source changes.)

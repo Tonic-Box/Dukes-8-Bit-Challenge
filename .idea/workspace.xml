@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Unified sound compression for sound effects now too, not just the music track&#10;- Extract randInterior() for the repeated genRandom interior-tile pick&#10;- Extract blocksMovement(tile), also fixing moveBoss recomputing map[index] four times per tile">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Balancing to mob npc stats">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Game.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -104,6 +104,7 @@
   "keyToString": {
     "Application.Main.executor": "Run",
     "Gradle.dukes8bit [build].executor": "Run",
+    "Gradle.dukes8bit [proguard].executor": "Run",
     "Gradle.dukes8bit [run].executor": "Run",
     "Gradle.dukes8bit [size].executor": "Run",
     "Gradle.dukes8bit [test].executor": "Run",
@@ -118,7 +119,7 @@
     "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle"
   }
 }]]></component>
-  <component name="RunManager" selected="Application.Main">
+  <component name="RunManager" selected="Gradle.dukes8bit [size]">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Main" />
       <module name="dukes8bit.main" />
@@ -144,6 +145,28 @@
         <option name="taskNames">
           <list>
             <option value="build" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="dukes8bit [proguard]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="proguard" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -200,10 +223,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.Main" />
         <item itemvalue="Gradle.dukes8bit [size]" />
-        <item itemvalue="Gradle.dukes8bit [run]" />
         <item itemvalue="Gradle.dukes8bit [build]" />
+        <item itemvalue="Gradle.dukes8bit [proguard]" />
+        <item itemvalue="Application.Main" />
+        <item itemvalue="Gradle.dukes8bit [run]" />
       </list>
     </recent_temporary>
   </component>
@@ -424,7 +448,15 @@
       <option name="project" value="LOCAL" />
       <updated>1780675194137</updated>
     </task>
-    <option name="localTasksCounter" value="27" />
+    <task id="LOCAL-00027" summary="- Balancing to mob npc stats">
+      <option name="closed" value="true" />
+      <created>1780678818957</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1780678818957</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -439,7 +471,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="init" />
     <MESSAGE value="- Shrink Game.class via lookup tables, inlining, and constant cleanup" />
     <MESSAGE value="- Shrink Game.class via lookup tables, inlining, and constant cleanup&#10;- a few other smaller optimizations" />
     <MESSAGE value="- a few smaller size optimizations" />
@@ -464,6 +495,7 @@
     <MESSAGE value="- Moved classes to root package&#10;- Merge 4 exact-duplicate Color constants&#10;- Inline the itemDepth() accessor&#10;- Fold the common setColor+fill idiom into static rect()/oval() helpers" />
     <MESSAGE value="- Replace 13 per-key Held fields with one held[] array" />
     <MESSAGE value="- Unified sound compression for sound effects now too, not just the music track&#10;- Extract randInterior() for the repeated genRandom interior-tile pick&#10;- Extract blocksMovement(tile), also fixing moveBoss recomputing map[index] four times per tile" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Unified sound compression for sound effects now too, not just the music track&#10;- Extract randInterior() for the repeated genRandom interior-tile pick&#10;- Extract blocksMovement(tile), also fixing moveBoss recomputing map[index] four times per tile" />
+    <MESSAGE value="- Balancing to mob npc stats" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Balancing to mob npc stats" />
   </component>
 </project>
