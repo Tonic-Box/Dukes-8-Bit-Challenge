@@ -118,8 +118,8 @@ Measured from a clean build (`./gradlew size`). There are **no runtime asset fil
 
 | File | Size | Share |
 | --- | ---: | ---: |
-| `Game.class` | 30,121 B | 48% |
-| `Renderer.class` | 22,142 B | 36% |
+| `Game.class` | 30,311 B | 49% |
+| `Renderer.class` | 22,142 B | 35% |
 | `Sound.class` | 6,795 B | 11% |
 | `Main.class` | 3,197 B | 5% |
-| **Total** | **62,255 B (60.80 KB)** | |
+| **Total** | **62,445 B (60.98 KB)** | |

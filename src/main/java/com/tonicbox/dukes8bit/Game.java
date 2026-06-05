@@ -52,7 +52,7 @@ final class Game {
     /**
      * Per-enemy-type base stats packed as {maxHp, attack, gold, xp} per type id and read as
      * ENEMY_STATS[type * 4 + stat]; depth scaling is added at each call site. Rows are types in
-     * id order: BUG, NULLPTR, LEAK, FORKBOMB, DEADLOCK.
+     * id order: BUG, NULLPTR, LEAK, FORKBOMB, DEADLOCK, MIMIC.
      */
     private static final int[] ENEMY_STATS = {
         3, 1, 2, 4,
@@ -130,6 +130,10 @@ final class Game {
     private static final int[] RARITY_STAT_BONUS = {0, 2, 5};
     // Multiplier numerator for effect magnitudes (denominator 10): ×1.0 / ×1.5 / ×2.5.
     private static final int[] RARITY_MAG_SCALE = {10, 15, 25};
+    // Weapon ATK and armor DEF gain an uncapped bonus from the floor an item dropped on, scaled to
+    // track enemy growth (enemy HP rises floor/2, enemy attack rises floor/4) so deep gear keeps pace.
+    private static final int DEPTH_ATK_DIVISOR = 2;
+    private static final int DEPTH_DEF_DIVISOR = 4;
 
     // Contiguous id ranges used by the loot roller; effect variants are the rarer half of each gear pool.
     private static final int WEAPON_EFFECT_FIRST = 3;
@@ -327,6 +331,9 @@ final class Game {
     /** Extracts the rarity tier from a packed item int (bits 5-6). */
     static int itemRarity(int packed) { return (packed >> 5) & 0x3; }
 
+    /** Extracts the floor an item dropped on (bits 7+); drives its uncapped, depth-scaled stat bonus. */
+    static int itemDepth(int packed) { return packed >> 7; }
+
     private void startNewGame() {
         floor = 1;
         playerMaxHp = 20;
@@ -397,8 +404,19 @@ final class Game {
     }
 
     int itemSlot(int packed)   { return ITEM_SLOT[itemId(packed)]; }
-    int itemValue(int packed)  { return ITEM_VALUE[itemId(packed)] + RARITY_STAT_BONUS[itemRarity(packed)]; }
     int itemEffect(int packed) { return ITEM_EFFECT[itemId(packed)]; }
+
+    /** Slot base stat plus rarity bonus plus an uncapped depth bonus on weapons (ATK) and armor (DEF). */
+    int itemValue(int packed) {
+        int id = itemId(packed);
+        int value = ITEM_VALUE[id] + RARITY_STAT_BONUS[itemRarity(packed)];
+        if (ITEM_SLOT[id] == WEAPON) {
+            value += itemDepth(packed) / DEPTH_ATK_DIVISOR;
+        } else if (ITEM_SLOT[id] == ARMOR) {
+            value += itemDepth(packed) / DEPTH_DEF_DIVISOR;
+        }
+        return value;
+    }
     int itemMag(int packed)    { return ITEM_EFFECT_MAG[itemId(packed)] * RARITY_MAG_SCALE[itemRarity(packed)] / 10; }
 
     /** The item currently equipped in the same slot as {@code carried}, or -1 if that slot is empty. */
@@ -1132,7 +1150,7 @@ final class Game {
                 id = (weapon ? 0 : ARMOR_PLAIN_FIRST) + tier;
             }
         }
-        return (rarity << 5) | id;
+        return (floor << 7) | (rarity << 5) | id;
     }
 
     /** Adds experience and levels Duke up while he has enough, boosting his stats. */
