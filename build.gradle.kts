@@ -13,7 +13,7 @@ java {
 }
 
 application {
-    mainClass = "com.tonicbox.dukes8bit.Main"
+    mainClass = "Main"
 }
 
 tasks.withType<JavaCompile>().configureEach {

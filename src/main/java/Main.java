@@ -1,5 +1,3 @@
-package com.tonicbox.dukes8bit;
-
 import java.awt.AWTEvent;
 import java.awt.Canvas;
 import java.awt.Color;

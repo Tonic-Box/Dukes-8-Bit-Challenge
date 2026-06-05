@@ -1,5 +1,3 @@
-package com.tonicbox.dukes8bit;
-
 import java.util.Random;
 import java.awt.event.KeyEvent;
 
@@ -328,11 +326,8 @@ final class Game {
     /** Extracts the template id from a packed item int (bits 0-4). */
     static int itemId(int packed) { return packed & 0x1F; }
 
-    /** Extracts the rarity tier from a packed item int (bits 5-6). */
+    /** Extracts the rarity tier from a packed item int (bits 5-6). The floor it dropped on is bits 7+. */
     static int itemRarity(int packed) { return (packed >> 5) & 0x3; }
-
-    /** Extracts the floor an item dropped on (bits 7+); drives its uncapped, depth-scaled stat bonus. */
-    static int itemDepth(int packed) { return packed >> 7; }
 
     private void startNewGame() {
         floor = 1;
@@ -411,9 +406,9 @@ final class Game {
         int id = itemId(packed);
         int value = ITEM_VALUE[id] + RARITY_STAT_BONUS[itemRarity(packed)];
         if (ITEM_SLOT[id] == WEAPON) {
-            value += itemDepth(packed) / DEPTH_ATK_DIVISOR;
+            value += (packed >> 7) / DEPTH_ATK_DIVISOR;
         } else if (ITEM_SLOT[id] == ARMOR) {
-            value += itemDepth(packed) / DEPTH_DEF_DIVISOR;
+            value += (packed >> 7) / DEPTH_DEF_DIVISOR;
         }
         return value;
     }

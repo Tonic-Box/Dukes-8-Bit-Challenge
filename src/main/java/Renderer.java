@@ -1,5 +1,3 @@
-package com.tonicbox.dukes8bit;
-
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.FontMetrics;
@@ -47,11 +45,9 @@ final class Renderer {
     private static final Color DUKE_OUTLINE = new Color(22, 28, 70);
     private static final Color DUKE_BELLY = new Color(236, 239, 246);
     private static final Color DUKE_FOOT = new Color(242, 170, 44);
-    private static final Color DUKE_FLIPPER = new Color(20, 20, 24);
     private static final Color BUG_LEG = new Color(120, 32, 28);
     private static final Color LEAK_DRIP = new Color(156, 232, 174);
     private static final Color MERCHANT_ROBE = new Color(150, 110, 60);
-    private static final Color MERCHANT_TRIM = new Color(232, 200, 110);
     private static final Color MERCHANT_SKIN = new Color(232, 196, 158);
     private static final Color MERCHANT_HAT = new Color(96, 64, 32);
     private static final Color PROMPT = new Color(245, 240, 210);
@@ -113,8 +109,6 @@ final class Renderer {
     private static final Color MINIMAP_BORDER = new Color(84, 80, 110);
     private static final Color MINIMAP_FLOOR_LIT = new Color(118, 114, 148);
     private static final Color MINIMAP_FLOOR_DIM = new Color(58, 56, 76);
-    private static final Color MINIMAP_DOWN = new Color(236, 206, 92);
-    private static final Color MINIMAP_UP = new Color(228, 84, 84);
     private static final Color MINIMAP_DOOR = new Color(200, 150, 70);
     private static final Color MINIMAP_ENEMY = new Color(222, 70, 64);
     private static final Color MINIMAP_BOSS = new Color(244, 60, 72);
@@ -148,8 +142,7 @@ final class Renderer {
      * Duke, the HUD, and any overlay for the current game state.
      */
     void render(Graphics graphics, Game game) {
-        graphics.setColor(BACKGROUND);
-        graphics.fillRect(0, 0, Game.VIEW_WIDTH, Game.VIEW_HEIGHT);
+        rect(graphics, BACKGROUND, 0, 0, Game.VIEW_WIDTH, Game.VIEW_HEIGHT);
 
         // Round the camera to whole pixels so the scrolling dungeon stays crisp instead of shimmering.
         int cameraX = Math.round(game.cameraX());
@@ -306,11 +299,22 @@ final class Renderer {
         }
     }
 
+    /** setColor + fillRect folded into one call, for the common single-fill idiom. */
+    private static void rect(Graphics graphics, Color color, int x, int y, int w, int h) {
+        graphics.setColor(color);
+        graphics.fillRect(x, y, w, h);
+    }
+
+    /** setColor + fillOval folded into one call, for the common single-fill idiom. */
+    private static void oval(Graphics graphics, Color color, int x, int y, int w, int h) {
+        graphics.setColor(color);
+        graphics.fillOval(x, y, w, h);
+    }
+
     /** Lays one coalesced run of the fog overlay; step 0 is fully lit and draws nothing. */
     private void fillFog(Graphics graphics, int step, int sx, int sy, int width) {
         if (step > 0) {
-            graphics.setColor(FOG[step]);
-            graphics.fillRect(sx, sy, width, Game.TILE);
+            rect(graphics, FOG[step], sx, sy, width, Game.TILE);
         }
     }
 
@@ -320,12 +324,9 @@ final class Renderer {
      */
     private void drawTile(Graphics graphics, int px, int py, int tile, boolean alt, int tx, int ty) {
         if (tile == Game.WALL) {
-            graphics.setColor(WALL_LIT);
-            graphics.fillRect(px, py, Game.TILE, Game.TILE);
-            graphics.setColor(WALL_EDGE);
-            graphics.fillRect(px, py, Game.TILE, 3);
-            graphics.setColor(WALL_SHADOW);
-            graphics.fillRect(px, py + Game.TILE - 3, Game.TILE, 3);
+            rect(graphics, WALL_LIT, px, py, Game.TILE, Game.TILE);
+            rect(graphics, WALL_EDGE, px, py, Game.TILE, 3);
+            rect(graphics, WALL_SHADOW, px, py + Game.TILE - 3, Game.TILE, 3);
             return;
         }
         if (tile == Game.LOCKED_DOOR) {
@@ -333,22 +334,17 @@ final class Renderer {
             return;
         }
         if (tile == Game.SCENERY) {
-            graphics.setColor(alt ? FLOOR_LIT_ALT : FLOOR_LIT);
-            graphics.fillRect(px, py, Game.TILE, Game.TILE);
+            rect(graphics, alt ? FLOOR_LIT_ALT : FLOOR_LIT, px, py, Game.TILE, Game.TILE);
             drawScenery(graphics, px, py, (tx * 7 + ty * 3) % 3);
             return;
         }
         if (tile == Game.PIT) {
-            graphics.setColor(PIT_OUTER);
-            graphics.fillRect(px, py, Game.TILE, Game.TILE);
-            graphics.setColor(PIT_INNER);
-            graphics.fillOval(px + 3, py + 3, Game.TILE - 6, Game.TILE - 6);
-            graphics.setColor(Color.BLACK);
-            graphics.fillOval(px + 7, py + 7, Game.TILE - 14, Game.TILE - 14);
+            rect(graphics, PIT_OUTER, px, py, Game.TILE, Game.TILE);
+            oval(graphics, PIT_INNER, px + 3, py + 3, Game.TILE - 6, Game.TILE - 6);
+            oval(graphics, Color.BLACK, px + 7, py + 7, Game.TILE - 14, Game.TILE - 14);
             return;
         }
-        graphics.setColor(alt ? FLOOR_LIT_ALT : FLOOR_LIT);
-        graphics.fillRect(px, py, Game.TILE, Game.TILE);
+        rect(graphics, alt ? FLOOR_LIT_ALT : FLOOR_LIT, px, py, Game.TILE, Game.TILE);
         if (tile == Game.DOWN_STAIRS) {
             drawStairs(graphics, px, py, STAIRS_LIT);
         } else if (tile == Game.UP_STAIRS) {
@@ -378,25 +374,20 @@ final class Renderer {
     private void drawScenery(Graphics graphics, int px, int py, int type) {
         switch (type) {
             case 0 -> {
-                graphics.setColor(POT_BODY);
-                graphics.fillOval(px + 5, py + 9, 14, 11);
+                oval(graphics, POT_BODY, px + 5, py + 9, 14, 11);
                 graphics.fillRect(px + 8, py + 6, 8, 5);
-                graphics.setColor(POT_RIM);
-                graphics.fillRect(px + 7, py + 5, 10, 3);
+                rect(graphics, POT_RIM, px + 7, py + 5, 10, 3);
             }
             case 1 -> {
-                graphics.setColor(BOX_BODY);
-                graphics.fillRect(px + 4, py + 6, 16, 13);
+                rect(graphics, BOX_BODY, px + 4, py + 6, 16, 13);
                 graphics.setColor(BOX_EDGE);
                 graphics.drawRect(px + 4, py + 6, 16, 13);
                 graphics.drawLine(px + 4, py + 12, px + 20, py + 12);
                 graphics.drawLine(px + 12, py + 6, px + 12, py + 19);
             }
             default -> {
-                graphics.setColor(VASE_NECK);
-                graphics.fillOval(px + 5, py + 4, 14, 6);
-                graphics.setColor(VASE_BODY);
-                graphics.fillRect(px + 8, py + 8, 8, 8);
+                oval(graphics, VASE_NECK, px + 5, py + 4, 14, 6);
+                rect(graphics, VASE_BODY, px + 8, py + 8, 8, 8);
                 graphics.fillOval(px + 4, py + 13, 16, 7);
             }
         }
@@ -404,15 +395,11 @@ final class Renderer {
 
     /** A studded vault door with a brass lock plate and keyhole; the fog overlay dims it out of light. */
     private void drawLockedDoor(Graphics graphics, int px, int py) {
-        graphics.setColor(DOOR_FRAME_LIT);
-        graphics.fillRect(px, py, Game.TILE, Game.TILE);
-        graphics.setColor(DOOR_PANEL_LIT);
-        graphics.fillRect(px + 3, py + 2, Game.TILE - 6, Game.TILE - 4);
+        rect(graphics, DOOR_FRAME_LIT, px, py, Game.TILE, Game.TILE);
+        rect(graphics, DOOR_PANEL_LIT, px + 3, py + 2, Game.TILE - 6, Game.TILE - 4);
         int cx = px + Game.TILE / 2;
-        graphics.setColor(DOOR_LOCK_LIT);
-        graphics.fillRect(cx - 3, py + Game.TILE / 2 - 3, 6, 8);
-        graphics.setColor(ENEMY_EYE);
-        graphics.fillRect(cx - 1, py + Game.TILE / 2 - 1, 2, 2);
+        rect(graphics, DOOR_LOCK_LIT, cx - 3, py + Game.TILE / 2 - 3, 6, 8);
+        rect(graphics, ENEMY_EYE, cx - 1, py + Game.TILE / 2 - 1, 2, 2);
         graphics.fillRect(cx - 1, py + Game.TILE / 2 + 1, 2, 3);
     }
 
@@ -420,24 +407,17 @@ final class Renderer {
     private void drawKey(Graphics graphics, int px, int py) {
         int cx = px + Game.TILE / 2;
         int cy = py + Game.TILE / 2;
-        graphics.setColor(KEY_COLOR);
-        graphics.fillOval(cx - 7, cy - 5, 7, 7);
-        graphics.setColor(BACKGROUND);
-        graphics.fillOval(cx - 5, cy - 3, 3, 3);
-        graphics.setColor(KEY_COLOR);
-        graphics.fillRect(cx - 1, cy - 2, 8, 2);
-        graphics.setColor(KEY_SHADE);
-        graphics.fillRect(cx + 3, cy, 2, 3);
+        oval(graphics, KEY_COLOR, cx - 7, cy - 5, 7, 7);
+        oval(graphics, BACKGROUND, cx - 5, cy - 3, 3, 3);
+        rect(graphics, KEY_COLOR, cx - 1, cy - 2, 8, 2);
+        rect(graphics, KEY_SHADE, cx + 3, cy, 2, 3);
         graphics.fillRect(cx + 6, cy, 2, 3);
     }
 
     private void drawChest(Graphics graphics, int px, int py) {
-        graphics.setColor(CHEST_BODY);
-        graphics.fillRect(px + 5, py + 10, Game.TILE - 10, Game.TILE - 13);
-        graphics.setColor(CHEST_LID);
-        graphics.fillRect(px + 5, py + 7, Game.TILE - 10, 5);
-        graphics.setColor(ENEMY_EYE);
-        graphics.fillRect(px + Game.TILE / 2 - 1, py + 11, 2, 4);
+        rect(graphics, CHEST_BODY, px + 5, py + 10, Game.TILE - 10, Game.TILE - 13);
+        rect(graphics, CHEST_LID, px + 5, py + 7, Game.TILE - 10, 5);
+        rect(graphics, ENEMY_EYE, px + Game.TILE / 2 - 1, py + 11, 2, 4);
     }
 
     private void drawGem(Graphics graphics, int px, int py) {
@@ -458,31 +438,25 @@ final class Renderer {
             default -> drawDukeFront(graphics, px, py);
         }
         if (heal > 0f) {
-            graphics.setColor(HEAL_FLASH);
-            graphics.fillRect(px + 3, py, Game.TILE - 6, Game.TILE);
+            rect(graphics, HEAL_FLASH, px + 3, py, Game.TILE - 6, Game.TILE);
         }
         if (dodge > 0f) {
-            graphics.setColor(DODGE_FLASH);
-            graphics.fillRect(px + 3, py, Game.TILE - 6, Game.TILE);
+            rect(graphics, DODGE_FLASH, px + 3, py, Game.TILE - 6, Game.TILE);
         }
     }
 
     private void drawDukeFront(Graphics graphics, int px, int py) {
-        graphics.setColor(DUKE_FOOT);
-        graphics.fillRect(px + 7, py + 21, 4, 2);
+        rect(graphics, DUKE_FOOT, px + 7, py + 21, 4, 2);
         graphics.fillRect(px + 13, py + 21, 4, 2);
-        graphics.setColor(DUKE_FLIPPER);
+        graphics.setColor(DUKE_BODY);
         graphics.fillRoundRect(px + 3, py + 10, 4, 8, 4, 4);
         graphics.fillRoundRect(px + 17, py + 10, 4, 8, 4, 4);
         graphics.setColor(DUKE_BODY);
         graphics.fillRoundRect(px + 5, py + 2, 14, 20, 11, 11);
-        graphics.setColor(DUKE_BELLY);
-        graphics.fillOval(px + 8, py + 10, 8, 11);
-        graphics.setColor(Color.WHITE);
-        graphics.fillOval(px + 7, py + 6, 5, 5);
+        oval(graphics, DUKE_BELLY, px + 8, py + 10, 8, 11);
+        oval(graphics, Color.WHITE, px + 7, py + 6, 5, 5);
         graphics.fillOval(px + 12, py + 6, 5, 5);
-        graphics.setColor(Color.BLACK);
-        graphics.fillOval(px + 9, py + 7, 2, 2);
+        oval(graphics, Color.BLACK, px + 9, py + 7, 2, 2);
         graphics.fillOval(px + 14, py + 7, 2, 2);
         graphics.setColor(DUKE_NOSE);
         POLY_X3[0] = px + 10; POLY_X3[1] = px + 14; POLY_X3[2] = px + 12;
@@ -494,15 +468,14 @@ final class Renderer {
 
     /** Back view used while walking away: body and flippers with a nape patch, no face. */
     private void drawDukeBack(Graphics graphics, int px, int py) {
-        graphics.setColor(DUKE_FOOT);
-        graphics.fillRect(px + 7, py + 21, 4, 2);
+        rect(graphics, DUKE_FOOT, px + 7, py + 21, 4, 2);
         graphics.fillRect(px + 13, py + 21, 4, 2);
-        graphics.setColor(DUKE_FLIPPER);
+        graphics.setColor(DUKE_BODY);
         graphics.fillRoundRect(px + 3, py + 10, 4, 8, 4, 4);
         graphics.fillRoundRect(px + 17, py + 10, 4, 8, 4, 4);
         graphics.setColor(DUKE_BODY);
         graphics.fillRoundRect(px + 5, py + 2, 14, 20, 11, 11);
-        graphics.setColor(DUKE_FLIPPER);
+        graphics.setColor(DUKE_BODY);
         graphics.fillRoundRect(px + 9, py + 5, 6, 8, 5, 5);
         graphics.setColor(DUKE_OUTLINE);
         graphics.drawRoundRect(px + 5, py + 2, 14, 20, 11, 11);
@@ -510,22 +483,18 @@ final class Renderer {
 
     /** Left-facing profile: belly, eye, and beak turned to the side. */
     private void drawDukeLeft(Graphics graphics, int px, int py) {
-        graphics.setColor(DUKE_FOOT);
-        graphics.fillRect(px + 8, py + 21, 4, 2);
+        rect(graphics, DUKE_FOOT, px + 8, py + 21, 4, 2);
         graphics.fillRect(px + 13, py + 21, 3, 2);
         graphics.setColor(DUKE_BODY);
         graphics.fillRoundRect(px + 5, py + 2, 14, 20, 11, 11);
-        graphics.setColor(DUKE_BELLY);
-        graphics.fillOval(px + 6, py + 10, 8, 11);
-        graphics.setColor(Color.WHITE);
-        graphics.fillOval(px + 7, py + 6, 5, 5);
-        graphics.setColor(Color.BLACK);
-        graphics.fillOval(px + 8, py + 8, 2, 2);
+        oval(graphics, DUKE_BELLY, px + 6, py + 10, 8, 11);
+        oval(graphics, Color.WHITE, px + 7, py + 6, 5, 5);
+        oval(graphics, Color.BLACK, px + 8, py + 8, 2, 2);
         graphics.setColor(DUKE_NOSE);
         POLY_X3[0] = px + 4; POLY_X3[1] = px + 9; POLY_X3[2] = px + 9;
         POLY_Y3[0] = py + 11; POLY_Y3[1] = py + 9; POLY_Y3[2] = py + 13;
         graphics.fillPolygon(POLY_X3, POLY_Y3, 3);
-        graphics.setColor(DUKE_FLIPPER);
+        graphics.setColor(DUKE_BODY);
         graphics.fillRoundRect(px + 7, py + 13, 4, 7, 4, 4);
         graphics.setColor(DUKE_OUTLINE);
         graphics.drawRoundRect(px + 5, py + 2, 14, 20, 11, 11);
@@ -584,56 +553,44 @@ final class Renderer {
             case Game.LEAK -> {
                 graphics.setColor(LEAK_COLOR);
                 graphics.fillRoundRect(px + 3, py + 5, Game.TILE - 6, Game.TILE - 8, 14, 14);
-                graphics.setColor(LEAK_DRIP);
-                graphics.fillRect(px + 8, py + 8, 4, 3);
+                rect(graphics, LEAK_DRIP, px + 8, py + 8, 4, 3);
             }
             case Game.FORKBOMB -> {
-                graphics.setColor(FORK_COLOR);
-                graphics.fillRect(px + 5, py + 8, Game.TILE - 10, Game.TILE - 12);
+                rect(graphics, FORK_COLOR, px + 5, py + 8, Game.TILE - 10, Game.TILE - 12);
                 graphics.fillRect(px + 9, py + 4, Game.TILE - 18, 5);
             }
             case Game.DEADLOCK -> {
-                graphics.setColor(DEADLOCK_COLOR);
-                graphics.fillRect(px + 3, py + 4, Game.TILE - 6, Game.TILE - 7);
+                rect(graphics, DEADLOCK_COLOR, px + 3, py + 4, Game.TILE - 6, Game.TILE - 7);
             }
             case Game.MIMIC -> {
-                graphics.setColor(MIMIC_BODY);
-                graphics.fillRect(px + 3, py + 14, Game.TILE - 6, 9);
-                graphics.setColor(MIMIC_LID);
-                graphics.fillRect(px + 3, py + 4, Game.TILE - 6, 8);
+                rect(graphics, MIMIC_BODY, px + 3, py + 14, Game.TILE - 6, 9);
+                rect(graphics, MIMIC_LID, px + 3, py + 4, Game.TILE - 6, 8);
                 graphics.setColor(Color.WHITE);
                 for (int t = 0; t < 4; t++) {
                     graphics.fillRect(px + 5 + t * 4, py + 11, 2, 3);
                     graphics.fillRect(px + 6 + t * 4, py + 14, 2, 3);
                 }
-                graphics.setColor(MIMIC_EYE);
-                graphics.fillOval(px + 6, py + 5, 4, 4);
+                oval(graphics, MIMIC_EYE, px + 6, py + 5, 4, 4);
                 graphics.fillOval(px + 14, py + 5, 4, 4);
-                graphics.setColor(ENEMY_EYE);
-                graphics.fillOval(px + 7, py + 6, 2, 2);
+                oval(graphics, ENEMY_EYE, px + 7, py + 6, 2, 2);
                 graphics.fillOval(px + 15, py + 6, 2, 2);
             }
             default -> {
-                graphics.setColor(BUG_LEG);
-                graphics.fillRect(px + 5, py + Game.TILE - 6, 2, 5);
+                rect(graphics, BUG_LEG, px + 5, py + Game.TILE - 6, 2, 5);
                 graphics.fillRect(px + 11, py + Game.TILE - 6, 2, 5);
                 graphics.fillRect(px + 17, py + Game.TILE - 6, 2, 5);
-                graphics.setColor(BUG_COLOR);
-                graphics.fillOval(px + 4, py + 6, Game.TILE - 8, Game.TILE - 10);
+                oval(graphics, BUG_COLOR, px + 4, py + 6, Game.TILE - 8, Game.TILE - 10);
             }
         }
         if (type != Game.MIMIC) {
-            graphics.setColor(ENEMY_EYE);
-            graphics.fillRect(px + 8, py + 10, 3, 3);
+            rect(graphics, ENEMY_EYE, px + 8, py + 10, 3, 3);
             graphics.fillRect(px + Game.TILE - 11, py + 10, 3, 3);
         }
         if (poisoned) {
-            graphics.setColor(POISON_TINT);
-            graphics.fillRect(px + 2, py + 2, Game.TILE - 4, Game.TILE - 4);
+            rect(graphics, POISON_TINT, px + 2, py + 2, Game.TILE - 4, Game.TILE - 4);
         }
         if (crit > 0f) {
-            graphics.setColor(CRIT_FLASH);
-            graphics.fillRect(px + 1, py + 1, Game.TILE - 2, Game.TILE - 2);
+            rect(graphics, CRIT_FLASH, px + 1, py + 1, Game.TILE - 2, Game.TILE - 2);
         }
         if (g2 != null) {
             g2.translate(cx, cy);
@@ -664,8 +621,7 @@ final class Renderer {
         int size = Game.BOSS_SIZE * Game.TILE;
         py += (int) (Math.sin(anim / 240.0) * 3);
 
-        graphics.setColor(BOSS_SHADOW);
-        graphics.fillOval(px + 8, py + size - 16, size - 16, 14);
+        oval(graphics, BOSS_SHADOW, px + 8, py + size - 16, size - 16, 14);
 
         graphics.setColor(enraged ? BOSS_BODY_ENRAGED : BOSS_BODIES[type & 3]);
         POLY_Y3[0] = py + 16; POLY_Y3[1] = py - 1; POLY_Y3[2] = py + 16;
@@ -679,18 +635,15 @@ final class Renderer {
         graphics.drawRoundRect(px + 6, py + 10, size - 12, size - 20, 30, 30);
 
         int pulse = (int) (Math.sin(anim / 160.0) * 3) + 3;
-        graphics.setColor(BOSS_CORE);
-        graphics.fillOval(px + size / 2 - 14 - pulse / 2, py + size / 2 - 10 - pulse / 2, 28 + pulse, 24 + pulse);
-        graphics.setColor(BOSS_CORE_HOT);
-        graphics.fillOval(px + size / 2 - 7, py + size / 2 - 6, 14, 12);
+        oval(graphics, BOSS_CORE, px + size / 2 - 14 - pulse / 2, py + size / 2 - 10 - pulse / 2, 28 + pulse, 24 + pulse);
+        oval(graphics, BOSS_CORE_HOT, px + size / 2 - 7, py + size / 2 - 6, 14, 12);
 
         graphics.setColor(BOSS_EYE);
         int eyeY = py + 24;
         graphics.fillOval(px + 16, eyeY, 9, 9);
         graphics.fillOval(px + size - 25, eyeY, 9, 9);
         graphics.fillOval(px + size / 2 - 4, py + 17, 8, 8);
-        graphics.setColor(BOSS_EYE_DARK);
-        graphics.fillOval(px + 19, eyeY + 3, 3, 3);
+        oval(graphics, BOSS_EYE_DARK, px + 19, eyeY + 3, 3, 3);
         graphics.fillOval(px + size - 22, eyeY + 3, 3, 3);
         graphics.fillOval(px + size / 2 - 1, py + 20, 3, 3);
 
@@ -747,10 +700,8 @@ final class Renderer {
         int barWidth = 360;
         int barX = (Game.PLAY_WIDTH - barWidth) / 2;
         int barY = 16;
-        graphics.setColor(BOSS_BAR_BACK);
-        graphics.fillRect(barX, barY, barWidth, 16);
-        graphics.setColor(game.bossEnraged ? BOSS_BAR_FILL_ENRAGED : BOSS_BAR_FILL);
-        graphics.fillRect(barX, barY, barWidth * Math.max(0, game.bossHp) / game.bossMaxHp, 16);
+        rect(graphics, BOSS_BAR_BACK, barX, barY, barWidth, 16);
+        rect(graphics, game.bossEnraged ? BOSS_BAR_FILL_ENRAGED : BOSS_BAR_FILL, barX, barY, barWidth * Math.max(0, game.bossHp) / game.bossMaxHp, 16);
         graphics.setColor(HUD_TEXT);
         drawCenteredAt(graphics, bossName(game.bossType) + (game.bossEnraged ? "   — ENRAGED" : ""),
                 Game.PLAY_WIDTH / 2, barY - 4);
@@ -780,8 +731,7 @@ final class Renderer {
         int originY = MINIMAP_TOP;
         int gridX = originX + MINIMAP_PAD_X;
 
-        graphics.setColor(MINIMAP_BACK);
-        graphics.fillRect(originX - 3, originY - 3, panelWidth + 6, height + 6);
+        rect(graphics, MINIMAP_BACK, originX - 3, originY - 3, panelWidth + 6, height + 6);
         graphics.setColor(MINIMAP_BORDER);
         graphics.drawRect(originX - 3, originY - 3, panelWidth + 5, height + 5);
 
@@ -813,16 +763,15 @@ final class Renderer {
                     Game.BOSS_SIZE * cellW, Game.BOSS_SIZE * cellH);
         }
 
-        graphics.setColor(MINIMAP_PLAYER);
-        graphics.fillRect(gridX + game.playerX * cellW - 1, originY + game.playerY * cellH - 1, cellW + 2, cellH + 2);
+        rect(graphics, MINIMAP_PLAYER, gridX + game.playerX * cellW - 1, originY + game.playerY * cellH - 1, cellW + 2, cellH + 2);
     }
 
     /** Minimap colour for a tile: null hides unseen walls; floors dim when only remembered, not lit. */
     private Color minimapColor(int tile, boolean lit) {
         return switch (tile) {
             case Game.WALL -> null;
-            case Game.DOWN_STAIRS -> MINIMAP_DOWN;
-            case Game.UP_STAIRS -> MINIMAP_UP;
+            case Game.DOWN_STAIRS -> STAIRS_LIT;
+            case Game.UP_STAIRS -> UP_STAIRS_LIT;
             case Game.LOCKED_DOOR -> MINIMAP_DOOR;
             case Game.PIT -> MINIMAP_PIT;
             case Game.SCENERY -> MINIMAP_BORDER;
@@ -832,8 +781,7 @@ final class Renderer {
 
     private void drawHud(Graphics graphics, Game game) {
         int top = Game.PLAY_HEIGHT;
-        graphics.setColor(HUD_BACKGROUND);
-        graphics.fillRect(0, top, Game.VIEW_WIDTH, Game.HUD_HEIGHT);
+        rect(graphics, HUD_BACKGROUND, 0, top, Game.VIEW_WIDTH, Game.HUD_HEIGHT);
 
         graphics.setColor(HUD_TEXT);
         graphics.drawString(
@@ -845,18 +793,14 @@ final class Renderer {
         int barX = 430;
         int barWidth = 200;
         int hpY = top + 10;
-        graphics.setColor(HP_BACK);
-        graphics.fillRect(barX, hpY, barWidth, 15);
-        graphics.setColor(HP_FILL);
-        graphics.fillRect(barX, hpY, barWidth * Math.max(0, game.playerHp) / game.playerMaxHp, 15);
+        rect(graphics, HP_BACK, barX, hpY, barWidth, 15);
+        rect(graphics, HP_FILL, barX, hpY, barWidth * Math.max(0, game.playerHp) / game.playerMaxHp, 15);
         graphics.setColor(HUD_TEXT);
         graphics.drawString("HP " + game.playerHp + "/" + game.playerMaxHp, barX + 64, hpY + 12);
 
         int xpY = top + 34;
-        graphics.setColor(XP_BACK);
-        graphics.fillRect(barX, xpY, barWidth, 7);
-        graphics.setColor(XP_FILL);
-        graphics.fillRect(barX, xpY, barWidth * Math.min(game.playerXp, game.xpForNext()) / game.xpForNext(), 7);
+        rect(graphics, XP_BACK, barX, xpY, barWidth, 7);
+        rect(graphics, XP_FILL, barX, xpY, barWidth * Math.min(game.playerXp, game.xpForNext()) / game.xpForNext(), 7);
 
         graphics.setColor(HUD_HINT);
         graphics.drawString("WASD move   Space attack   Q potion   I inventory   E interact   M mute all   T mute music   Stairs descend",
@@ -864,8 +808,7 @@ final class Renderer {
     }
 
     private void drawDeath(Graphics graphics, Game game) {
-        graphics.setColor(OVERLAY);
-        graphics.fillRect(0, 0, Game.VIEW_WIDTH, Game.VIEW_HEIGHT);
+        rect(graphics, OVERLAY, 0, 0, Game.VIEW_WIDTH, Game.VIEW_HEIGHT);
         graphics.setColor(HUD_TEXT);
         drawCentered(graphics, "DUKE HAS FALLEN", Game.PLAY_HEIGHT / 2 - 24);
         drawCentered(graphics, "Reached depth " + game.floor, Game.PLAY_HEIGHT / 2 + 4);
@@ -873,8 +816,7 @@ final class Renderer {
     }
 
     private void drawShop(Graphics graphics, Game game) {
-        graphics.setColor(OVERLAY);
-        graphics.fillRect(0, 0, Game.VIEW_WIDTH, Game.VIEW_HEIGHT);
+        rect(graphics, OVERLAY, 0, 0, Game.VIEW_WIDTH, Game.VIEW_HEIGHT);
         graphics.setColor(HUD_TEXT);
         drawCentered(graphics, "DUKE FINDS A MERCHANT", Game.PLAY_HEIGHT / 2 - 52);
         drawCentered(graphics, "Gold: " + game.gold + "      Potions: " + game.potions, Game.PLAY_HEIGHT / 2 - 20);
@@ -883,8 +825,7 @@ final class Renderer {
     }
 
     private void drawPause(Graphics graphics, Game game) {
-        graphics.setColor(OVERLAY);
-        graphics.fillRect(0, 0, Game.VIEW_WIDTH, Game.VIEW_HEIGHT);
+        rect(graphics, OVERLAY, 0, 0, Game.VIEW_WIDTH, Game.VIEW_HEIGHT);
         graphics.setColor(HUD_TEXT);
         drawCentered(graphics, "PAUSED", Game.PLAY_HEIGHT / 2 - 40);
         graphics.setColor(game.pauseSelection == 0 ? PROMPT : HUD_HINT);
@@ -896,8 +837,7 @@ final class Renderer {
     }
 
     private void drawInventory(Graphics graphics, Game game) {
-        graphics.setColor(OVERLAY);
-        graphics.fillRect(0, 0, Game.VIEW_WIDTH, Game.VIEW_HEIGHT);
+        rect(graphics, OVERLAY, 0, 0, Game.VIEW_WIDTH, Game.VIEW_HEIGHT);
         graphics.setColor(HUD_TEXT);
         drawCentered(graphics, "INVENTORY", 48);
 
@@ -999,16 +939,12 @@ final class Renderer {
         POLY_X4[0] = px + 8; POLY_X4[1] = px + Game.TILE - 8; POLY_X4[2] = px + Game.TILE - 4; POLY_X4[3] = px + 4;
         POLY_Y4[0] = py + 13; POLY_Y4[1] = py + 13; POLY_Y4[2] = py + Game.TILE - 1; POLY_Y4[3] = py + Game.TILE - 1;
         graphics.fillPolygon(POLY_X4, POLY_Y4, 4);
-        graphics.setColor(MERCHANT_TRIM);
-        graphics.fillRect(cx - 4, py + 13, 8, 2);
+        rect(graphics, DOOR_LOCK_LIT, cx - 4, py + 13, 8, 2);
         graphics.fillRect(cx - 1, py + 15, 2, Game.TILE - 17);
-        graphics.setColor(MERCHANT_SKIN);
-        graphics.fillOval(cx - 5, py + 4, 10, 9);
-        graphics.setColor(MERCHANT_HAT);
-        graphics.fillRect(cx - 6, py + 3, 12, 2);
+        oval(graphics, MERCHANT_SKIN, cx - 5, py + 4, 10, 9);
+        rect(graphics, MERCHANT_HAT, cx - 6, py + 3, 12, 2);
         graphics.fillRect(cx - 4, py, 8, 3);
-        graphics.setColor(ENEMY_EYE);
-        graphics.fillRect(cx - 3, py + 8, 2, 2);
+        rect(graphics, ENEMY_EYE, cx - 3, py + 8, 2, 2);
         graphics.fillRect(cx + 1, py + 8, 2, 2);
     }
 

@@ -1,5 +1,3 @@
-package com.tonicbox.dukes8bit;
-
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiChannel;
 import javax.sound.midi.MidiEvent;

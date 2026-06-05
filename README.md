@@ -110,6 +110,7 @@ Size is measured as the compiled `.class` files under `build/classes/java/main`.
 - **No asset files:** both graphics and audio are generated at runtime.
 - **Compact data:** enemy stats use small lookup tables, trivial one-call helpers are inlined, and the music score is packed into strings instead of array-init bytecode.
 - **No per-frame allocation:** colors and the fog-overlay palette are hoisted into constants and lookup tables, polygon scratch buffers are shared, and entities are reused in fixed arrays, keeping peak memory low.
+- **Root Package:** The classes are dropped down to the root package to save on constant pool reference sizes
 - Other minor optimizations explained inline with comments.
 
 ### Size breakdown
