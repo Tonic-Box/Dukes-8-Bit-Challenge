@@ -47,19 +47,22 @@ final class Game {
     static final int DEADLOCK = 4;
     static final int MIMIC = 5;
 
+    /** Expands a packed numeric table: one printable char per value, each char = value + '0'. */
+    private static int[] unpack(String packed) {
+        int[] table = new int[packed.length()];
+        for (int i = 0; i < table.length; i++) {
+            table[i] = packed.charAt(i) - '0';
+        }
+        return table;
+    }
+
     /**
-     * Per-enemy-type base stats packed as {maxHp, attack, gold, xp, def} per type id and read as
-     * ENEMY_STATS[type * 5 + stat]; depth scaling is added at each call site. Rows are types in
-     * id order: BUG, NULLPTR, LEAK, FORKBOMB, DEADLOCK, MIMIC.
+     * Per-enemy-type base stats {maxHp, attack, gold, xp, def} per type id, read as ENEMY_STATS[type*5+stat];
+     * depth scaling is added at each call site. Packed one char per value (char = value + '0'); decoded rows by
+     * type id: BUG 4,1,2,4,0 / NULLPTR 6,2,4,8,1 / LEAK 9,3,7,14,1 / FORKBOMB 7,2,5,10,1 /
+     * DEADLOCK 17,4,12,22,2 / MIMIC 21,4,12,24,2.
      */
-    private static final int[] ENEMY_STATS = {
-        4, 1, 2, 4, 0,
-        6, 2, 4, 8, 1,
-        9, 3, 7, 14, 1,
-        7, 2, 5, 10, 1,
-        17, 4, 12, 22, 2,
-        21, 4, 12, 24, 2,
-    };
+    private static final int[] ENEMY_STATS = unpack("4124062481937>1725:1A4<F2E4<H2");
 
     static final int MAX_ENEMIES = 32;
     static final int POTION_COST = 12;
@@ -90,30 +93,16 @@ final class Game {
      * (+ATK for weapons, +DEF for armor); ITEM_EFFECT/ITEM_EFFECT_MAG layer a special behaviour
      * on top, so base combat math stays untouched and plain gear is simply EFF_NONE.
      */
-    private static final String[] ITEM_BASE_NAME = {
-        "Debugger Blade", "Null Sword", "Refactor Axe",
-        "Garbage Collector", "Hot-Swap Dagger",
-        "Stack-Trace Spear", "Venom Linter", "Null-Cannon",
-        "Try-Catch Vest", "Final Plate", "Sandbox Shield",
-        "Exception Mail", "Async Cloak", "Daemon Plate",
-        "Hot Coffee", "Lantern", "Lucky Coin",
-        "Profiler", "Caffeine IV", "Keyring",
-    };
-    private static final int[] ITEM_VALUE = {
-        3, 5, 8, 4, 4, 5, 4, 6,
-        2, 4, 6, 3, 2, 4,
-        0, 0, 0, 0, 0, 0,
-    };
-    private static final int[] ITEM_EFFECT = {
-        EFF_NONE, EFF_NONE, EFF_NONE, EFF_LIFESTEAL, EFF_CRIT, EFF_REACH, EFF_POISON, EFF_KNOCKBACK,
-        EFF_NONE, EFF_NONE, EFF_NONE, EFF_THORNS, EFF_DODGE, EFF_HEAL_ON_KILL,
-        EFF_REGEN, EFF_SIGHT, EFF_GOLD, EFF_XP, EFF_SPEED, EFF_KEYFIND,
-    };
-    private static final int[] ITEM_EFFECT_MAG = {
-        0, 0, 0, 25, 30, 0, 0, 3,
-        0, 0, 0, 3, 30, 3,
-        0, 0, 0, 50, 0, 8,
-    };
+    private static final String[] ITEM_BASE_NAME = ("Debugger Blade|Null Sword|Refactor Axe|Garbage Collector|"
+            + "Hot-Swap Dagger|Stack-Trace Spear|Venom Linter|Null-Cannon|Try-Catch Vest|Final Plate|Sandbox Shield|"
+            + "Exception Mail|Async Cloak|Daemon Plate|Hot Coffee|Lantern|Lucky Coin|Profiler|Caffeine IV|Keyring").split("\\|");
+    // Slot base stat per item id (char = value + '0'): weapons 3,5,8,4,4,5,4,6 / armor 2,4,6,3,2,4 / trinkets 0x6.
+    private static final int[] ITEM_VALUE = unpack("35844546246324000000");
+    // EFF_* id per item id (0-14): weapons NONE,NONE,NONE,LIFESTEAL,CRIT,REACH,POISON,KNOCKBACK /
+    // armor NONE,NONE,NONE,THORNS,DODGE,HEAL_ON_KILL / trinkets REGEN,SIGHT,GOLD,XP,SPEED,KEYFIND.
+    private static final int[] ITEM_EFFECT = unpack("000123450006789:;<=>");
+    // Effect magnitude per item id: weapons 0,0,0,25,30,0,0,3 / armor 0,0,0,3,30,3 / trinkets 0,0,0,50,0,8.
+    private static final int[] ITEM_EFFECT_MAG = unpack("000IN0030003N3000b08");
 
     static final int COMMON = 0;
     static final int RARE = 1;
@@ -406,11 +395,9 @@ final class Game {
         };
     }
 
-    /** Human-readable label for an effect type; empty for plain gear. */
-    private static final String[] EFFECT_LABEL = {
-        "", "Lifesteal", "Crit", "Reach", "Poison", "Knockback", "Thorns", "Dodge",
-        "Heal on kill", "Regen", "Sight", "Gold find", "XP boost", "Speed", "Vault luck",
-    };
+    /** Human-readable label for an effect type (indexed by EFF_*); empty for plain gear. */
+    private static final String[] EFFECT_LABEL = ("|Lifesteal|Crit|Reach|Poison|Knockback|Thorns|Dodge|"
+            + "Heal on kill|Regen|Sight|Gold find|XP boost|Speed|Vault luck").split("\\|", -1);
     static String effectLabel(int effect) { return EFFECT_LABEL[effect]; }
 
     /** Builds the display string for a packed item: base name, scaled stats, scaled effect, and rarity label. */

@@ -108,20 +108,20 @@ Size is measured as the compiled `.class` files under `build/classes/java/main`.
 
 - **Debug info stripped** (`-g:none`): line-number, local-variable, and source-file tables are removed from the bytecode while source remains fully readable.
 - **No asset files:** both graphics and audio are generated at runtime.
-- **Compact data:** enemy stats use small lookup tables, structural tables are computed instead of stored (item slots derive from id), near-duplicate colors are merged, and both the music score and the sound-effect note sequences are packed into printable-char strings instead of array-init bytecode.
+- **Packed data tables:** numeric tables (enemy stats, item base stats/effects/magnitudes) and the music and sound-effect note sequences are stored as printable-char strings — one char per value, biased to stay printable — and expanded at load, rather than the much larger array-initialization bytecode a literal `int[]` would compile to. The item and effect name lists are likewise one delimited string, split once at load.
+- **Computed and merged data:** structural tables are derived instead of stored (an item's slot comes from its id), and near-duplicate colors are collapsed onto shared constants.
 - **No per-frame allocation:** colors and the fog-overlay palette are hoisted into constants and lookup tables, polygon scratch buffers are shared, and entities are reused in fixed arrays, keeping peak memory low.
-- **Root Package:** The classes are dropped down to the root package to save on constant pool reference sizes
-- **ProGuard minify pass:** `build`/`run` finish with a ProGuard step that, in place, shortens member names (class names stay readable), reuses names aggressively, and runs the optimizer (minus only the single-caller inlining pass, which would inline the whole program into the `Main` entry class and balloon it) — reclaiming bytecode the compiler leaves behind.
-- Other minor optimizations explained inline with comments.
+- **Root Package:** the classes are dropped to the root package to save on constant-pool reference sizes.
+- Other minor optimizations are explained inline with comments.
 
 ### Size breakdown
 
-Measured from a build (`./gradlew size`). There are **no runtime asset files** — all graphics and audio are generated procedurally — so the total is purely compiled bytecode, after the ProGuard minify pass.
+Measured from a build (`./gradlew size`).
 
 | File | Size | Share |
 | --- | ---: | ---: |
-| `Game.class` | 23,566 B | 50% |
+| `Game.class` | 23,163 B | 50% |
 | `Renderer.class` | 17,188 B | 37% |
 | `Sound.class` | 3,445 B | 7% |
 | `Main.class` | 2,851 B | 6% |
-| **Total** | **47,050 B (45.95 KB)** | |
+| **Total** | **46,647 B (45.55 KB)** | |
