@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Merge seven near-duplicate colors into shared neutral-named survivors (pit shades, boss/HP/XP bar colors, stat-down indicator, wall edge)&#10;- Replace the six size-specific polygon scratch arrays with a single size-5 POLY_X/POLY_Y pair (fillPolygon only reads the first nPoints)">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Sound.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Sound.java" afterDir="false" />
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Folded more similar/adjacent colors">
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -119,7 +118,7 @@
     "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle"
   }
 }]]></component>
-  <component name="RunManager" selected="Gradle.dukes8bit [size]">
+  <component name="RunManager" selected="Gradle.dukes8bit [run]">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Main" />
       <module name="dukes8bit.main" />
@@ -223,9 +222,9 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Gradle.dukes8bit [run]" />
         <item itemvalue="Gradle.dukes8bit [size]" />
         <item itemvalue="Application.Main" />
-        <item itemvalue="Gradle.dukes8bit [run]" />
         <item itemvalue="Gradle.dukes8bit [build]" />
         <item itemvalue="Gradle.dukes8bit [proguard]" />
       </list>
@@ -520,7 +519,23 @@
       <option name="project" value="LOCAL" />
       <updated>1780740986941</updated>
     </task>
-    <option name="localTasksCounter" value="36" />
+    <task id="LOCAL-00036" summary="Unify audio onto one scheduler, drop the MIDI sequencer (−754 B)&#10;- Music now plays note-by-note through the SFX scheduler via an eighth-note ticker&#10;- Instant mute/music-mute via fire-time checks; bass gets a release gap to avoid self-cancelling repeats">
+      <option name="closed" value="true" />
+      <created>1780744601352</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1780744601352</updated>
+    </task>
+    <task id="LOCAL-00037" summary="- Folded more similar/adjacent colors">
+      <option name="closed" value="true" />
+      <created>1780745643035</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1780745643035</updated>
+    </task>
+    <option name="localTasksCounter" value="38" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -535,8 +550,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Runtime memory optimizations&#10;- Pre-allocate static polygon scratch arrays in Renderer&#10;- Replace AffineTransform save/restore in drawDukeRight with paired inverse transforms&#10;- Swap HashMap&lt;Integer,int[]&gt; floor cache for a direct int[][] array" />
-    <MESSAGE value="- General cleanup" />
     <MESSAGE value="- Reworked items to have more variety and uniqueness via stat rolling and randomized names&#10;- balanced loot drops, rarity chances, and chest spawns a bit better&#10;- Balanced attack speeds and movement speeds of player and npcs&#10;- Standardized controls a bit better&#10;- Added 15% chance for opening chests to spawn a mimic" />
     <MESSAGE value="- Added breakable scenery&#10;- Added pitfalls &#10;- Added hotkey for muting the music track" />
     <MESSAGE value="- Size optimizations via effectOf/magOf helpers replacing the six accessors&#10;- Updated README" />
@@ -560,6 +573,8 @@
     <MESSAGE value="- Compute item slots instead of storing them&#10;- Collapse duplicate colors + reuse minimap palette&#10;- Build optimizations" />
     <MESSAGE value="- Duke outline hoist + redundant setColor removal&#10;- Extract shared drawDukeBase preamble&#10;- effectLabel/bossName switch -&gt; array" />
     <MESSAGE value="- Merge seven near-duplicate colors into shared neutral-named survivors (pit shades, boss/HP/XP bar colors, stat-down indicator, wall edge)&#10;- Replace the six size-specific polygon scratch arrays with a single size-5 POLY_X/POLY_Y pair (fillPolygon only reads the first nPoints)" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Merge seven near-duplicate colors into shared neutral-named survivors (pit shades, boss/HP/XP bar colors, stat-down indicator, wall edge)&#10;- Replace the six size-specific polygon scratch arrays with a single size-5 POLY_X/POLY_Y pair (fillPolygon only reads the first nPoints)" />
+    <MESSAGE value="Unify audio onto one scheduler, drop the MIDI sequencer (−754 B)&#10;- Music now plays note-by-note through the SFX scheduler via an eighth-note ticker&#10;- Instant mute/music-mute via fire-time checks; bass gets a release gap to avoid self-cancelling repeats" />
+    <MESSAGE value="- Folded more similar/adjacent colors" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Folded more similar/adjacent colors" />
   </component>
 </project>
