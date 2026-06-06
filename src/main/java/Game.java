@@ -484,42 +484,43 @@ final class Game {
         // Edge-detect: a press only counts as "fresh" on the up→down transition, never on OS key-repeat.
         boolean fresh = !held[code];
         held[code] = true;
+        // OS key-repeat re-fires keyDown, but the held flag is already recorded for movement, so a
+        // non-fresh press has no one-shot work left. Gating here makes every check below a fresh edge.
+        if (!fresh) {
+            return;
+        }
         if (code == KeyEvent.VK_M) {
-            if (fresh) sound.toggleMute();
+            sound.toggleMute();
             return;
         }
         if (code == KeyEvent.VK_T) {
-            if (fresh) sound.toggleMusicMute();
+            sound.toggleMusicMute();
             return;
         }
-        boolean enterEdge = fresh && code == KeyEvent.VK_ENTER;
-        boolean escEdge = fresh && code == KeyEvent.VK_ESCAPE;
-        boolean inventoryEdge = fresh && code == KeyEvent.VK_I;
-        boolean interactEdge = fresh && code == KeyEvent.VK_E;
         if (state == DEAD) {
-            if (code == KeyEvent.VK_SPACE || enterEdge) {
+            if (code == KeyEvent.VK_SPACE || code == KeyEvent.VK_ENTER) {
                 restartRequested = true;
-            } else if (escEdge) {
+            } else if (code == KeyEvent.VK_ESCAPE) {
                 quitRequested = true;
             }
             return;
         }
         if (state == SHOP) {
-            if (code == KeyEvent.VK_Q || escEdge) {
+            if (code == KeyEvent.VK_Q || code == KeyEvent.VK_ESCAPE) {
                 state = PLAYING;
-            } else if (interactEdge) {
+            } else if (code == KeyEvent.VK_E) {
                 buyRequested = true;
             }
             return;
         }
         if (state == PAUSED) {
-            if (escEdge) {
+            if (code == KeyEvent.VK_ESCAPE) {
                 state = PLAYING;
             } else if (code == KeyEvent.VK_W) {
                 pauseSelection = 0;
             } else if (code == KeyEvent.VK_S) {
                 pauseSelection = 1;
-            } else if (interactEdge) {
+            } else if (code == KeyEvent.VK_E) {
                 if (pauseSelection == 0) {
                     state = PLAYING;
                 } else {
@@ -529,33 +530,33 @@ final class Game {
             return;
         }
         if (state == INVENTORY) {
-            if (code == KeyEvent.VK_Q || escEdge) {
+            if (code == KeyEvent.VK_Q || code == KeyEvent.VK_ESCAPE) {
                 state = PLAYING;
             } else if (code == KeyEvent.VK_W && inventorySelection > 0) {
                 inventorySelection--;
             } else if (code == KeyEvent.VK_S && inventorySelection < inventoryCount - 1) {
                 inventorySelection++;
-            } else if (interactEdge) {
+            } else if (code == KeyEvent.VK_E) {
                 equipRequested = true;
-            } else if (code == KeyEvent.VK_D && fresh) {
+            } else if (code == KeyEvent.VK_D) {
                 dropRequested = true;
             }
             return;
         }
-        if (escEdge) {
+        if (code == KeyEvent.VK_ESCAPE) {
             state = PAUSED;
             pauseSelection = 0;
             return;
         }
-        if (inventoryEdge) {
+        if (code == KeyEvent.VK_I) {
             state = INVENTORY;
             inventorySelection = 0;
             return;
         }
-        if (code == KeyEvent.VK_Q && fresh) {
+        if (code == KeyEvent.VK_Q) {
             quaffRequested = true;
         }
-        if (interactEdge) {
+        if (code == KeyEvent.VK_E) {
             talkRequested = true;
         }
     }

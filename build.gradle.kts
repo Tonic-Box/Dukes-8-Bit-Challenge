@@ -60,7 +60,10 @@ tasks.register<ProGuardTask>("proguard") {
     // Keep all class names readable (Game/Renderer/Sound/Main); members may be shortened. Optimization
     // is skipped because it inlines everything into Main and grows the output for this tiny codebase.
     keepnames("class **")
-    dontoptimize()
+    overloadaggressively()
+    allowaccessmodification()
+    optimizationpasses(3)
+    optimizations("!class/merging/*,!method/inlining/*")
     dontwarn()
     dontnote()
 

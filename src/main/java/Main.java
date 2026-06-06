@@ -37,7 +37,6 @@ public final class Main extends Frame implements KeyEventDispatcher {
         canvas.setPreferredSize(new Dimension(Game.VIEW_WIDTH, Game.VIEW_HEIGHT));
         add(canvas);
         pack();
-        setLocationRelativeTo(null);
         setVisible(true);
         canvas.createBufferStrategy(2);
         strategy = canvas.getBufferStrategy();
