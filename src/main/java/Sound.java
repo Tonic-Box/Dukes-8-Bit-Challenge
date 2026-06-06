@@ -1,23 +1,15 @@
-import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiChannel;
-import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiSystem;
-import javax.sound.midi.Sequence;
-import javax.sound.midi.Sequencer;
-import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Synthesizer;
-import javax.sound.midi.Track;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Procedural MIDI audio for Duke's Descent. Short effect blips are synthesized
- * live through the JDK's software synthesizer and a looping chiptune track is
- * driven by a sequencer routed into the same synthesizer, so no audio assets
- * ship. Effects own channels 0-3 and music owns channels 4-6 so they never
- * collide. If no synthesizer is available every method is a silent no-op and the
- * game runs unaffected.
+ * Procedural MIDI audio for Duke's Descent. Both the short effect blips and the looping chiptune track
+ * are scheduled note-by-note through one ScheduledExecutorService onto the JDK synthesizer's channels,
+ * so no audio assets ship and a single playback path drives everything. Effects own channels 0-3 and
+ * music owns channels 4-6 so they never collide. If no synthesizer is available every method is a no-op.
  */
 final class Sound {
 
@@ -42,8 +34,11 @@ final class Sound {
 
     private static final long FOOTSTEP_THROTTLE_NANOS = 230_000_000L;
 
-    private static final int TICKS_PER_EIGHTH = 2;
-    private static final float MUSIC_TEMPO_BPM = 96f;
+    // One eighth note at ~96 BPM; the music ticker fires once per eighth and note lengths are whole eighths.
+    private static final long EIGHTH_MS = 313;
+    // A short release gap so each music note ends just before the next note on the same voice begins; without
+    // it a repeated key can have its fresh note-on cancelled by the previous note's same-timestamp note-off.
+    private static final long NOTE_GAP_MS = 30;
     private static final int MELODY_VELOCITY = 74;
     private static final int BASS_VELOCITY = 68;
     private static final int ARP_VELOCITY = 44;
@@ -51,12 +46,13 @@ final class Sound {
     /**
      * An 8-bar Am-F-C-G call-and-response loop. Voices are packed as {key, startEighth,
      * lengthEighths} triples, one character per value biased by NOTE_PACK_OFFSET so every byte
-     * stays printable; {@link #addVoice} unpacks them (each char = value + 48). Bass and arp repeat
+     * stays printable; {@link #tickVoice} unpacks them (each char = value + 48). Bass and arp repeat
      * over both phrases, while the melody answers its open "call" ending (two half-notes, D5-B4) with
      * a descending arpeggio cadence (D5-B4-G4-E4) that resolves low and leads back up to the tonic.
      */
     private static final int NOTE_PACK_OFFSET = 48;
     private static final int PHRASE_EIGHTHS = 32;
+    private static final int LOOP_EIGHTHS = PHRASE_EIGHTHS * 2;
     private static final String MELODY = "u04p44x84u<4w@4sD4zH4wL4";
     private static final String MELODY_RESPONSE = "u04p44x84u<4w@4sD4zH2wJ2sL2pN2";
     private static final String BASS = "]04d44Y84`<4`@4[D4[H4bL4";
@@ -64,15 +60,14 @@ final class Sound {
 
     private final MidiChannel[] channels;
     private final ScheduledExecutorService scheduler;
-    private final Sequencer sequencer;
     private boolean muted;
     private boolean musicMuted;
+    private int musicEighth;
     private long lastFootstepNanos;
 
     Sound() {
         MidiChannel[] openChannels;
         ScheduledExecutorService timer;
-        Sequencer music;
         try {
             Synthesizer synthesizer = MidiSystem.getSynthesizer();
             synthesizer.open();
@@ -87,21 +82,15 @@ final class Sound {
             configureMusicChannel(openChannels[BASS_CHANNEL], SYNTH_BASS);
             configureMusicChannel(openChannels[ARP_CHANNEL], SQUARE_LEAD);
             timer = Executors.newSingleThreadScheduledExecutor();
-            music = MidiSystem.getSequencer(false);
-            music.open();
-            music.getTransmitter().setReceiver(synthesizer.getReceiver());
-            music.setSequence(buildMusic());
-            music.setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
-            music.setTempoInBPM(MUSIC_TEMPO_BPM);
-            music.start();
         } catch (Exception unavailable) {
             openChannels = null;
             timer = null;
-            music = null;
         }
         channels = openChannels;
         scheduler = timer;
-        sequencer = music;
+        if (scheduler != null) {
+            scheduler.scheduleAtFixedRate(this::advanceMusic, 0, EIGHTH_MS, TimeUnit.MILLISECONDS);
+        }
     }
 
     /** A fast, bright two-note downward slash for Duke's spin attack. */
@@ -120,7 +109,7 @@ final class Sound {
             return;
         }
         lastFootstepNanos = now;
-        note(FOOTSTEP_CHANNEL, 38, 70, 0, 70);
+        note(FOOTSTEP_CHANNEL, 38, 70, 0, 70, false);
     }
 
     /** A short rising glockenspiel arpeggio when Duke takes the stairs. */
@@ -157,19 +146,16 @@ final class Sound {
         }
         for (int i = 0; i < packed.length(); i += 5) {
             note(packed.charAt(i) - 48, packed.charAt(i + 1) - 24, packed.charAt(i + 2) + 22,
-                    (packed.charAt(i + 3) - 33) * 5, (packed.charAt(i + 4) - 33) * 5);
+                    (packed.charAt(i + 3) - 33) * 5, (packed.charAt(i + 4) - 33) * 5, false);
         }
     }
 
-    /** Toggles all audio: pauses or resumes the music loop and silences any sounding notes. */
+    /** Toggles all audio: the tickers keep running but stay quiet, and any sounding notes are cut off. */
     void toggleMute() {
         if (channels == null) return;
         muted = !muted;
         if (muted) {
-            if (sequencer != null) sequencer.stop();
             for (MidiChannel channel : channels) channel.allSoundOff();
-        } else {
-            if (sequencer != null && !musicMuted) sequencer.start();
         }
     }
 
@@ -177,17 +163,21 @@ final class Sound {
     void toggleMusicMute() {
         if (channels == null) return;
         musicMuted = !musicMuted;
-        if (sequencer == null) return;
-        if (musicMuted) sequencer.stop();
-        else if (!muted) sequencer.start();
+        if (musicMuted) {
+            channels[MELODY_CHANNEL].allSoundOff();
+            channels[BASS_CHANNEL].allSoundOff();
+            channels[ARP_CHANNEL].allSoundOff();
+        }
     }
 
-    /** Schedules one note: key on at {@code startMs}, off {@code durationMs} later. */
-    private void note(int channel, int key, int velocity, long startMs, long durationMs) {
-        if (muted) {
-            return;
-        }
-        scheduler.schedule(() -> channels[channel].noteOn(key, velocity), startMs, TimeUnit.MILLISECONDS);
+    /**
+     * Schedules one note: key on at {@code startMs}, off {@code durationMs} later. The note-on is gated at
+     * fire time by the mute flags ({@code music} notes also honor the music-only mute) so a toggle is instant.
+     */
+    private void note(int channel, int key, int velocity, long startMs, long durationMs, boolean music) {
+        scheduler.schedule(() -> {
+            if (!muted && !(music && musicMuted)) channels[channel].noteOn(key, velocity);
+        }, startMs, TimeUnit.MILLISECONDS);
         scheduler.schedule(() -> channels[channel].noteOff(key), startMs + durationMs, TimeUnit.MILLISECONDS);
     }
 
@@ -197,30 +187,31 @@ final class Sound {
         channel.controlChange(VOLUME, MUSIC_VOLUME);
     }
 
-    /** Builds the 8-bar loop: a "call" phrase followed by a resolving "response" phrase. */
-    private static Sequence buildMusic() throws InvalidMidiDataException {
-        Sequence sequence = new Sequence(Sequence.PPQ, TICKS_PER_EIGHTH * 2);
-        Track track = sequence.createTrack();
-        addPhrase(track, MELODY, 0);
-        addPhrase(track, MELODY_RESPONSE, PHRASE_EIGHTHS);
-        return sequence;
+    /** One eighth-note tick of the looping track: starts the bass, arp, and melody notes that begin here. */
+    private void advanceMusic() {
+        int eighth = musicEighth;
+        musicEighth = (musicEighth + 1) % LOOP_EIGHTHS;
+        if (muted || musicMuted) {
+            return;
+        }
+        int pos = eighth % PHRASE_EIGHTHS;
+        tickVoice(BASS_CHANNEL, BASS, BASS_VELOCITY, pos);
+        tickVoice(ARP_CHANNEL, ARP, ARP_VELOCITY, pos);
+        tickVoice(MELODY_CHANNEL, eighth < PHRASE_EIGHTHS ? MELODY : MELODY_RESPONSE, MELODY_VELOCITY, pos);
     }
 
-    /** Lays the bass, arp, and the given melody for one phrase starting at {@code offsetEighths}. */
-    private static void addPhrase(Track track, String melody, int offsetEighths) throws InvalidMidiDataException {
-        addVoice(track, BASS_CHANNEL, BASS, BASS_VELOCITY, offsetEighths);
-        addVoice(track, MELODY_CHANNEL, melody, MELODY_VELOCITY, offsetEighths);
-        addVoice(track, ARP_CHANNEL, ARP, ARP_VELOCITY, offsetEighths);
-    }
-
-    /** Unpacks one voice's {key, start, length} char-triples and adds its notes at the phrase offset. */
-    private static void addVoice(Track track, int channel, String notes, int velocity, int offsetEighths) throws InvalidMidiDataException {
+    /**
+     * Fires every note in one packed voice whose start eighth equals {@code pos}, for its packed length.
+     * Only the bass repeats a pitch on back-to-back notes, so only it gets the release gap; the melody and
+     * arp ring their full length to keep the sustained, tailed sound of the original sequencer playback.
+     */
+    private void tickVoice(int channel, String notes, int velocity, int pos) {
+        long gap = channel == BASS_CHANNEL ? NOTE_GAP_MS : 0;
         for (int i = 0; i < notes.length(); i += 3) {
-            int key = notes.charAt(i) - NOTE_PACK_OFFSET;
-            long on = (long) (notes.charAt(i + 1) - NOTE_PACK_OFFSET + offsetEighths) * TICKS_PER_EIGHTH;
-            long off = on + (long) (notes.charAt(i + 2) - NOTE_PACK_OFFSET) * TICKS_PER_EIGHTH;
-            track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_ON, channel, key, velocity), on));
-            track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_OFF, channel, key, 0), off));
+            if (notes.charAt(i + 1) - NOTE_PACK_OFFSET == pos) {
+                note(channel, notes.charAt(i) - NOTE_PACK_OFFSET, velocity, 0,
+                        (notes.charAt(i + 2) - NOTE_PACK_OFFSET) * EIGHTH_MS - gap, true);
+            }
         }
     }
 }

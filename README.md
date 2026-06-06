@@ -70,7 +70,7 @@ Key decisions:
 - **Data-oriented state.** The world is flat primitive arrays (`int[] map`, parallel enemy arrays) rather than an object hierarchy, no per-entity classes or allocations.
 - **Real-time over discrete logic.** Player, enemy, and attack actions run on independent millisecond clocks and are interpolated each frame.
 - **Fully procedural content.** Floors use rectangular rooms joined by corridors; visibility uses per-tile ray casting; sprites are composed of primitive shapes.
-- **Procedural audio.** Effects are short synthesized blips; the music is a sequencer loop routed into the same JDK synthesizer on its own channels. Nothing is loaded from disk, so the resources directory stays empty.
+- **Procedural audio.** Effects and music share one playback path: both are scheduled note-by-note through a single executor onto the JDK synthesizer's channels (effects on 0-3, music on 4-6), with the looping track driven by an eighth-note ticker. Nothing is loaded from disk, so the resources directory stays empty.
 - **Seeded then persistent floors.** A floor's first layout, enemies, and merchant are produced from a per-floor seed (`baseSeed + floor`); after that the floor's state is snapshotted and restored on return, so revisiting preserves your changes rather than regenerating.
 
 ## Algorithms & patterns
@@ -120,10 +120,8 @@ Measured from a build (`./gradlew size`). There are **no runtime asset files** â
 
 | File | Size | Share |
 | --- | ---: | ---: |
-| `Game.class` | 23,566 B | 49% |
-| `Renderer.class` | 17,347 B | 36% |
-| `Sound.class` | 4,199 B | 9% |
+| `Game.class` | 23,566 B | 50% |
+| `Renderer.class` | 17,347 B | 37% |
+| `Sound.class` | 3,445 B | 7% |
 | `Main.class` | 2,851 B | 6% |
-| **Total** | **47,963 B (46.84 KB)** | |
-
-(Before the ProGuard pass the same build is ~60 KB; minification reclaims ~11 KB with no source changes.)
+| **Total** | **47,209 B (46.10 KB)** | |
