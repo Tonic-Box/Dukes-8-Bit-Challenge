@@ -17,13 +17,11 @@ final class Renderer {
     private static final Color BACKGROUND = new Color(8, 8, 12);
     private static final Color FLOOR_LIT = new Color(64, 60, 78);
     private static final Color WALL_LIT = new Color(112, 106, 142);
-    private static final Color WALL_EDGE = new Color(150, 144, 184);
     private static final Color STAIRS_LIT = new Color(236, 206, 92);
-    private static final Color UP_STAIRS_LIT = new Color(228, 84, 84);
+    private static final Color RED_SOFT = new Color(228, 84, 84);
     private static final Color HUD_TEXT = Color.WHITE;
-    private static final Color HUD_HINT = new Color(150, 150, 172);
-    private static final Color HP_BACK = new Color(58, 22, 22);
-    private static final Color XP_BACK = new Color(24, 28, 46);
+    private static final Color GRAY_LIGHT = new Color(150, 150, 172);
+    private static final Color BAR_BACK = new Color(58, 22, 22);
     private static final Color XP_FILL = new Color(96, 140, 230);
     private static final Color DUKE_NOSE = new Color(232, 44, 44);
     private static final Color RED_MAIN = new Color(214, 70, 64);
@@ -38,7 +36,7 @@ final class Renderer {
     private static final Color SWORD_TRAIL_2 = new Color(224, 226, 240, 70);
     private static final BasicStroke SWORD_STROKE = new BasicStroke(3f);
     private static final Color FLOOR_LIT_ALT = new Color(56, 52, 70);
-    private static final Color WALL_SHADOW = new Color(30, 28, 40);
+    private static final Color SLATE = new Color(30, 28, 40);
     private static final Color DUKE_OUTLINE = new Color(22, 28, 70);
     private static final Color DUKE_BELLY = new Color(236, 239, 246);
     private static final Color DUKE_FOOT = new Color(242, 170, 44);
@@ -48,8 +46,6 @@ final class Renderer {
     private static final Color MERCHANT_SKIN = new Color(232, 196, 158);
     private static final Color MERCHANT_HAT = new Color(96, 64, 32);
     private static final Color PROMPT = new Color(245, 240, 210);
-    private static final Color PIT_OUTER = new Color(16, 10, 16);
-    private static final Color PIT_INNER = new Color(6, 4, 8);
     private static final Color POT_BODY = new Color(178, 90, 54);
     private static final Color POT_RIM = new Color(210, 130, 80);
     private static final Color BOX_EDGE = new Color(110, 78, 38);
@@ -68,7 +64,6 @@ final class Renderer {
     private static final Color HEAL_FLASH = new Color(110, 240, 130, 130);
     private static final Color DODGE_FLASH = new Color(220, 230, 255, 120);
     private static final Color DELTA_UP = new Color(120, 224, 132);
-    private static final Color DELTA_DOWN = new Color(232, 96, 96);
     private static final Color DOOR_FRAME_LIT = new Color(120, 88, 52);
     private static final Color DOOR_PANEL_LIT = new Color(168, 120, 66);
     private static final Color DOOR_LOCK_LIT = new Color(232, 200, 110);
@@ -100,8 +95,6 @@ final class Renderer {
     private static final Color MINIMAP_BORDER = new Color(84, 80, 110);
     private static final Color MINIMAP_DOOR = new Color(200, 150, 70);
     private static final Color MINIMAP_PLAYER = new Color(96, 224, 236);
-    private static final Color BOSS_BAR_BACK = new Color(40, 16, 20);
-    private static final Color BOSS_BAR_FILL = new Color(206, 60, 72);
     private static final Color BOSS_BAR_FILL_ENRAGED = new Color(240, 120, 60);
 
     // Fog-of-war is drawn by laying every tile in its lit form, then overlaying one of these
@@ -117,12 +110,8 @@ final class Renderer {
     }
 
     // Reusable polygon scratch arrays — render loop is single-threaded so sharing is safe.
-    private static final int[] POLY_X3 = new int[3];
-    private static final int[] POLY_Y3 = new int[3];
-    private static final int[] POLY_X4 = new int[4];
-    private static final int[] POLY_Y4 = new int[4];
-    private static final int[] POLY_X5 = new int[5];
-    private static final int[] POLY_Y5 = new int[5];
+    private static final int[] POLY_X = new int[5];
+    private static final int[] POLY_Y = new int[5];
 
     /**
      * Draws one frame: the camera-relative, fog-aware dungeon, then loot, entities,
@@ -152,15 +141,15 @@ final class Renderer {
             int runWidth = 0;
             for (int x = firstX; x <= lastX; x++) {
                 int idx = Game.index(x, y);
-                int sx = x * Game.TILE;
+                int screenX = x * Game.TILE;
                 int step;
                 if (!game.explored[idx]) {
                     step = 0;
                 } else {
                     int tile = game.map[idx];
-                    drawTile(graphics, sx, rowSy, tile, ((x + y) & 1) == 1, x, y);
+                    drawTile(graphics, screenX, rowSy, tile, ((x + y) & 1) == 1, x, y);
                     if (tile == Game.TRAP && game.visible[idx] && Math.abs(x - game.playerX) + Math.abs(y - game.playerY) <= 2) {
-                        drawTrap(graphics, sx, rowSy);
+                        drawTrap(graphics, screenX, rowSy);
                     }
                     float light = game.lightLevel[idx];
                     step = light < 0.997f ? Math.round((1f - light) * (FOG_STEPS - 1)) : 0;
@@ -170,7 +159,7 @@ final class Renderer {
                 } else {
                     fillFog(graphics, runStep, runStartSx, rowSy, runWidth);
                     runStep = step;
-                    runStartSx = sx;
+                    runStartSx = screenX;
                     runWidth = Game.TILE;
                 }
             }
@@ -179,29 +168,29 @@ final class Renderer {
 
         for (int i = 0; i < game.breakCount; i++) {
             float life = game.breakTimer[i];
-            int bx = game.breakX[i], by = game.breakY[i];
-            int cx = bx * Game.TILE + Game.TILE / 2;
-            int cy = by * Game.TILE + Game.TILE / 2;
+            int breakTileX = game.breakX[i], breakTileY = game.breakY[i];
+            int cx = breakTileX * Game.TILE + Game.TILE / 2;
+            int cy = breakTileY * Game.TILE + Game.TILE / 2;
             int spread = (int) ((1f - life) * 14) + 1;
             int size = Math.max(1, (int) (life * 4));
-            graphics.setColor(SCENERY_DEBRIS[(bx * 7 + by * 3) % 3]);
+            graphics.setColor(SCENERY_DEBRIS[(breakTileX * 7 + breakTileY * 3) % 3]);
             for (int shard = 0; shard < 6; shard++) {
                 double angle = shard * Math.PI / 3;
-                int fx = cx + (int) (Math.cos(angle) * spread);
-                int fy = cy + (int) (Math.sin(angle) * spread);
-                graphics.fillRect(fx - size / 2, fy - size / 2, size, size);
+                int fragmentX = cx + (int) (Math.cos(angle) * spread);
+                int fragmentY = cy + (int) (Math.sin(angle) * spread);
+                graphics.fillRect(fragmentX - size / 2, fragmentY - size / 2, size, size);
             }
         }
         for (int i = 0; i < game.lootCount; i++) {
             if (game.visible[Game.index(game.lootX[i], game.lootY[i])]) {
-                int sx = game.lootX[i] * Game.TILE;
-                int sy = game.lootY[i] * Game.TILE;
+                int screenX = game.lootX[i] * Game.TILE;
+                int screenY = game.lootY[i] * Game.TILE;
                 if (game.lootKey[i]) {
-                    drawKey(graphics, sx, sy);
+                    drawKey(graphics, screenX, screenY);
                 } else if (game.lootChest[i]) {
-                    drawChest(graphics, sx, sy);
+                    drawChest(graphics, screenX, screenY);
                 } else {
-                    drawGem(graphics, sx, sy);
+                    drawGem(graphics, screenX, screenY);
                 }
             }
         }
@@ -216,26 +205,26 @@ final class Renderer {
 
         boolean bossShown = game.bossActive && bossVisible(game);
         if (bossShown) {
-            int bx = Math.round(game.bossRenderPixelX());
-            int by = Math.round(game.bossRenderPixelY());
+            int bossPixelX = Math.round(game.bossRenderPixelX());
+            int bossPixelY = Math.round(game.bossRenderPixelY());
             float telegraph = game.bossTelegraph();
             if (telegraph > 0f) {
                 drawSlamDanger(graphics, game, telegraph);
             }
-            drawBoss(graphics, bx, by, game.bossType, game.bossHit, telegraph, game.bossAnimTime, game.bossEnraged);
+            drawBoss(graphics, bossPixelX, bossPixelY, game.bossType, game.bossHit, telegraph, game.bossAnimTime, game.bossEnraged);
             if (game.bossShockwave > 0f) {
                 int half = Game.BOSS_SIZE * Game.TILE / 2;
-                drawShockwave(graphics, bx + half, by + half, game.bossShockwave);
+                drawShockwave(graphics, bossPixelX + half, bossPixelY + half, game.bossShockwave);
             }
         }
 
         if (game.merchantX >= 0 && game.visible[Game.index(game.merchantX, game.merchantY)]) {
-            int mx = game.merchantX * Game.TILE;
-            int my = game.merchantY * Game.TILE;
-            drawMerchant(graphics, mx, my);
+            int merchantPixelX = game.merchantX * Game.TILE;
+            int merchantPixelY = game.merchantY * Game.TILE;
+            drawMerchant(graphics, merchantPixelX, merchantPixelY);
             if (game.adjacentToMerchant()) {
                 graphics.setColor(PROMPT);
-                drawCenteredAt(graphics, "E", mx + Game.TILE / 2, my - 4);
+                drawCenteredAt(graphics, "E", merchantPixelX + Game.TILE / 2, merchantPixelY - 4);
             }
         }
         for (int i = 0; i < game.lootCount; i++) {
@@ -253,16 +242,16 @@ final class Renderer {
         if (game.falling && game.fallProgress > 0f) {
             float scale = 1f - game.fallProgress;
             if (scale > 0.02f) {
-                Graphics2D g2 = (Graphics2D) graphics;
+                Graphics2D graphics2d = (Graphics2D) graphics;
                 int cx = dukeX + Game.TILE / 2;
                 int cy = dukeY + Game.TILE / 2;
-                g2.translate(cx, cy);
-                g2.scale(scale, scale);
-                g2.translate(-cx, -cy);
+                graphics2d.translate(cx, cy);
+                graphics2d.scale(scale, scale);
+                graphics2d.translate(-cx, -cy);
                 drawDuke(graphics, dukeX, dukeY, game.facing, 0f, 0f);
-                g2.translate(cx, cy);
-                g2.scale(1.0 / scale, 1.0 / scale);
-                g2.translate(-cx, -cy);
+                graphics2d.translate(cx, cy);
+                graphics2d.scale(1.0 / scale, 1.0 / scale);
+                graphics2d.translate(-cx, -cy);
             }
         } else {
             drawDuke(graphics, dukeX, dukeY, game.facing, game.playerHeal, game.playerDodge);
@@ -317,8 +306,8 @@ final class Renderer {
     private void drawTile(Graphics graphics, int px, int py, int tile, boolean alt, int tx, int ty) {
         if (tile == Game.WALL) {
             rect(graphics, WALL_LIT, px, py, Game.TILE, Game.TILE);
-            rect(graphics, WALL_EDGE, px, py, Game.TILE, 3);
-            rect(graphics, WALL_SHADOW, px, py + Game.TILE - 3, Game.TILE, 3);
+            rect(graphics, GRAY_LIGHT, px, py, Game.TILE, 3);
+            rect(graphics, SLATE, px, py + Game.TILE - 3, Game.TILE, 3);
             return;
         }
         if (tile == Game.LOCKED_DOOR) {
@@ -331,8 +320,8 @@ final class Renderer {
             return;
         }
         if (tile == Game.PIT) {
-            rect(graphics, PIT_OUTER, px, py, Game.TILE, Game.TILE);
-            oval(graphics, PIT_INNER, px + 3, py + 3, Game.TILE - 6, Game.TILE - 6);
+            rect(graphics, DARK, px, py, Game.TILE, Game.TILE);
+            oval(graphics, BACKGROUND, px + 3, py + 3, Game.TILE - 6, Game.TILE - 6);
             oval(graphics, Color.BLACK, px + 7, py + 7, Game.TILE - 14, Game.TILE - 14);
             return;
         }
@@ -340,7 +329,7 @@ final class Renderer {
         if (tile == Game.DOWN_STAIRS) {
             drawStairs(graphics, px, py, STAIRS_LIT);
         } else if (tile == Game.UP_STAIRS) {
-            drawStairs(graphics, px, py, UP_STAIRS_LIT);
+            drawStairs(graphics, px, py, RED_SOFT);
         }
     }
 
@@ -355,11 +344,11 @@ final class Renderer {
 
     private void drawTrap(Graphics graphics, int px, int py) {
         graphics.setColor(RED_MAIN);
-        POLY_Y3[0] = py + Game.TILE - 5; POLY_Y3[1] = py + 8; POLY_Y3[2] = py + Game.TILE - 5;
+        POLY_Y[0] = py + Game.TILE - 5; POLY_Y[1] = py + 8; POLY_Y[2] = py + Game.TILE - 5;
         for (int i = 0; i < 3; i++) {
-            int sx = px + 5 + i * 7;
-            POLY_X3[0] = sx; POLY_X3[1] = sx + 3; POLY_X3[2] = sx + 6;
-            graphics.fillPolygon(POLY_X3, POLY_Y3, 3);
+            int spikeX = px + 5 + i * 7;
+            POLY_X[0] = spikeX; POLY_X[1] = spikeX + 3; POLY_X[2] = spikeX + 6;
+            graphics.fillPolygon(POLY_X, POLY_Y, 3);
         }
     }
 
@@ -416,9 +405,9 @@ final class Renderer {
         graphics.setColor(LOOT_GEM);
         int cx = px + Game.TILE / 2;
         int cy = py + Game.TILE / 2;
-        POLY_X4[0] = cx; POLY_X4[1] = cx + 5; POLY_X4[2] = cx; POLY_X4[3] = cx - 5;
-        POLY_Y4[0] = cy - 6; POLY_Y4[1] = cy; POLY_Y4[2] = cy + 6; POLY_Y4[3] = cy;
-        graphics.fillPolygon(POLY_X4, POLY_Y4, 4);
+        POLY_X[0] = cx; POLY_X[1] = cx + 5; POLY_X[2] = cx; POLY_X[3] = cx - 5;
+        POLY_Y[0] = cy - 6; POLY_Y[1] = cy; POLY_Y[2] = cy + 6; POLY_Y[3] = cy;
+        graphics.fillPolygon(POLY_X, POLY_Y, 4);
     }
 
     /** Draws Duke facing his current travel direction; right reuses the left sprite mirrored. */
@@ -457,9 +446,9 @@ final class Renderer {
         oval(graphics, Color.BLACK, px + 9, py + 7, 2, 2);
         graphics.fillOval(px + 14, py + 7, 2, 2);
         graphics.setColor(DUKE_NOSE);
-        POLY_X3[0] = px + 10; POLY_X3[1] = px + 14; POLY_X3[2] = px + 12;
-        POLY_Y3[0] = py + 12; POLY_Y3[1] = py + 12; POLY_Y3[2] = py + 15;
-        graphics.fillPolygon(POLY_X3, POLY_Y3, 3);
+        POLY_X[0] = px + 10; POLY_X[1] = px + 14; POLY_X[2] = px + 12;
+        POLY_Y[0] = py + 12; POLY_Y[1] = py + 12; POLY_Y[2] = py + 15;
+        graphics.fillPolygon(POLY_X, POLY_Y, 3);
     }
 
     /** Back view used while walking away: body and flippers with a nape patch, no face. */
@@ -478,62 +467,62 @@ final class Renderer {
         oval(graphics, Color.WHITE, px + 7, py + 6, 5, 5);
         oval(graphics, Color.BLACK, px + 8, py + 8, 2, 2);
         graphics.setColor(DUKE_NOSE);
-        POLY_X3[0] = px + 4; POLY_X3[1] = px + 9; POLY_X3[2] = px + 9;
-        POLY_Y3[0] = py + 11; POLY_Y3[1] = py + 9; POLY_Y3[2] = py + 13;
-        graphics.fillPolygon(POLY_X3, POLY_Y3, 3);
+        POLY_X[0] = px + 4; POLY_X[1] = px + 9; POLY_X[2] = px + 9;
+        POLY_Y[0] = py + 11; POLY_Y[1] = py + 9; POLY_Y[2] = py + 13;
+        graphics.fillPolygon(POLY_X, POLY_Y, 3);
         graphics.setColor(DARK);
         graphics.fillRoundRect(px + 7, py + 13, 4, 7, 4, 4);
     }
 
     /** Right-facing profile: the left sprite mirrored about the tile's vertical center. */
     private void drawDukeRight(Graphics graphics, int px, int py) {
-        Graphics2D g2 = (Graphics2D) graphics;
-        g2.translate(2 * px + Game.TILE, 0);
-        g2.scale(-1, 1);
-        drawDukeLeft(g2, px, py);
-        g2.scale(-1, 1);
-        g2.translate(-(2 * px + Game.TILE), 0);
+        Graphics2D graphics2d = (Graphics2D) graphics;
+        graphics2d.translate(2 * px + Game.TILE, 0);
+        graphics2d.scale(-1, 1);
+        drawDukeLeft(graphics2d, px, py);
+        graphics2d.scale(-1, 1);
+        graphics2d.translate(-(2 * px + Game.TILE), 0);
     }
 
     private void drawSword(Graphics graphics, int centerX, int centerY, float progress) {
-        Graphics2D g2 = (Graphics2D) graphics;
-        Stroke previousStroke = g2.getStroke();
-        g2.setStroke(SWORD_STROKE);
+        Graphics2D graphics2d = (Graphics2D) graphics;
+        Stroke previousStroke = graphics2d.getStroke();
+        graphics2d.setStroke(SWORD_STROKE);
         double angle = progress * Math.PI * 2;
-        drawBlade(g2, centerX, centerY, angle - 0.7, SWORD_TRAIL_2);
-        drawBlade(g2, centerX, centerY, angle - 0.35, SWORD_TRAIL_1);
-        drawBlade(g2, centerX, centerY, angle, SWORD_COLOR);
-        g2.setStroke(previousStroke);
+        drawBlade(graphics2d, centerX, centerY, angle - 0.7, SWORD_TRAIL_2);
+        drawBlade(graphics2d, centerX, centerY, angle - 0.35, SWORD_TRAIL_1);
+        drawBlade(graphics2d, centerX, centerY, angle, SWORD_COLOR);
+        graphics2d.setStroke(previousStroke);
     }
 
-    private void drawBlade(Graphics2D g2, int centerX, int centerY, double angle, Color color) {
+    private void drawBlade(Graphics2D graphics2d, int centerX, int centerY, double angle, Color color) {
         int hiltX = centerX + (int) (Math.cos(angle) * ((double) Game.TILE / 3));
         int hiltY = centerY + (int) (Math.sin(angle) * ((double) Game.TILE / 3));
         int tipX = centerX + (int) (Math.cos(angle) * Game.TILE);
         int tipY = centerY + (int) (Math.sin(angle) * Game.TILE);
-        g2.setColor(color);
-        g2.drawLine(hiltX, hiltY, tipX, tipY);
+        graphics2d.setColor(color);
+        graphics2d.drawLine(hiltX, hiltY, tipX, tipY);
     }
 
     private void drawEnemy(Graphics graphics, int px, int py, int type, float crit, boolean poisoned, float attack) {
-        Graphics2D g2 = null;
+        Graphics2D graphics2d = null;
         float scale = 1f;
-        int cx = 0, cy = 0;
+        int centerX = 0, centerY = 0;
         if (attack > 0f) {
             scale = 1f + attack * 0.25f;
-            cx = px + Game.TILE / 2;
-            cy = py + Game.TILE / 2;
-            g2 = (Graphics2D) graphics;
-            g2.translate(cx, cy);
-            g2.scale(scale, scale);
-            g2.translate(-cx, -cy);
+            centerX = px + Game.TILE / 2;
+            centerY = py + Game.TILE / 2;
+            graphics2d = (Graphics2D) graphics;
+            graphics2d.translate(centerX, centerY);
+            graphics2d.scale(scale, scale);
+            graphics2d.translate(-centerX, -centerY);
         }
         switch (type) {
             case Game.NULLPTR -> {
                 graphics.setColor(NULL_COLOR);
-                POLY_X4[0] = px + 12; POLY_X4[1] = px + 20; POLY_X4[2] = px + 12; POLY_X4[3] = px + 4;
-                POLY_Y4[0] = py + 3; POLY_Y4[1] = py + 12; POLY_Y4[2] = py + 21; POLY_Y4[3] = py + 12;
-                graphics.fillPolygon(POLY_X4, POLY_Y4, 4);
+                POLY_X[0] = px + 12; POLY_X[1] = px + 20; POLY_X[2] = px + 12; POLY_X[3] = px + 4;
+                POLY_Y[0] = py + 3; POLY_Y[1] = py + 12; POLY_Y[2] = py + 21; POLY_Y[3] = py + 12;
+                graphics.fillPolygon(POLY_X, POLY_Y, 4);
             }
             case Game.LEAK -> {
                 graphics.setColor(LEAK_COLOR);
@@ -549,9 +538,9 @@ final class Renderer {
                 rect(graphics, BUG_LEG, px + 3, py + 14, Game.TILE - 6, 9);
                 rect(graphics, MIMIC_LID, px + 3, py + 4, Game.TILE - 6, 8);
                 graphics.setColor(Color.WHITE);
-                for (int t = 0; t < 4; t++) {
-                    graphics.fillRect(px + 5 + t * 4, py + 11, 2, 3);
-                    graphics.fillRect(px + 6 + t * 4, py + 14, 2, 3);
+                for (int tooth = 0; tooth < 4; tooth++) {
+                    graphics.fillRect(px + 5 + tooth * 4, py + 11, 2, 3);
+                    graphics.fillRect(px + 6 + tooth * 4, py + 14, 2, 3);
                 }
                 oval(graphics, MIMIC_EYE, px + 6, py + 5, 4, 4);
                 graphics.fillOval(px + 14, py + 5, 4, 4);
@@ -575,18 +564,18 @@ final class Renderer {
         if (crit > 0f) {
             rect(graphics, CRIT_FLASH, px + 1, py + 1, Game.TILE - 2, Game.TILE - 2);
         }
-        if (g2 != null) {
-            g2.translate(cx, cy);
-            g2.scale(1.0 / scale, 1.0 / scale);
-            g2.translate(-cx, -cy);
+        if (graphics2d != null) {
+            graphics2d.translate(centerX, centerY);
+            graphics2d.scale(1.0 / scale, 1.0 / scale);
+            graphics2d.translate(-centerX, -centerY);
         }
     }
 
     private boolean bossVisible(Game game) {
-        for (int oy = 0; oy < Game.BOSS_SIZE; oy++) {
-            for (int ox = 0; ox < Game.BOSS_SIZE; ox++) {
-                int x = game.bossX + ox;
-                int y = game.bossY + oy;
+        for (int offsetY = 0; offsetY < Game.BOSS_SIZE; offsetY++) {
+            for (int offsetX = 0; offsetX < Game.BOSS_SIZE; offsetX++) {
+                int x = game.bossX + offsetX;
+                int y = game.bossY + offsetY;
                 if (x >= 0 && y >= 0 && x < Game.MAP_WIDTH && y < Game.MAP_HEIGHT
                         && game.visible[Game.index(x, y)]) {
                     return true;
@@ -607,11 +596,11 @@ final class Renderer {
         oval(graphics, BOSS_SHADOW, px + 8, py + size - 16, size - 16, 14);
 
         graphics.setColor(enraged ? BOSS_BODY_ENRAGED : BOSS_BODIES[type & 3]);
-        POLY_Y3[0] = py + 16; POLY_Y3[1] = py - 1; POLY_Y3[2] = py + 16;
+        POLY_Y[0] = py + 16; POLY_Y[1] = py - 1; POLY_Y[2] = py + 16;
         for (int i = 0; i < 5; i++) {
             int sx = px + 12 + i * ((size - 24) / 4);
-            POLY_X3[0] = sx; POLY_X3[1] = sx + 7; POLY_X3[2] = sx + 14;
-            graphics.fillPolygon(POLY_X3, POLY_Y3, 3);
+            POLY_X[0] = sx; POLY_X[1] = sx + 7; POLY_X[2] = sx + 14;
+            graphics.fillPolygon(POLY_X, POLY_Y, 3);
         }
         graphics.fillRoundRect(px + 6, py + 10, size - 12, size - 20, 30, 30);
         graphics.setColor(BOSS_EDGE);
@@ -632,9 +621,9 @@ final class Renderer {
 
         graphics.setColor(DARK);
         int mawY = py + size - 28;
-        POLY_X5[0] = px + 22; POLY_X5[1] = px + 30; POLY_X5[2] = px + 38; POLY_X5[3] = px + 46; POLY_X5[4] = px + 54;
-        POLY_Y5[0] = mawY; POLY_Y5[1] = mawY + 9; POLY_Y5[2] = mawY; POLY_Y5[3] = mawY + 9; POLY_Y5[4] = mawY;
-        graphics.fillPolygon(POLY_X5, POLY_Y5, 5);
+        POLY_X[0] = px + 22; POLY_X[1] = px + 30; POLY_X[2] = px + 38; POLY_X[3] = px + 46; POLY_X[4] = px + 54;
+        POLY_Y[0] = mawY; POLY_Y[1] = mawY + 9; POLY_Y[2] = mawY; POLY_Y[3] = mawY + 9; POLY_Y[4] = mawY;
+        graphics.fillPolygon(POLY_X, POLY_Y, 5);
 
         if (telegraph > 0f) {
             graphics.setColor(BOSS_TELEGRAPH);
@@ -669,26 +658,26 @@ final class Renderer {
     }
 
     /** An expanding ring marking the boss slam's reach, brightest at the moment of impact. */
-    private void drawShockwave(Graphics graphics, int centerX, int centerY, float t) {
-        Graphics2D g2 = (Graphics2D) graphics;
-        Stroke previous = g2.getStroke();
-        g2.setStroke(SWORD_STROKE);
-        int radius = (int) ((1f - t) * (Game.BOSS_SIZE / 2f + Game.BOSS_SLAM_RADIUS) * Game.TILE);
-        g2.setColor(t > 0.5f ? SHOCKWAVE_BRIGHT : SHOCKWAVE_FAINT);
-        g2.drawOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
-        g2.setStroke(previous);
+    private void drawShockwave(Graphics graphics, int centerX, int centerY, float progress) {
+        Graphics2D graphics2d = (Graphics2D) graphics;
+        Stroke previous = graphics2d.getStroke();
+        graphics2d.setStroke(SWORD_STROKE);
+        int radius = (int) ((1f - progress) * (Game.BOSS_SIZE / 2f + Game.BOSS_SLAM_RADIUS) * Game.TILE);
+        graphics2d.setColor(progress > 0.5f ? SHOCKWAVE_BRIGHT : SHOCKWAVE_FAINT);
+        graphics2d.drawOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
+        graphics2d.setStroke(previous);
     }
 
     private void drawBossBar(Graphics graphics, Game game) {
         int barWidth = 360;
         int barX = (Game.PLAY_WIDTH - barWidth) / 2;
         int barY = 16;
-        rect(graphics, BOSS_BAR_BACK, barX, barY, barWidth, 16);
-        rect(graphics, game.bossEnraged ? BOSS_BAR_FILL_ENRAGED : BOSS_BAR_FILL, barX, barY, barWidth * Math.max(0, game.bossHp) / game.bossMaxHp, 16);
+        rect(graphics, BAR_BACK, barX, barY, barWidth, 16);
+        rect(graphics, game.bossEnraged ? BOSS_BAR_FILL_ENRAGED : RED_MAIN, barX, barY, barWidth * Math.max(0, game.bossHp) / game.bossMaxHp, 16);
         graphics.setColor(HUD_TEXT);
         drawCenteredAt(graphics, bossName(game.bossType) + (game.bossEnraged ? "   — ENRAGED" : ""),
                 Game.PLAY_WIDTH / 2, barY - 4);
-        graphics.setColor(HUD_HINT);
+        graphics.setColor(GRAY_LIGHT);
         drawCenteredAt(graphics, "The stairs below stay sealed until it falls", Game.PLAY_WIDTH / 2, barY + 30);
     }
 
@@ -712,9 +701,9 @@ final class Renderer {
         graphics.setColor(MINIMAP_BORDER);
         graphics.drawRect(originX - 3, originY - 3, panelWidth + 5, height + 5);
 
-        for (int ty = 0; ty < Game.MAP_HEIGHT; ty++) {
-            for (int tx = 0; tx < Game.MAP_WIDTH; tx++) {
-                int idx = Game.index(tx, ty);
+        for (int tileY = 0; tileY < Game.MAP_HEIGHT; tileY++) {
+            for (int tileX = 0; tileX < Game.MAP_WIDTH; tileX++) {
+                int idx = Game.index(tileX, tileY);
                 if (!game.explored[idx]) {
                     continue;
                 }
@@ -723,7 +712,7 @@ final class Renderer {
                     continue;
                 }
                 graphics.setColor(color);
-                graphics.fillRect(gridX + tx * cellW, originY + ty * cellH, cellW, cellH);
+                graphics.fillRect(gridX + tileX * cellW, originY + tileY * cellH, cellW, cellH);
             }
         }
 
@@ -748,7 +737,7 @@ final class Renderer {
         return switch (tile) {
             case Game.WALL -> null;
             case Game.DOWN_STAIRS -> STAIRS_LIT;
-            case Game.UP_STAIRS -> UP_STAIRS_LIT;
+            case Game.UP_STAIRS -> RED_SOFT;
             case Game.LOCKED_DOOR -> MINIMAP_DOOR;
             case Game.PIT -> DARK;
             case Game.SCENERY -> MINIMAP_BORDER;
@@ -770,16 +759,16 @@ final class Renderer {
         int barX = 430;
         int barWidth = 200;
         int hpY = top + 10;
-        rect(graphics, HP_BACK, barX, hpY, barWidth, 15);
+        rect(graphics, BAR_BACK, barX, hpY, barWidth, 15);
         rect(graphics, RED_MAIN, barX, hpY, barWidth * Math.max(0, game.playerHp) / game.playerMaxHp, 15);
         graphics.setColor(HUD_TEXT);
         graphics.drawString("HP " + game.playerHp + "/" + game.playerMaxHp, barX + 64, hpY + 12);
 
         int xpY = top + 34;
-        rect(graphics, XP_BACK, barX, xpY, barWidth, 7);
+        rect(graphics, SLATE, barX, xpY, barWidth, 7);
         rect(graphics, XP_FILL, barX, xpY, barWidth * Math.min(game.playerXp, game.xpForNext()) / game.xpForNext(), 7);
 
-        graphics.setColor(HUD_HINT);
+        graphics.setColor(GRAY_LIGHT);
         graphics.drawString("WASD move   Space attack   Q potion   I inventory   E interact   M mute all   T mute music   Stairs descend",
                 12, top + 58);
     }
@@ -805,11 +794,11 @@ final class Renderer {
         rect(graphics, OVERLAY, 0, 0, Game.VIEW_WIDTH, Game.VIEW_HEIGHT);
         graphics.setColor(HUD_TEXT);
         drawCentered(graphics, "PAUSED", Game.PLAY_HEIGHT / 2 - 40);
-        graphics.setColor(game.pauseSelection == 0 ? PROMPT : HUD_HINT);
+        graphics.setColor(game.pauseSelection == 0 ? PROMPT : GRAY_LIGHT);
         drawCentered(graphics, (game.pauseSelection == 0 ? "> " : "  ") + "Resume", Game.PLAY_HEIGHT / 2);
-        graphics.setColor(game.pauseSelection == 1 ? PROMPT : HUD_HINT);
+        graphics.setColor(game.pauseSelection == 1 ? PROMPT : GRAY_LIGHT);
         drawCentered(graphics, (game.pauseSelection == 1 ? "> " : "  ") + "Quit", Game.PLAY_HEIGHT / 2 + 30);
-        graphics.setColor(HUD_HINT);
+        graphics.setColor(GRAY_LIGHT);
         drawCentered(graphics, "W / S to choose      E to confirm      Esc to resume", Game.PLAY_HEIGHT / 2 + 64);
     }
 
@@ -821,7 +810,7 @@ final class Renderer {
         int leftX = 60;
         int rightX = 356;
 
-        graphics.setColor(HUD_HINT);
+        graphics.setColor(GRAY_LIGHT);
         graphics.drawString("CHARACTER", leftX, 84);
         graphics.setColor(HUD_TEXT);
         graphics.drawString("HP         " + game.playerHp + " / " + game.playerMaxHp, leftX, 108);
@@ -831,14 +820,14 @@ final class Renderer {
         graphics.drawString("Lifesteal  " + game.lifestealPercent() + "%", leftX, 188);
         graphics.drawString("Dodge      " + game.dodgeChance() + "%", leftX, 208);
 
-        graphics.setColor(HUD_HINT);
+        graphics.setColor(GRAY_LIGHT);
         graphics.drawString("EQUIPPED", rightX, 84);
         graphics.setColor(HUD_TEXT);
         graphics.drawString("Weapon   " + slotName(game, game.equippedWeapon), rightX, 108);
         graphics.drawString("Armor    " + slotName(game, game.equippedArmor), rightX, 128);
         graphics.drawString("Trinket  " + slotName(game, game.equippedTrinket), rightX, 148);
 
-        graphics.setColor(HUD_HINT);
+        graphics.setColor(GRAY_LIGHT);
         graphics.drawString("CARRIED", leftX, 252);
         if (game.inventoryCount == 0) {
             graphics.setColor(HUD_TEXT);
@@ -852,7 +841,7 @@ final class Renderer {
             drawEquipDelta(graphics, game, rightX);
         }
 
-        graphics.setColor(HUD_HINT);
+        graphics.setColor(GRAY_LIGHT);
         drawCentered(graphics, "[Up/Down] select    [E] equip    [D] drop    [Q/Esc] close",
                 Game.VIEW_HEIGHT - 22);
     }
@@ -866,7 +855,7 @@ final class Renderer {
         int slot = game.itemSlot(carried);
         int current = game.equippedCounterpart(carried);
 
-        graphics.setColor(HUD_HINT);
+        graphics.setColor(GRAY_LIGHT);
         graphics.drawString("IF EQUIPPED", x, 252);
 
         int lineY = 252 + 24;
@@ -884,7 +873,7 @@ final class Renderer {
                 newTotal = game.itemValue(carried);
             }
             int diff = newTotal - oldTotal;
-            graphics.setColor(diff > 0 ? DELTA_UP : diff < 0 ? DELTA_DOWN : HUD_TEXT);
+            graphics.setColor(diff > 0 ? DELTA_UP : diff < 0 ? RED_SOFT : HUD_TEXT);
             String sign = diff >= 0 ? "+" : "";
             graphics.drawString(stat + "  " + oldTotal + " -> " + newTotal + "   (" + sign + diff + ")", x, lineY);
             lineY += 24;
@@ -898,11 +887,11 @@ final class Renderer {
             lineY += 20;
         }
         if (oldEffect != Game.EFF_NONE && oldEffect != newEffect) {
-            graphics.setColor(DELTA_DOWN);
+            graphics.setColor(RED_SOFT);
             graphics.drawString("lose " + Game.effectLabel(oldEffect), x, lineY);
             lineY += 20;
         }
-        graphics.setColor(HUD_HINT);
+        graphics.setColor(GRAY_LIGHT);
         graphics.drawString(current >= 0 ? "replaces " + game.itemName(current) : "fills an empty slot", x, lineY);
     }
 
@@ -913,9 +902,9 @@ final class Renderer {
     private void drawMerchant(Graphics graphics, int px, int py) {
         int cx = px + Game.TILE / 2;
         graphics.setColor(MERCHANT_ROBE);
-        POLY_X4[0] = px + 8; POLY_X4[1] = px + Game.TILE - 8; POLY_X4[2] = px + Game.TILE - 4; POLY_X4[3] = px + 4;
-        POLY_Y4[0] = py + 13; POLY_Y4[1] = py + 13; POLY_Y4[2] = py + Game.TILE - 1; POLY_Y4[3] = py + Game.TILE - 1;
-        graphics.fillPolygon(POLY_X4, POLY_Y4, 4);
+        POLY_X[0] = px + 8; POLY_X[1] = px + Game.TILE - 8; POLY_X[2] = px + Game.TILE - 4; POLY_X[3] = px + 4;
+        POLY_Y[0] = py + 13; POLY_Y[1] = py + 13; POLY_Y[2] = py + Game.TILE - 1; POLY_Y[3] = py + Game.TILE - 1;
+        graphics.fillPolygon(POLY_X, POLY_Y, 4);
         rect(graphics, DOOR_LOCK_LIT, cx - 4, py + 13, 8, 2);
         graphics.fillRect(cx - 1, py + 15, 2, Game.TILE - 17);
         oval(graphics, MERCHANT_SKIN, cx - 5, py + 4, 10, 9);

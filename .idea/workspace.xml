@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="-Fixed inconsistencies in gradle tasks&#10;- pushed the camera into the Graphics transform&#10;- removed redundant returns from Game::keyDown&#10;- Hoist trinket lookup&#10;- Indexed request flags">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Duke outline hoist + redundant setColor removal&#10;- Extract shared drawDukeBase preamble&#10;- effectLabel/bossName switch -&gt; array">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Game.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Renderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Renderer.java" afterDir="false" />
     </list>
@@ -228,8 +227,8 @@
       <list>
         <item itemvalue="Application.Main" />
         <item itemvalue="Gradle.dukes8bit [size]" />
-        <item itemvalue="Gradle.dukes8bit [build]" />
         <item itemvalue="Gradle.dukes8bit [run]" />
+        <item itemvalue="Gradle.dukes8bit [build]" />
         <item itemvalue="Gradle.dukes8bit [proguard]" />
       </list>
     </recent_temporary>
@@ -499,7 +498,23 @@
       <option name="project" value="LOCAL" />
       <updated>1780728763138</updated>
     </task>
-    <option name="localTasksCounter" value="33" />
+    <task id="LOCAL-00033" summary="- Compute item slots instead of storing them&#10;- Collapse duplicate colors + reuse minimap palette&#10;- Build optimizations">
+      <option name="closed" value="true" />
+      <created>1780734711890</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1780734711890</updated>
+    </task>
+    <task id="LOCAL-00034" summary="- Duke outline hoist + redundant setColor removal&#10;- Extract shared drawDukeBase preamble&#10;- effectLabel/bossName switch -&gt; array">
+      <option name="closed" value="true" />
+      <created>1780735885542</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1780735885542</updated>
+    </task>
+    <option name="localTasksCounter" value="35" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -514,8 +529,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Add replayability: gear effects, vaults, bosses, persistent floors, minimap&#10;- Effect-typed gear (lifesteal, crit, reach, poison, knockback, thorns, dodge, heal-on-kill) with proc flashes, plus a stats + equip-delta inventory screen and ~10 new items&#10;- Keys &amp; sealed vault rooms: locked doors gate treasure, with a key hidden elsewhere on the floor and vault odds that climb with depth&#10;- Arena bosses every 5th floor: a large 3x3 guardian with a telegraphed slam, an enrage that summons minions, and stairs sealed until it falls&#10;- Persistent floors: revisiting restores cleared enemies, opened doors, looted chests, and felled bosses instead of regenerating&#10;- Fog-aware minimap in the top-right tracking layout, stairs, and entities&#10;- README refreshed; floor snapshots packed into a primitive int[]" />
-    <MESSAGE value="- Fixed sizing of minimap&#10;- Implemented stretching and resizability for the game view" />
     <MESSAGE value="- Added shaded jar task&#10;- added output shaded jar size to size task output" />
     <MESSAGE value="Runtime memory optimizations&#10;- Pre-allocate static polygon scratch arrays in Renderer&#10;- Replace AffineTransform save/restore in drawDukeRight with paired inverse transforms&#10;- Swap HashMap&lt;Integer,int[]&gt; floor cache for a direct int[][] array" />
     <MESSAGE value="- General cleanup" />
@@ -539,6 +552,8 @@
     <MESSAGE value="- Simplified Game::keyDown&#10;- Optimized build" />
     <MESSAGE value="- pushed the camera into the Graphics transform" />
     <MESSAGE value="-Fixed inconsistencies in gradle tasks&#10;- pushed the camera into the Graphics transform&#10;- removed redundant returns from Game::keyDown&#10;- Hoist trinket lookup&#10;- Indexed request flags" />
-    <option name="LAST_COMMIT_MESSAGE" value="-Fixed inconsistencies in gradle tasks&#10;- pushed the camera into the Graphics transform&#10;- removed redundant returns from Game::keyDown&#10;- Hoist trinket lookup&#10;- Indexed request flags" />
+    <MESSAGE value="- Compute item slots instead of storing them&#10;- Collapse duplicate colors + reuse minimap palette&#10;- Build optimizations" />
+    <MESSAGE value="- Duke outline hoist + redundant setColor removal&#10;- Extract shared drawDukeBase preamble&#10;- effectLabel/bossName switch -&gt; array" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Duke outline hoist + redundant setColor removal&#10;- Extract shared drawDukeBase preamble&#10;- effectLabel/bossName switch -&gt; array" />
   </component>
 </project>

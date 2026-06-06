@@ -419,21 +419,21 @@ final class Game {
         int rar = itemRarity(packed);
         int slot = slotOf(id);
         int val = itemValue(packed);
-        StringBuilder sb = new StringBuilder(ITEM_BASE_NAME[id]);
-        if (slot == WEAPON) sb.append("  +").append(val).append(" ATK");
-        else if (slot == ARMOR) sb.append("  +").append(val).append(" DEF");
+        StringBuilder name = new StringBuilder(ITEM_BASE_NAME[id]);
+        if (slot == WEAPON) name.append("  +").append(val).append(" ATK");
+        else if (slot == ARMOR) name.append("  +").append(val).append(" DEF");
         int eff = ITEM_EFFECT[id];
         if (eff != EFF_NONE) {
-            sb.append("  ").append(effectLabel(eff));
+            name.append("  ").append(effectLabel(eff));
             int mag = itemMag(packed);
             if (mag > 0) {
-                sb.append(' ').append(mag);
+                name.append(' ').append(mag);
                 if (eff == EFF_CRIT || eff == EFF_LIFESTEAL || eff == EFF_DODGE || eff == EFF_KEYFIND || eff == EFF_XP)
-                    sb.append('%');
+                    name.append('%');
             }
         }
-        if (rar > COMMON) sb.append(RARITY_LABEL[rar]);
-        return sb.toString();
+        if (rar > COMMON) name.append(RARITY_LABEL[rar]);
+        return name.toString();
     }
 
     /** Decays a timer toward zero by the given amount without overshooting below zero. */
@@ -653,12 +653,12 @@ final class Game {
             moveProgress = Math.min(1f, moveProgress + deltaMillis / moveDuration);
             return;
         }
-        int dx = (held[KeyEvent.VK_D] ? 1 : 0) - (held[KeyEvent.VK_A] ? 1 : 0);
-        int dy = (held[KeyEvent.VK_S] ? 1 : 0) - (held[KeyEvent.VK_W] ? 1 : 0);
-        if (dx != 0) {
-            attemptMove(dx, 0);
-        } else if (dy != 0) {
-            attemptMove(0, dy);
+        int moveX = (held[KeyEvent.VK_D] ? 1 : 0) - (held[KeyEvent.VK_A] ? 1 : 0);
+        int moveY = (held[KeyEvent.VK_S] ? 1 : 0) - (held[KeyEvent.VK_W] ? 1 : 0);
+        if (moveX != 0) {
+            attemptMove(moveX, 0);
+        } else if (moveY != 0) {
+            attemptMove(0, moveY);
         }
     }
 
@@ -779,12 +779,12 @@ final class Game {
                 damageBoss(damage);
             }
         }
-        for (int dy = -reach; dy <= reach; dy++) {
-            for (int dx = -reach; dx <= reach; dx++) {
-                if (Math.max(Math.abs(dx), Math.abs(dy)) < 1) continue;
-                int tx = playerX + dx, ty = playerY + dy;
-                if (inBounds(tx, ty) && map[index(tx, ty)] == SCENERY) {
-                    breakScenery(tx, ty);
+        for (int attackDy = -reach; attackDy <= reach; attackDy++) {
+            for (int attackDx = -reach; attackDx <= reach; attackDx++) {
+                if (Math.max(Math.abs(attackDx), Math.abs(attackDy)) < 1) continue;
+                int targetX = playerX + attackDx, targetY = playerY + attackDy;
+                if (inBounds(targetX, targetY) && map[index(targetX, targetY)] == SCENERY) {
+                    breakScenery(targetX, targetY);
                 }
             }
         }
@@ -852,12 +852,12 @@ final class Game {
     /** A dying Fork Bomb spawns up to two plain Bugs on open neighbouring tiles. */
     private void splitForkBomb(int x, int y) {
         int spawned = 0;
-        for (int d = 0; d < 4 && spawned < 2; d++) {
-            int nx = x + DIR_X[d];
-            int ny = y + DIR_Y[d];
-            if (inBounds(nx, ny) && map[index(nx, ny)] != WALL
-                    && !(nx == playerX && ny == playerY) && enemyAt(nx, ny) < 0) {
-                addEnemy(nx, ny, BUG, true);
+        for (int dir = 0; dir < 4 && spawned < 2; dir++) {
+            int neighborX = x + DIR_X[dir];
+            int neighborY = y + DIR_Y[dir];
+            if (inBounds(neighborX, neighborY) && map[index(neighborX, neighborY)] != WALL
+                    && !(neighborX == playerX && neighborY == playerY) && enemyAt(neighborX, neighborY) < 0) {
+                addEnemy(neighborX, neighborY, BUG, true);
                 spawned++;
             }
         }
@@ -953,13 +953,8 @@ final class Game {
                 enemyCooldown[i] = ENEMY_ATTACK_MS;
                 enemyAttack[i] = 1f;
                 aggroed[i] = true;
-                if (effectOf(equippedArmor) == EFF_DODGE && random.nextInt(100) < magOf(equippedArmor)) {
-                    playerDodge = 1f;
-                    continue;
-                }
-                playerHp -= Math.max(1, ENEMY_STATS[enemyType[i] * 5 + 1] + floor / 4 + random.nextInt(2) - defense());
-                sound.enemyAttack();
-                if (effectOf(equippedArmor) == EFF_THORNS) {
+                if (damagePlayer(ENEMY_STATS[enemyType[i] * 5 + 1] + floor / 4 + random.nextInt(2))
+                        && effectOf(equippedArmor) == EFF_THORNS) {
                     enemyHp[i] -= magOf(equippedArmor);
                     enemyHit[i] = 1f;
                     if (enemyHp[i] <= 0) {
@@ -967,10 +962,6 @@ final class Game {
                     }
                 }
             }
-        }
-        if (playerHp <= 0) {
-            playerHp = 0;
-            state = DEAD;
         }
     }
 
@@ -1202,19 +1193,19 @@ final class Game {
     private void openAdjacentChest() {
         for (int i = 0; i < lootCount; i++) {
             if (lootChest[i] && Math.abs(lootX[i] - playerX) + Math.abs(lootY[i] - playerY) <= 1) {
-                int cx = lootX[i], cy = lootY[i];
+                int chestX = lootX[i], chestY = lootY[i];
                 if (random.nextInt(100) < 15) {
                     removeLoot(i);
-                    int mx = cx, my = cy;
-                    if (mx == playerX && my == playerY) {
-                        for (int d = 0; d < 4; d++) {
-                            int nx = cx + DIR_X[d], ny = cy + DIR_Y[d];
-                            if (inBounds(nx, ny) && map[index(nx, ny)] == FLOOR && enemyAt(nx, ny) < 0) {
-                                mx = nx; my = ny; break;
+                    int mimicX = chestX, mimicY = chestY;
+                    if (mimicX == playerX && mimicY == playerY) {
+                        for (int dir = 0; dir < 4; dir++) {
+                            int neighborX = chestX + DIR_X[dir], neighborY = chestY + DIR_Y[dir];
+                            if (inBounds(neighborX, neighborY) && map[index(neighborX, neighborY)] == FLOOR && enemyAt(neighborX, neighborY) < 0) {
+                                mimicX = neighborX; mimicY = neighborY; break;
                             }
                         }
                     }
-                    addEnemy(mx, my, MIMIC, true);
+                    addEnemy(mimicX, mimicY, MIMIC, true);
                     sound.mimicReveal();
                 } else if (inventoryCount < INVENTORY_SIZE) {
                     inventory[inventoryCount++] = lootItem[i];
@@ -1629,9 +1620,9 @@ final class Game {
 
     /** Chebyshev distance from Duke to the boss footprint; 1 means he stands right against it. */
     private int bossDistanceToPlayer() {
-        int dx = Math.max(0, Math.max(bossX - playerX, playerX - (bossX + BOSS_SIZE - 1)));
-        int dy = Math.max(0, Math.max(bossY - playerY, playerY - (bossY + BOSS_SIZE - 1)));
-        return Math.max(dx, dy);
+        int deltaX = Math.max(0, Math.max(bossX - playerX, playerX - (bossX + BOSS_SIZE - 1)));
+        int deltaY = Math.max(0, Math.max(bossY - playerY, playerY - (bossY + BOSS_SIZE - 1)));
+        return Math.max(deltaX, deltaY);
     }
 
     /** Telegraph intensity for the boss's slam wind-up: 0 when idle, rising toward 1 as the slam lands. */
@@ -1709,30 +1700,30 @@ final class Game {
         bossPrevY = bossY;
         int centerX = bossX + BOSS_SIZE / 2;
         int centerY = bossY + BOSS_SIZE / 2;
-        int dx = Integer.signum(playerX - centerX);
-        int dy = Integer.signum(playerY - centerY);
+        int deltaX = Integer.signum(playerX - centerX);
+        int deltaY = Integer.signum(playerY - centerY);
         if (Math.abs(playerX - centerX) >= Math.abs(playerY - centerY)) {
-            if (!moveBoss(dx, 0)) {
-                moveBoss(0, dy);
+            if (!moveBoss(deltaX, 0)) {
+                moveBoss(0, deltaY);
             }
-        } else if (!moveBoss(0, dy)) {
-            moveBoss(dx, 0);
+        } else if (!moveBoss(0, deltaY)) {
+            moveBoss(deltaX, 0);
         }
     }
 
     /** Slides the whole footprint one tile only if every destination tile is clear of walls, Duke, and enemies. */
-    private boolean moveBoss(int dx, int dy) {
-        if (dx == 0 && dy == 0) {
+    private boolean moveBoss(int offsetX, int offsetY) {
+        if (offsetX == 0 && offsetY == 0) {
             return false;
         }
-        int nextX = bossX + dx;
-        int nextY = bossY + dy;
+        int nextX = bossX + offsetX;
+        int nextY = bossY + offsetY;
         for (int oy = 0; oy < BOSS_SIZE; oy++) {
             for (int ox = 0; ox < BOSS_SIZE; ox++) {
-                int cx = nextX + ox;
-                int cy = nextY + oy;
-                if (!inBounds(cx, cy) || blocksMovement(map[index(cx, cy)])
-                        || (cx == playerX && cy == playerY) || enemyAt(cx, cy) >= 0) {
+                int checkX = nextX + ox;
+                int checkY = nextY + oy;
+                if (!inBounds(checkX, checkY) || blocksMovement(map[index(checkX, checkY)])
+                        || (checkX == playerX && checkY == playerY) || enemyAt(checkX, checkY) >= 0) {
                     return false;
                 }
             }
@@ -1751,20 +1742,25 @@ final class Game {
         }
     }
 
-    /** Applies boss damage to Duke, honoring dodge and reflecting thorns back into the boss. */
-    private void applyBossHitToPlayer(int damage) {
+    /** Applies a melee hit to Duke through dodge and defense, plays the hurt sound, and resolves death; returns false if dodged. */
+    private boolean damagePlayer(int raw) {
         if (effectOf(equippedArmor) == EFF_DODGE && random.nextInt(100) < magOf(equippedArmor)) {
             playerDodge = 1f;
-            return;
+            return false;
         }
-        playerHp -= Math.max(1, damage - defense());
+        playerHp -= Math.max(1, raw - defense());
         sound.enemyAttack();
-        if (effectOf(equippedArmor) == EFF_THORNS) {
-            damageBoss(magOf(equippedArmor));
-        }
         if (playerHp <= 0) {
             playerHp = 0;
             state = DEAD;
+        }
+        return true;
+    }
+
+    /** Applies boss damage to Duke, honoring dodge and reflecting thorns back into the boss. */
+    private void applyBossHitToPlayer(int damage) {
+        if (damagePlayer(damage) && effectOf(equippedArmor) == EFF_THORNS) {
+            damageBoss(magOf(equippedArmor));
         }
     }
 
@@ -1813,28 +1809,28 @@ final class Game {
     private void placePits(int floorWidth, int floorHeight) {
         if (floor < 2) return;
         int count = Math.min(3, 1 + (floor - 2) / 3);
-        int[] cx = new int[5], cy = new int[5];
-        for (int p = 0; p < count; p++) {
+        int[] cellX = new int[5], cellY = new int[5];
+        for (int cluster = 0; cluster < count; cluster++) {
             for (int attempt = 0; attempt < 40; attempt++) {
-                int sx = randInterior(floorWidth);
-                int sy = randInterior(floorHeight);
-                if (map[index(sx, sy)] != FLOOR || !isOpenTile(sx, sy) || distToPlayer(sx, sy) < 5
-                        || (sx == merchantX && sy == merchantY)) continue;
-                cx[0] = sx; cy[0] = sy;
-                int n = 1;
+                int seedX = randInterior(floorWidth);
+                int seedY = randInterior(floorHeight);
+                if (map[index(seedX, seedY)] != FLOOR || !isOpenTile(seedX, seedY) || distToPlayer(seedX, seedY) < 5
+                        || (seedX == merchantX && seedY == merchantY)) continue;
+                cellX[0] = seedX; cellY[0] = seedY;
+                int cellCount = 1;
                 int extra = genRandom.nextInt(4);
-                for (int g = 0; g < extra && n < 5; g++) {
-                    int bi = genRandom.nextInt(n);
-                    for (int d = 0; d < 4; d++) {
-                        int nx = cx[bi] + DIR_X[d], ny = cy[bi] + DIR_Y[d];
-                        if (map[index(nx, ny)] != FLOOR || !isOpenTile(nx, ny)
-                                || (nx == merchantX && ny == merchantY)) continue;
-                        boolean dup = false;
-                        for (int k = 0; k < n; k++) if (cx[k] == nx && cy[k] == ny) { dup = true; break; }
-                        if (!dup) { cx[n] = nx; cy[n++] = ny; break; }
+                for (int growth = 0; growth < extra && cellCount < 5; growth++) {
+                    int baseIndex = genRandom.nextInt(cellCount);
+                    for (int dir = 0; dir < 4; dir++) {
+                        int neighborX = cellX[baseIndex] + DIR_X[dir], neighborY = cellY[baseIndex] + DIR_Y[dir];
+                        if (map[index(neighborX, neighborY)] != FLOOR || !isOpenTile(neighborX, neighborY)
+                                || (neighborX == merchantX && neighborY == merchantY)) continue;
+                        boolean duplicate = false;
+                        for (int i = 0; i < cellCount; i++) if (cellX[i] == neighborX && cellY[i] == neighborY) { duplicate = true; break; }
+                        if (!duplicate) { cellX[cellCount] = neighborX; cellY[cellCount++] = neighborY; break; }
                     }
                 }
-                for (int k = 0; k < n; k++) map[index(cx[k], cy[k])] = PIT;
+                for (int i = 0; i < cellCount; i++) map[index(cellX[i], cellY[i])] = PIT;
                 break;
             }
         }
@@ -1921,9 +1917,9 @@ final class Game {
      * lands in open room space rather than a corridor the player must pass through.
      */
     private boolean isOpenTile(int x, int y) {
-        for (int ny = y - 1; ny <= y + 1; ny++) {
-            for (int nx = x - 1; nx <= x + 1; nx++) {
-                if (!inBounds(nx, ny) || map[index(nx, ny)] != FLOOR) {
+        for (int neighborY = y - 1; neighborY <= y + 1; neighborY++) {
+            for (int neighborX = x - 1; neighborX <= x + 1; neighborX++) {
+                if (!inBounds(neighborX, neighborY) || map[index(neighborX, neighborY)] != FLOOR) {
                     return false;
                 }
             }
@@ -2001,9 +1997,9 @@ final class Game {
         int radius = FOV_RADIUS + (effectOf(equippedTrinket) == EFF_SIGHT ? 2 : 0);
         for (int y = playerY - radius; y <= playerY + radius; y++) {
             for (int x = playerX - radius; x <= playerX + radius; x++) {
-                int dx = x - playerX;
-                int dy = y - playerY;
-                if (inBounds(x, y) && dx * dx + dy * dy <= radius * radius) {
+                int deltaX = x - playerX;
+                int deltaY = y - playerY;
+                if (inBounds(x, y) && deltaX * deltaX + deltaY * deltaY <= radius * radius) {
                     castLight(x, y);
                 }
             }
@@ -2013,11 +2009,11 @@ final class Game {
     private void castLight(int targetX, int targetY) {
         int x = playerX;
         int y = playerY;
-        int dx = Math.abs(targetX - x);
-        int dy = Math.abs(targetY - y);
+        int deltaX = Math.abs(targetX - x);
+        int deltaY = Math.abs(targetY - y);
         int stepX = x < targetX ? 1 : -1;
         int stepY = y < targetY ? 1 : -1;
-        int error = dx - dy;
+        int error = deltaX - deltaY;
         while (true) {
             int idx = index(x, y);
             visible[idx] = true;
@@ -2026,12 +2022,12 @@ final class Game {
                 return;
             }
             int doubled = 2 * error;
-            if (doubled > -dy) {
-                error -= dy;
+            if (doubled > -deltaY) {
+                error -= deltaY;
                 x += stepX;
             }
-            if (doubled < dx) {
-                error += dx;
+            if (doubled < deltaX) {
+                error += deltaX;
                 y += stepY;
             }
         }
