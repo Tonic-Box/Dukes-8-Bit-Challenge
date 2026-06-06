@@ -294,14 +294,11 @@ final class Game {
     private int enemyStepParity;
     private float regenTimer;
     private long baseSeed;
-    private boolean restartRequested;
     // Key-down state indexed by AWT key code; covers both held movement and edge-detected one-shots.
     private final boolean[] held = new boolean[256];
-    private boolean quaffRequested;
-    private boolean buyRequested;
-    private boolean talkRequested;
-    private boolean equipRequested;
-    private boolean dropRequested;
+    // One-shot action requests set by keyDown() and consumed once by update(); indexed by REQ_*.
+    private static final int REQ_RESTART = 0, REQ_QUAFF = 1, REQ_BUY = 2, REQ_TALK = 3, REQ_EQUIP = 4, REQ_DROP = 5;
+    private final boolean[] req = new boolean[6];
 
     Game() {
         startNewGame();
@@ -336,7 +333,7 @@ final class Game {
         attackProgress = 1f;
         for (int i = 0; i < held.length; i++) held[i] = false;
         pauseSelection = 0;
-        quaffRequested = buyRequested = talkRequested = equipRequested = dropRequested = false;
+        for (int i = 0; i < req.length; i++) req[i] = false;
         regenTimer = 0f;
         playerHeal = 0f;
         playerDodge = 0f;
@@ -499,7 +496,7 @@ final class Game {
         }
         if (state == DEAD) {
             if (code == KeyEvent.VK_SPACE || code == KeyEvent.VK_ENTER) {
-                restartRequested = true;
+                req[REQ_RESTART] = true;
             } else if (code == KeyEvent.VK_ESCAPE) {
                 quitRequested = true;
             }
@@ -509,7 +506,7 @@ final class Game {
             if (code == KeyEvent.VK_Q || code == KeyEvent.VK_ESCAPE) {
                 state = PLAYING;
             } else if (code == KeyEvent.VK_E) {
-                buyRequested = true;
+                req[REQ_BUY] = true;
             }
             return;
         }
@@ -537,27 +534,25 @@ final class Game {
             } else if (code == KeyEvent.VK_S && inventorySelection < inventoryCount - 1) {
                 inventorySelection++;
             } else if (code == KeyEvent.VK_E) {
-                equipRequested = true;
+                req[REQ_EQUIP] = true;
             } else if (code == KeyEvent.VK_D) {
-                dropRequested = true;
+                req[REQ_DROP] = true;
             }
             return;
         }
         if (code == KeyEvent.VK_ESCAPE) {
             state = PAUSED;
             pauseSelection = 0;
-            return;
         }
         if (code == KeyEvent.VK_I) {
             state = INVENTORY;
             inventorySelection = 0;
-            return;
         }
         if (code == KeyEvent.VK_Q) {
-            quaffRequested = true;
+            req[REQ_QUAFF] = true;
         }
         if (code == KeyEvent.VK_E) {
-            talkRequested = true;
+            req[REQ_TALK] = true;
         }
     }
 
@@ -566,6 +561,13 @@ final class Game {
         if (code >= 0 && code < held.length) {
             held[code] = false;
         }
+    }
+
+    /** Reads and clears a one-shot request flag, returning whether it was set. */
+    private boolean consume(int request) {
+        boolean set = req[request];
+        req[request] = false;
+        return set;
     }
 
     /**
@@ -584,31 +586,19 @@ final class Game {
             else             { if (lightLevel[i] > 0f) lightLevel[i] = Math.max(0f, lightLevel[i] - fall); }
         }
         if (state == DEAD) {
-            if (restartRequested) {
-                restartRequested = false;
-                startNewGame();
-            }
+            if (consume(REQ_RESTART)) startNewGame();
             return;
         }
         if (state == PAUSED) {
             return;
         }
         if (state == SHOP) {
-            if (buyRequested) {
-                buyRequested = false;
-                buyPotion();
-            }
+            if (consume(REQ_BUY)) buyPotion();
             return;
         }
         if (state == INVENTORY) {
-            if (equipRequested) {
-                equipRequested = false;
-                equipSelected();
-            }
-            if (dropRequested) {
-                dropRequested = false;
-                dropSelected();
-            }
+            if (consume(REQ_EQUIP)) equipSelected();
+            if (consume(REQ_DROP)) dropSelected();
             return;
         }
         for (int i = breakCount - 1; i >= 0; i--) {
@@ -634,12 +624,8 @@ final class Game {
             }
             return;
         }
-        if (quaffRequested) {
-            quaffRequested = false;
-            quaff();
-        }
-        if (talkRequested) {
-            talkRequested = false;
+        if (consume(REQ_QUAFF)) quaff();
+        if (consume(REQ_TALK)) {
             if (adjacentToMerchant()) {
                 state = SHOP;
                 return;
@@ -647,7 +633,8 @@ final class Game {
             openAdjacentChest();
         }
 
-        float regenInterval = effectOf(equippedTrinket) == EFF_REGEN ? REGEN_INTERVAL_MS * 0.55f : REGEN_INTERVAL_MS;
+        int trinket = effectOf(equippedTrinket);
+        float regenInterval = trinket == EFF_REGEN ? REGEN_INTERVAL_MS * 0.55f : REGEN_INTERVAL_MS;
         regenTimer += deltaMillis;
         if (regenTimer >= regenInterval) {
             regenTimer -= regenInterval;
@@ -665,7 +652,7 @@ final class Game {
         }
 
         if (attackProgress < 1f) {
-            float attackDuration = effectOf(equippedTrinket) == EFF_SPEED ? ATTACK_DURATION_MS * 0.8f : ATTACK_DURATION_MS;
+            float attackDuration = trinket == EFF_SPEED ? ATTACK_DURATION_MS * 0.8f : ATTACK_DURATION_MS;
             attackProgress = Math.min(1f, attackProgress + deltaMillis / attackDuration);
         } else if (held[KeyEvent.VK_SPACE]) {
             performAttack();
@@ -678,7 +665,7 @@ final class Game {
         }
 
         if (moveProgress < 1f) {
-            float moveDuration = effectOf(equippedTrinket) == EFF_SPEED ? MOVE_DURATION_MS * 0.7f : MOVE_DURATION_MS;
+            float moveDuration = trinket == EFF_SPEED ? MOVE_DURATION_MS * 0.7f : MOVE_DURATION_MS;
             moveProgress = Math.min(1f, moveProgress + deltaMillis / moveDuration);
             return;
         }

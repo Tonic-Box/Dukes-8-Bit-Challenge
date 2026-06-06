@@ -145,16 +145,19 @@ final class Renderer {
         int firstY = Math.max(0, cameraY / Game.TILE);
         int lastX = Math.min(Game.MAP_WIDTH - 1, (cameraX + Game.PLAY_WIDTH) / Game.TILE);
         int lastY = Math.min(Game.MAP_HEIGHT - 1, (cameraY + Game.PLAY_HEIGHT) / Game.TILE);
+        // Push the camera into the transform so all world content draws in world pixels with no per-draw
+        // offset; the play-area clip set above stays pinned to the screen. Restored before the HUD/minimap.
+        graphics.translate(-cameraX, -cameraY);
         // Tiles are drawn per-cell, but the translucent fog overlay is coalesced into horizontal runs of
         // equal darkness and laid down as one fillRect per run — far fewer alpha-composited fills per frame.
         for (int y = firstY; y <= lastY; y++) {
-            int rowSy = y * Game.TILE - cameraY;
+            int rowSy = y * Game.TILE;
             int runStep = 0;
             int runStartSx = 0;
             int runWidth = 0;
             for (int x = firstX; x <= lastX; x++) {
                 int idx = Game.index(x, y);
-                int sx = x * Game.TILE - cameraX;
+                int sx = x * Game.TILE;
                 int step;
                 if (!game.explored[idx]) {
                     step = 0;
@@ -182,8 +185,8 @@ final class Renderer {
         for (int i = 0; i < game.breakCount; i++) {
             float life = game.breakTimer[i];
             int bx = game.breakX[i], by = game.breakY[i];
-            int cx = bx * Game.TILE + Game.TILE / 2 - cameraX;
-            int cy = by * Game.TILE + Game.TILE / 2 - cameraY;
+            int cx = bx * Game.TILE + Game.TILE / 2;
+            int cy = by * Game.TILE + Game.TILE / 2;
             int spread = (int) ((1f - life) * 14) + 1;
             int size = Math.max(1, (int) (life * 4));
             graphics.setColor(SCENERY_DEBRIS[(bx * 7 + by * 3) % 3]);
@@ -196,8 +199,8 @@ final class Renderer {
         }
         for (int i = 0; i < game.lootCount; i++) {
             if (game.visible[Game.index(game.lootX[i], game.lootY[i])]) {
-                int sx = game.lootX[i] * Game.TILE - cameraX;
-                int sy = game.lootY[i] * Game.TILE - cameraY;
+                int sx = game.lootX[i] * Game.TILE;
+                int sy = game.lootY[i] * Game.TILE;
                 if (game.lootKey[i]) {
                     drawKey(graphics, sx, sy);
                 } else if (game.lootChest[i]) {
@@ -211,18 +214,18 @@ final class Renderer {
         for (int i = 0; i < game.enemyCount; i++) {
             if (game.visible[Game.index(game.enemyX[i], game.enemyY[i])]) {
                 int hop = Math.round(game.enemyHit[i] * 6f);
-                drawEnemy(graphics, Math.round(game.enemyRenderPixelX(i)) - cameraX, Math.round(game.enemyRenderPixelY(i)) - cameraY - hop,
+                drawEnemy(graphics, Math.round(game.enemyRenderPixelX(i)), Math.round(game.enemyRenderPixelY(i)) - hop,
                         game.enemyType[i], game.enemyCrit[i], game.enemyPoison[i] > 0f, game.enemyAttack[i]);
             }
         }
 
         boolean bossShown = game.bossActive && bossVisible(game);
         if (bossShown) {
-            int bx = Math.round(game.bossRenderPixelX()) - cameraX;
-            int by = Math.round(game.bossRenderPixelY()) - cameraY;
+            int bx = Math.round(game.bossRenderPixelX());
+            int by = Math.round(game.bossRenderPixelY());
             float telegraph = game.bossTelegraph();
             if (telegraph > 0f) {
-                drawSlamDanger(graphics, game, cameraX, cameraY, telegraph);
+                drawSlamDanger(graphics, game, telegraph);
             }
             drawBoss(graphics, bx, by, game.bossType, game.bossHit, telegraph, game.bossAnimTime, game.bossEnraged);
             if (game.bossShockwave > 0f) {
@@ -232,8 +235,8 @@ final class Renderer {
         }
 
         if (game.merchantX >= 0 && game.visible[Game.index(game.merchantX, game.merchantY)]) {
-            int mx = game.merchantX * Game.TILE - cameraX;
-            int my = game.merchantY * Game.TILE - cameraY;
+            int mx = game.merchantX * Game.TILE;
+            int my = game.merchantY * Game.TILE;
             drawMerchant(graphics, mx, my);
             if (game.adjacentToMerchant()) {
                 graphics.setColor(PROMPT);
@@ -244,14 +247,14 @@ final class Renderer {
             if (game.lootChest[i] && game.visible[Game.index(game.lootX[i], game.lootY[i])]
                     && Math.abs(game.lootX[i] - game.playerX) + Math.abs(game.lootY[i] - game.playerY) <= 1) {
                 graphics.setColor(PROMPT);
-                drawCenteredAt(graphics, "E", game.lootX[i] * Game.TILE - cameraX + Game.TILE / 2,
-                        game.lootY[i] * Game.TILE - cameraY - 4);
+                drawCenteredAt(graphics, "E", game.lootX[i] * Game.TILE + Game.TILE / 2,
+                        game.lootY[i] * Game.TILE - 4);
                 break;
             }
         }
 
-        int dukeX = Math.round(game.renderPixelX()) - cameraX;
-        int dukeY = Math.round(game.renderPixelY()) - cameraY;
+        int dukeX = Math.round(game.renderPixelX());
+        int dukeY = Math.round(game.renderPixelY());
         if (game.falling && game.fallProgress > 0f) {
             float scale = 1f - game.fallProgress;
             if (scale > 0.02f) {
@@ -273,6 +276,8 @@ final class Renderer {
             drawSword(graphics, dukeX + Game.TILE / 2, dukeY + Game.TILE / 2, game.attackProgress);
         }
 
+        // Back to screen space for the fixed-position UI layers.
+        graphics.translate(cameraX, cameraY);
         if (bossShown) {
             drawBossBar(graphics, game);
         }
@@ -551,9 +556,7 @@ final class Renderer {
                 rect(graphics, FORK_COLOR, px + 5, py + 8, Game.TILE - 10, Game.TILE - 12);
                 graphics.fillRect(px + 9, py + 4, Game.TILE - 18, 5);
             }
-            case Game.DEADLOCK -> {
-                rect(graphics, DEADLOCK_COLOR, px + 3, py + 4, Game.TILE - 6, Game.TILE - 7);
-            }
+            case Game.DEADLOCK -> rect(graphics, DEADLOCK_COLOR, px + 3, py + 4, Game.TILE - 6, Game.TILE - 7);
             case Game.MIMIC -> {
                 rect(graphics, BUG_LEG, px + 3, py + 14, Game.TILE - 6, 9);
                 rect(graphics, MIMIC_LID, px + 3, py + 4, Game.TILE - 6, 8);
@@ -660,7 +663,7 @@ final class Renderer {
      * Tints the exact tiles the boss's slam will strike during its wind-up, so the player can read which
      * neighbouring tiles to flee to. Brightens as the slam nears.
      */
-    private void drawSlamDanger(Graphics graphics, Game game, int cameraX, int cameraY, float telegraph) {
+    private void drawSlamDanger(Graphics graphics, Game game, float telegraph) {
         graphics.setColor(telegraph > 0.5f ? SLAM_DANGER : SLAM_DANGER_FAINT);
         int radius = Game.BOSS_SLAM_RADIUS;
         for (int y = game.bossY - radius; y < game.bossY + Game.BOSS_SIZE + radius; y++) {
@@ -672,7 +675,7 @@ final class Renderer {
                 if (game.bossOccupies(x, y) || !game.visible[idx] || game.map[idx] == Game.WALL) {
                     continue;
                 }
-                graphics.fillRect(x * Game.TILE - cameraX, y * Game.TILE - cameraY, Game.TILE, Game.TILE);
+                graphics.fillRect(x * Game.TILE, y * Game.TILE, Game.TILE, Game.TILE);
             }
         }
     }

@@ -31,10 +31,22 @@ tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
 }
 
-// No runtime dependencies, so the plain jar is already a complete runnable jar.
+// ProGuard minifies in place, overwriting build/classes/java/main. Without this, a later run whose
+// sources are unchanged would leave those already-minified classes in place and feed them back through
+// ProGuard, double-minifying into a different byte count. Forcing a clean recompile each time keeps the
+// minify input pristine, so `size` is deterministic.
+tasks.named<JavaCompile>("compileJava") {
+    outputs.upToDateWhen { false }
+    doFirst { destinationDirectory.get().asFile.deleteRecursively() }
+}
+
+// No runtime dependencies, so the plain jar is already a complete runnable jar. ProGuard later
+// overwrites this jar in place; force a repackage each run so it always reflects the freshly-compiled
+// (non-minified) classes rather than serving back a previously-minified jar (which would double-minify).
 tasks.jar {
     archiveBaseName = "DukesDescent"
     manifest { attributes["Main-Class"] = "Main" }
+    outputs.upToDateWhen { false }
 }
 
 tasks.register<ProGuardTask>("proguard") {
