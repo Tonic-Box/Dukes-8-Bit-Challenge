@@ -407,25 +407,11 @@ final class Game {
     }
 
     /** Human-readable label for an effect type; empty for plain gear. */
-    static String effectLabel(int effect) {
-        return switch (effect) {
-            case EFF_LIFESTEAL -> "Lifesteal";
-            case EFF_CRIT -> "Crit";
-            case EFF_REACH -> "Reach";
-            case EFF_POISON -> "Poison";
-            case EFF_KNOCKBACK -> "Knockback";
-            case EFF_THORNS -> "Thorns";
-            case EFF_DODGE -> "Dodge";
-            case EFF_HEAL_ON_KILL -> "Heal on kill";
-            case EFF_REGEN -> "Regen";
-            case EFF_SIGHT -> "Sight";
-            case EFF_GOLD -> "Gold find";
-            case EFF_XP -> "XP boost";
-            case EFF_SPEED -> "Speed";
-            case EFF_KEYFIND -> "Vault luck";
-            default -> "";
-        };
-    }
+    private static final String[] EFFECT_LABEL = {
+        "", "Lifesteal", "Crit", "Reach", "Poison", "Knockback", "Thorns", "Dodge",
+        "Heal on kill", "Regen", "Sight", "Gold find", "XP boost", "Speed", "Vault luck",
+    };
+    static String effectLabel(int effect) { return EFFECT_LABEL[effect]; }
 
     /** Builds the display string for a packed item: base name, scaled stats, scaled effect, and rarity label. */
     String itemName(int packed) {

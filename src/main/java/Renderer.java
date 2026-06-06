@@ -429,6 +429,8 @@ final class Renderer {
             case Game.FACE_RIGHT -> drawDukeRight(graphics, px, py);
             default -> drawDukeFront(graphics, px, py);
         }
+        graphics.setColor(DUKE_OUTLINE);
+        graphics.drawRoundRect(px + 5, py + 2, 14, 20, 11, 11);
         if (heal > 0f) {
             rect(graphics, HEAL_FLASH, px + 3, py, Game.TILE - 6, Game.TILE);
         }
@@ -437,14 +439,18 @@ final class Renderer {
         }
     }
 
-    private void drawDukeFront(Graphics graphics, int px, int py) {
+    /** The feet, flippers, and body shell shared by Duke's front and back sprites. */
+    private void drawDukeBase(Graphics graphics, int px, int py) {
         rect(graphics, DUKE_FOOT, px + 7, py + 21, 4, 2);
         graphics.fillRect(px + 13, py + 21, 4, 2);
         graphics.setColor(DARK);
         graphics.fillRoundRect(px + 3, py + 10, 4, 8, 4, 4);
         graphics.fillRoundRect(px + 17, py + 10, 4, 8, 4, 4);
-        graphics.setColor(DARK);
         graphics.fillRoundRect(px + 5, py + 2, 14, 20, 11, 11);
+    }
+
+    private void drawDukeFront(Graphics graphics, int px, int py) {
+        drawDukeBase(graphics, px, py);
         oval(graphics, DUKE_BELLY, px + 8, py + 10, 8, 11);
         oval(graphics, Color.WHITE, px + 7, py + 6, 5, 5);
         graphics.fillOval(px + 12, py + 6, 5, 5);
@@ -454,23 +460,12 @@ final class Renderer {
         POLY_X3[0] = px + 10; POLY_X3[1] = px + 14; POLY_X3[2] = px + 12;
         POLY_Y3[0] = py + 12; POLY_Y3[1] = py + 12; POLY_Y3[2] = py + 15;
         graphics.fillPolygon(POLY_X3, POLY_Y3, 3);
-        graphics.setColor(DUKE_OUTLINE);
-        graphics.drawRoundRect(px + 5, py + 2, 14, 20, 11, 11);
     }
 
     /** Back view used while walking away: body and flippers with a nape patch, no face. */
     private void drawDukeBack(Graphics graphics, int px, int py) {
-        rect(graphics, DUKE_FOOT, px + 7, py + 21, 4, 2);
-        graphics.fillRect(px + 13, py + 21, 4, 2);
-        graphics.setColor(DARK);
-        graphics.fillRoundRect(px + 3, py + 10, 4, 8, 4, 4);
-        graphics.fillRoundRect(px + 17, py + 10, 4, 8, 4, 4);
-        graphics.setColor(DARK);
-        graphics.fillRoundRect(px + 5, py + 2, 14, 20, 11, 11);
-        graphics.setColor(DARK);
+        drawDukeBase(graphics, px, py);
         graphics.fillRoundRect(px + 9, py + 5, 6, 8, 5, 5);
-        graphics.setColor(DUKE_OUTLINE);
-        graphics.drawRoundRect(px + 5, py + 2, 14, 20, 11, 11);
     }
 
     /** Left-facing profile: belly, eye, and beak turned to the side. */
@@ -488,8 +483,6 @@ final class Renderer {
         graphics.fillPolygon(POLY_X3, POLY_Y3, 3);
         graphics.setColor(DARK);
         graphics.fillRoundRect(px + 7, py + 13, 4, 7, 4, 4);
-        graphics.setColor(DUKE_OUTLINE);
-        graphics.drawRoundRect(px + 5, py + 2, 14, 20, 11, 11);
     }
 
     /** Right-facing profile: the left sprite mirrored about the tile's vertical center. */
@@ -699,14 +692,8 @@ final class Renderer {
         drawCenteredAt(graphics, "The stairs below stay sealed until it falls", Game.PLAY_WIDTH / 2, barY + 30);
     }
 
-    private String bossName(int type) {
-        return switch (type) {
-            case 0 -> "KERNEL PANIC";
-            case 1 -> "STACK OVERFLOW";
-            case 2 -> "SEGFAULT";
-            default -> "HEAP CORRUPTION";
-        };
-    }
+    private static final String[] BOSS_NAME = {"KERNEL PANIC", "STACK OVERFLOW", "SEGFAULT", "HEAP CORRUPTION"};
+    private String bossName(int type) { return BOSS_NAME[type & 3]; }
 
     /**
      * A fog-aware overview of the floor in the top-right: explored corridors and rooms (brighter where
