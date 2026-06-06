@@ -23,11 +23,10 @@ final class Renderer {
     private static final Color HUD_TEXT = Color.WHITE;
     private static final Color HUD_HINT = new Color(150, 150, 172);
     private static final Color HP_BACK = new Color(58, 22, 22);
-    private static final Color HP_FILL = new Color(210, 64, 64);
     private static final Color XP_BACK = new Color(24, 28, 46);
     private static final Color XP_FILL = new Color(96, 140, 230);
     private static final Color DUKE_NOSE = new Color(232, 44, 44);
-    private static final Color BUG_COLOR = new Color(214, 70, 64);
+    private static final Color RED_MAIN = new Color(214, 70, 64);
     private static final Color NULL_COLOR = new Color(158, 96, 214);
     private static final Color LEAK_COLOR = new Color(92, 192, 112);
     private static final Color FORK_COLOR = new Color(232, 150, 44);
@@ -49,7 +48,6 @@ final class Renderer {
     private static final Color MERCHANT_SKIN = new Color(232, 196, 158);
     private static final Color MERCHANT_HAT = new Color(96, 64, 32);
     private static final Color PROMPT = new Color(245, 240, 210);
-    private static final Color TRAP_COLOR = new Color(212, 78, 68);
     private static final Color PIT_OUTER = new Color(16, 10, 16);
     private static final Color PIT_INNER = new Color(6, 4, 8);
     private static final Color POT_BODY = new Color(178, 90, 54);
@@ -100,10 +98,7 @@ final class Renderer {
     private static final int MINIMAP_TOP = 26;
     private static final Color MINIMAP_BACK = new Color(10, 10, 16, 220);
     private static final Color MINIMAP_BORDER = new Color(84, 80, 110);
-    private static final Color MINIMAP_FLOOR_LIT = new Color(118, 114, 148);
     private static final Color MINIMAP_DOOR = new Color(200, 150, 70);
-    private static final Color MINIMAP_ENEMY = new Color(222, 70, 64);
-    private static final Color MINIMAP_BOSS = new Color(244, 60, 72);
     private static final Color MINIMAP_PLAYER = new Color(96, 224, 236);
     private static final Color BOSS_BAR_BACK = new Color(40, 16, 20);
     private static final Color BOSS_BAR_FILL = new Color(206, 60, 72);
@@ -359,7 +354,7 @@ final class Renderer {
     }
 
     private void drawTrap(Graphics graphics, int px, int py) {
-        graphics.setColor(TRAP_COLOR);
+        graphics.setColor(RED_MAIN);
         POLY_Y3[0] = py + Game.TILE - 5; POLY_Y3[1] = py + 8; POLY_Y3[2] = py + Game.TILE - 5;
         for (int i = 0; i < 3; i++) {
             int sx = px + 5 + i * 7;
@@ -574,7 +569,7 @@ final class Renderer {
                 rect(graphics, BUG_LEG, px + 5, py + Game.TILE - 6, 2, 5);
                 graphics.fillRect(px + 11, py + Game.TILE - 6, 2, 5);
                 graphics.fillRect(px + 17, py + Game.TILE - 6, 2, 5);
-                oval(graphics, BUG_COLOR, px + 4, py + 6, Game.TILE - 8, Game.TILE - 10);
+                oval(graphics, RED_MAIN, px + 4, py + 6, Game.TILE - 8, Game.TILE - 10);
             }
         }
         if (type != Game.MIMIC) {
@@ -745,7 +740,7 @@ final class Renderer {
             }
         }
 
-        graphics.setColor(MINIMAP_ENEMY);
+        graphics.setColor(RED_MAIN);
         for (int i = 0; i < game.enemyCount; i++) {
             if (game.visible[Game.index(game.enemyX[i], game.enemyY[i])]) {
                 graphics.fillRect(gridX + game.enemyX[i] * cellW, originY + game.enemyY[i] * cellH, cellW, cellH);
@@ -753,7 +748,7 @@ final class Renderer {
         }
 
         if (game.bossActive && bossVisible(game)) {
-            graphics.setColor(MINIMAP_BOSS);
+            graphics.setColor(RED_MAIN);
             graphics.fillRect(gridX + game.bossX * cellW, originY + game.bossY * cellH,
                     Game.BOSS_SIZE * cellW, Game.BOSS_SIZE * cellH);
         }
@@ -770,7 +765,7 @@ final class Renderer {
             case Game.LOCKED_DOOR -> MINIMAP_DOOR;
             case Game.PIT -> DARK;
             case Game.SCENERY -> MINIMAP_BORDER;
-            default -> lit ? MINIMAP_FLOOR_LIT : FLOOR_LIT_ALT;
+            default -> lit ? WALL_LIT : FLOOR_LIT_ALT;
         };
     }
 
@@ -789,7 +784,7 @@ final class Renderer {
         int barWidth = 200;
         int hpY = top + 10;
         rect(graphics, HP_BACK, barX, hpY, barWidth, 15);
-        rect(graphics, HP_FILL, barX, hpY, barWidth * Math.max(0, game.playerHp) / game.playerMaxHp, 15);
+        rect(graphics, RED_MAIN, barX, hpY, barWidth * Math.max(0, game.playerHp) / game.playerMaxHp, 15);
         graphics.setColor(HUD_TEXT);
         graphics.drawString("HP " + game.playerHp + "/" + game.playerMaxHp, barX + 64, hpY + 12);
 

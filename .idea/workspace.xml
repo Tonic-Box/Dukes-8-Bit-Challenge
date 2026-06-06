@@ -4,11 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Merged some colors">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="-Fixed inconsistencies in gradle tasks&#10;- pushed the camera into the Graphics transform&#10;- removed redundant returns from Game::keyDown&#10;- Hoist trinket lookup&#10;- Indexed request flags">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Game.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Renderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Renderer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -482,7 +483,23 @@
       <option name="project" value="LOCAL" />
       <updated>1780698983812</updated>
     </task>
-    <option name="localTasksCounter" value="31" />
+    <task id="LOCAL-00031" summary="- Simplified Game::keyDown&#10;- Optimized build">
+      <option name="closed" value="true" />
+      <created>1780726170741</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1780726170741</updated>
+    </task>
+    <task id="LOCAL-00032" summary="-Fixed inconsistencies in gradle tasks&#10;- pushed the camera into the Graphics transform&#10;- removed redundant returns from Game::keyDown&#10;- Hoist trinket lookup&#10;- Indexed request flags">
+      <option name="closed" value="true" />
+      <created>1780728763138</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1780728763138</updated>
+    </task>
+    <option name="localTasksCounter" value="33" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -497,9 +514,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- a few smaller size optimizations" />
-    <MESSAGE value="- Updated the readme" />
-    <MESSAGE value="- Let there be sound" />
     <MESSAGE value="Add replayability: gear effects, vaults, bosses, persistent floors, minimap&#10;- Effect-typed gear (lifesteal, crit, reach, poison, knockback, thorns, dodge, heal-on-kill) with proc flashes, plus a stats + equip-delta inventory screen and ~10 new items&#10;- Keys &amp; sealed vault rooms: locked doors gate treasure, with a key hidden elsewhere on the floor and vault odds that climb with depth&#10;- Arena bosses every 5th floor: a large 3x3 guardian with a telegraphed slam, an enrage that summons minions, and stairs sealed until it falls&#10;- Persistent floors: revisiting restores cleared enemies, opened doors, looted chests, and felled bosses instead of regenerating&#10;- Fog-aware minimap in the top-right tracking layout, stairs, and entities&#10;- README refreshed; floor snapshots packed into a primitive int[]" />
     <MESSAGE value="- Fixed sizing of minimap&#10;- Implemented stretching and resizability for the game view" />
     <MESSAGE value="- Added shaded jar task&#10;- added output shaded jar size to size task output" />
@@ -522,6 +536,9 @@
     <MESSAGE value="- Balancing to mob npc stats" />
     <MESSAGE value="- Output optimizations" />
     <MESSAGE value="- Merged some colors" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Merged some colors" />
+    <MESSAGE value="- Simplified Game::keyDown&#10;- Optimized build" />
+    <MESSAGE value="- pushed the camera into the Graphics transform" />
+    <MESSAGE value="-Fixed inconsistencies in gradle tasks&#10;- pushed the camera into the Graphics transform&#10;- removed redundant returns from Game::keyDown&#10;- Hoist trinket lookup&#10;- Indexed request flags" />
+    <option name="LAST_COMMIT_MESSAGE" value="-Fixed inconsistencies in gradle tasks&#10;- pushed the camera into the Graphics transform&#10;- removed redundant returns from Game::keyDown&#10;- Hoist trinket lookup&#10;- Indexed request flags" />
   </component>
 </project>

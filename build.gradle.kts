@@ -69,13 +69,14 @@ tasks.register<ProGuardTask>("proguard") {
     // Keep the launch entry point (Java 25 no-arg main); shrinking may still drop anything truly unused.
     keep("public class Main { public static void main(java.lang.String[]); static void main(); }")
 
-    // Keep all class names readable (Game/Renderer/Sound/Main); members may be shortened. Optimization
-    // is skipped because it inlines everything into Main and grows the output for this tiny codebase.
+    // Keep all class names readable (Game/Renderer/Sound/Main); members may be shortened. Only the
+    // single-caller inlining pass is disabled: it inlines the whole program into the Main entry class
+    // and balloons it (~+13 KB). Short-method inlining and the other optimizer passes stay on.
     keepnames("class **")
     overloadaggressively()
     allowaccessmodification()
     optimizationpasses(3)
-    optimizations("!class/merging/*,!method/inlining/*")
+    optimizations("!class/merging/*,!method/inlining/unique")
     dontwarn()
     dontnote()
 

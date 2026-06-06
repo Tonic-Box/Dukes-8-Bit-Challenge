@@ -99,11 +99,6 @@ final class Game {
         "Hot Coffee", "Lantern", "Lucky Coin",
         "Profiler", "Caffeine IV", "Keyring",
     };
-    private static final int[] ITEM_SLOT = {
-        WEAPON, WEAPON, WEAPON, WEAPON, WEAPON, WEAPON, WEAPON, WEAPON,
-        ARMOR, ARMOR, ARMOR, ARMOR, ARMOR, ARMOR,
-        TRINKET, TRINKET, TRINKET, TRINKET, TRINKET, TRINKET,
-    };
     private static final int[] ITEM_VALUE = {
         3, 5, 8, 4, 4, 5, 4, 6,
         2, 4, 6, 3, 2, 4,
@@ -383,16 +378,19 @@ final class Game {
         return effectOf(equippedArmor) == EFF_DODGE ? magOf(equippedArmor) : 0;
     }
 
-    int itemSlot(int packed)   { return ITEM_SLOT[itemId(packed)]; }
+    int itemSlot(int packed)   { return slotOf(itemId(packed)); }
     int itemEffect(int packed) { return ITEM_EFFECT[itemId(packed)]; }
+
+    /** Item slot from its id; items are laid out contiguously as weapons, then armor, then trinkets. */
+    private static int slotOf(int id) { return id < 8 ? WEAPON : id < 14 ? ARMOR : TRINKET; }
 
     /** Slot base stat plus rarity bonus plus an uncapped depth bonus on weapons (ATK) and armor (DEF). */
     int itemValue(int packed) {
         int id = itemId(packed);
         int value = ITEM_VALUE[id] + RARITY_STAT_BONUS[itemRarity(packed)];
-        if (ITEM_SLOT[id] == WEAPON) {
+        if (slotOf(id) == WEAPON) {
             value += (packed >> 7) / DEPTH_ATK_DIVISOR;
-        } else if (ITEM_SLOT[id] == ARMOR) {
+        } else if (slotOf(id) == ARMOR) {
             value += (packed >> 7) / DEPTH_DEF_DIVISOR;
         }
         return value;
@@ -401,7 +399,7 @@ final class Game {
 
     /** The item currently equipped in the same slot as {@code carried}, or -1 if that slot is empty. */
     int equippedCounterpart(int carried) {
-        return switch (ITEM_SLOT[itemId(carried)]) {
+        return switch (slotOf(itemId(carried))) {
             case WEAPON -> equippedWeapon;
             case ARMOR -> equippedArmor;
             default -> equippedTrinket;
@@ -433,7 +431,7 @@ final class Game {
     String itemName(int packed) {
         int id = itemId(packed);
         int rar = itemRarity(packed);
-        int slot = ITEM_SLOT[id];
+        int slot = slotOf(id);
         int val = itemValue(packed);
         StringBuilder sb = new StringBuilder(ITEM_BASE_NAME[id]);
         if (slot == WEAPON) sb.append("  +").append(val).append(" ATK");
@@ -1121,7 +1119,7 @@ final class Game {
         }
         int item = inventory[inventorySelection];
         int previous;
-        switch (ITEM_SLOT[itemId(item)]) {
+        switch (slotOf(itemId(item))) {
             case WEAPON -> {
                 previous = equippedWeapon;
                 equippedWeapon = item;

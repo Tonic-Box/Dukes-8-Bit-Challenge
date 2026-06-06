@@ -108,10 +108,10 @@ Size is measured as the compiled `.class` files under `build/classes/java/main`.
 
 - **Debug info stripped** (`-g:none`): line-number, local-variable, and source-file tables are removed from the bytecode while source remains fully readable.
 - **No asset files:** both graphics and audio are generated at runtime.
-- **Compact data:** enemy stats use small lookup tables, trivial one-call helpers are inlined, and both the music score and the sound-effect note sequences are packed into printable-char strings instead of array-init bytecode.
+- **Compact data:** enemy stats use small lookup tables, structural tables are computed instead of stored (item slots derive from id), near-duplicate colors are merged, and both the music score and the sound-effect note sequences are packed into printable-char strings instead of array-init bytecode.
 - **No per-frame allocation:** colors and the fog-overlay palette are hoisted into constants and lookup tables, polygon scratch buffers are shared, and entities are reused in fixed arrays, keeping peak memory low.
 - **Root Package:** The classes are dropped down to the root package to save on constant pool reference sizes
-- **ProGuard minify pass:** `build`/`run` finish with a ProGuard step that, in place, shortens member names (class names stay readable), reuses names aggressively, and runs the optimizer (minus the class-merging/inlining passes that would inflate the entry point) — reclaiming bytecode the compiler leaves behind.
+- **ProGuard minify pass:** `build`/`run` finish with a ProGuard step that, in place, shortens member names (class names stay readable), reuses names aggressively, and runs the optimizer (minus only the single-caller inlining pass, which would inline the whole program into the `Main` entry class and balloon it) — reclaiming bytecode the compiler leaves behind.
 - Other minor optimizations explained inline with comments.
 
 ### Size breakdown
@@ -120,10 +120,10 @@ Measured from a build (`./gradlew size`). There are **no runtime asset files** �
 
 | File | Size | Share |
 | --- | ---: | ---: |
-| `Game.class` | 23,351 B | 48% |
-| `Renderer.class` | 18,028 B | 37% |
-| `Sound.class` | 4,804 B | 10% |
+| `Game.class` | 23,626 B | 49% |
+| `Renderer.class` | 17,824 B | 37% |
+| `Sound.class` | 4,199 B | 9% |
 | `Main.class` | 2,851 B | 6% |
-| **Total** | **49,034 B (47.88 KB)** | |
+| **Total** | **48,500 B (47.36 KB)** | |
 
 (Before the ProGuard pass the same build is ~60 KB; minification reclaims ~11 KB with no source changes.)
