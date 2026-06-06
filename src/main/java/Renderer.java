@@ -25,7 +25,7 @@ final class Renderer {
     private static final Color XP_FILL = new Color(96, 140, 230);
     private static final Color DUKE_NOSE = new Color(232, 44, 44);
     private static final Color RED_MAIN = new Color(214, 70, 64);
-    private static final Color NULL_COLOR = new Color(158, 96, 214);
+    private static final Color PURPLE = new Color(158, 96, 214);
     private static final Color LEAK_COLOR = new Color(92, 192, 112);
     private static final Color FORK_COLOR = new Color(232, 150, 44);
     private static final Color DEADLOCK_COLOR = new Color(120, 122, 136);
@@ -36,7 +36,6 @@ final class Renderer {
     private static final Color SWORD_TRAIL_2 = new Color(224, 226, 240, 70);
     private static final BasicStroke SWORD_STROKE = new BasicStroke(3f);
     private static final Color FLOOR_LIT_ALT = new Color(56, 52, 70);
-    private static final Color SLATE = new Color(30, 28, 40);
     private static final Color DUKE_OUTLINE = new Color(22, 28, 70);
     private static final Color DUKE_BELLY = new Color(236, 239, 246);
     private static final Color DUKE_FOOT = new Color(242, 170, 44);
@@ -44,11 +43,10 @@ final class Renderer {
     private static final Color LEAK_DRIP = new Color(156, 232, 174);
     private static final Color MERCHANT_ROBE = new Color(150, 110, 60);
     private static final Color MERCHANT_SKIN = new Color(232, 196, 158);
-    private static final Color MERCHANT_HAT = new Color(96, 64, 32);
     private static final Color PROMPT = new Color(245, 240, 210);
     private static final Color POT_BODY = new Color(178, 90, 54);
     private static final Color POT_RIM = new Color(210, 130, 80);
-    private static final Color BOX_EDGE = new Color(110, 78, 38);
+    private static final Color BROWN = new Color(110, 78, 38);
     private static final Color VASE_BODY = new Color(88, 128, 170);
     private static final Color VASE_NECK = new Color(112, 158, 200);
     private static final Color[] SCENERY_DEBRIS = {
@@ -76,8 +74,6 @@ final class Renderer {
             new Color(70, 44, 36),
     };
     private static final Color BOSS_BODY_ENRAGED = new Color(96, 32, 44);
-    private static final Color BOSS_EDGE = new Color(158, 104, 200);
-    private static final Color BOSS_CORE = new Color(236, 96, 72);
     private static final Color BOSS_CORE_HOT = new Color(255, 198, 104);
     private static final Color BOSS_EYE = new Color(248, 232, 120);
     private static final Color BOSS_TELEGRAPH = new Color(255, 70, 60, 130);
@@ -307,7 +303,7 @@ final class Renderer {
         if (tile == Game.WALL) {
             rect(graphics, WALL_LIT, px, py, Game.TILE, Game.TILE);
             rect(graphics, GRAY_LIGHT, px, py, Game.TILE, 3);
-            rect(graphics, SLATE, px, py + Game.TILE - 3, Game.TILE, 3);
+            rect(graphics, DARK, px, py + Game.TILE - 3, Game.TILE, 3);
             return;
         }
         if (tile == Game.LOCKED_DOOR) {
@@ -361,7 +357,7 @@ final class Renderer {
             }
             case 1 -> {
                 rect(graphics, DOOR_PANEL_LIT, px + 4, py + 6, 16, 13);
-                graphics.setColor(BOX_EDGE);
+                graphics.setColor(BROWN);
                 graphics.drawRect(px + 4, py + 6, 16, 13);
                 graphics.drawLine(px + 4, py + 12, px + 20, py + 12);
                 graphics.drawLine(px + 12, py + 6, px + 12, py + 19);
@@ -519,7 +515,7 @@ final class Renderer {
         }
         switch (type) {
             case Game.NULLPTR -> {
-                graphics.setColor(NULL_COLOR);
+                graphics.setColor(PURPLE);
                 POLY_X[0] = px + 12; POLY_X[1] = px + 20; POLY_X[2] = px + 12; POLY_X[3] = px + 4;
                 POLY_Y[0] = py + 3; POLY_Y[1] = py + 12; POLY_Y[2] = py + 21; POLY_Y[3] = py + 12;
                 graphics.fillPolygon(POLY_X, POLY_Y, 4);
@@ -603,11 +599,11 @@ final class Renderer {
             graphics.fillPolygon(POLY_X, POLY_Y, 3);
         }
         graphics.fillRoundRect(px + 6, py + 10, size - 12, size - 20, 30, 30);
-        graphics.setColor(BOSS_EDGE);
+        graphics.setColor(PURPLE);
         graphics.drawRoundRect(px + 6, py + 10, size - 12, size - 20, 30, 30);
 
         int pulse = (int) (Math.sin(anim / 160.0) * 3) + 3;
-        oval(graphics, BOSS_CORE, px + size / 2 - 14 - pulse / 2, py + size / 2 - 10 - pulse / 2, 28 + pulse, 24 + pulse);
+        oval(graphics, RED_SOFT, px + size / 2 - 14 - pulse / 2, py + size / 2 - 10 - pulse / 2, 28 + pulse, 24 + pulse);
         oval(graphics, BOSS_CORE_HOT, px + size / 2 - 7, py + size / 2 - 6, 14, 12);
 
         graphics.setColor(BOSS_EYE);
@@ -765,7 +761,7 @@ final class Renderer {
         graphics.drawString("HP " + game.playerHp + "/" + game.playerMaxHp, barX + 64, hpY + 12);
 
         int xpY = top + 34;
-        rect(graphics, SLATE, barX, xpY, barWidth, 7);
+        rect(graphics, DARK, barX, xpY, barWidth, 7);
         rect(graphics, XP_FILL, barX, xpY, barWidth * Math.min(game.playerXp, game.xpForNext()) / game.xpForNext(), 7);
 
         graphics.setColor(GRAY_LIGHT);
@@ -908,7 +904,7 @@ final class Renderer {
         rect(graphics, DOOR_LOCK_LIT, cx - 4, py + 13, 8, 2);
         graphics.fillRect(cx - 1, py + 15, 2, Game.TILE - 17);
         oval(graphics, MERCHANT_SKIN, cx - 5, py + 4, 10, 9);
-        rect(graphics, MERCHANT_HAT, cx - 6, py + 3, 12, 2);
+        rect(graphics, BROWN, cx - 6, py + 3, 12, 2);
         graphics.fillRect(cx - 4, py, 8, 3);
         rect(graphics, DARK, cx - 3, py + 8, 2, 2);
         graphics.fillRect(cx + 1, py + 8, 2, 2);
