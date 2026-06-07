@@ -128,8 +128,8 @@ Measured from a build (`./gradlew size`), which sums the compiled classes and re
 
 | Artifact | Size |
 | --- | ---: |
-| `Main.class` (bootstrap loader) | 2,308 B |
-| `Game` resource (the whole game, compressed) | 18,359 B |
-| **Total** | **20,667 B (20.18 KB)** |
+| `Main.class` (bootstrap loader) | 2,258 B |
+| `Game` resource (the whole game, compressed) | 18,309 B |
+| **Total** | **20,567 B (20.08 KB)** |
 
 **Loader pattern.** `Game` carries the entire program but its StackMapTable frames are pure verifier bookkeeping. `Main` defines the inflated class into the bootstrap class loader, which is trusted and so runs no verification - the only thing that reads those frames - letting the build strip them before compressing. The blob is still an ordinary Java 25 class file; only the frames are gone. This trades a small, fixed loader for the frame bytes plus the compression of everything else, roughly halving the measured size.

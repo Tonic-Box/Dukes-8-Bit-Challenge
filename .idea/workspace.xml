@@ -4,12 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Build time merge all classes into Game.class">
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/BuildPasses.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/BuildPasses.java" afterDir="false" />
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Bugfix in gradle for proguard">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/inline-allowlist.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inline-allowlist.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/App.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -103,25 +100,26 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.Main.executor": "Run",
-    "Gradle.dukes8bit [build].executor": "Run",
-    "Gradle.dukes8bit [proguard].executor": "Run",
-    "Gradle.dukes8bit [run].executor": "Run",
-    "Gradle.dukes8bit [size].executor": "Run",
-    "Gradle.dukes8bit [test].executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/zacke/IdeaProjects/dukes8bit/build.gradle.kts",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.5091954",
-    "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.dukes8bit [build].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.dukes8bit [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.dukes8bit [proguard].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.dukes8bit [run].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.dukes8bit [size].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.dukes8bit [test].executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/zacke/IdeaProjects/dukes8bit/build.gradle.kts&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.5091954&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.gradle&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="Gradle.dukes8bit [size]">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Main" />
@@ -158,7 +156,7 @@
       <RunAsTest>false</RunAsTest>
       <method v="2" />
     </configuration>
-    <configuration name="dukes8bit [proguard]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="dukes8bit [clean]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -169,7 +167,7 @@
         </option>
         <option name="taskNames">
           <list>
-            <option value="proguard" />
+            <option value="clean" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -228,9 +226,9 @@
       <list>
         <item itemvalue="Gradle.dukes8bit [size]" />
         <item itemvalue="Gradle.dukes8bit [build]" />
+        <item itemvalue="Gradle.dukes8bit [clean]" />
         <item itemvalue="Gradle.dukes8bit [run]" />
         <item itemvalue="Application.Main" />
-        <item itemvalue="Gradle.dukes8bit [proguard]" />
       </list>
     </recent_temporary>
   </component>
@@ -611,7 +609,23 @@
       <option name="project" value="LOCAL" />
       <updated>1780815761966</updated>
     </task>
-    <option name="localTasksCounter" value="47" />
+    <task id="LOCAL-00047" summary="- Compile time strip Frames and stackmap data from the resultime merged Game class, compress via Zopfli and pack as a resource with a minimal loader class (Main.java) that abuses IMPL_LOOKUP to fetch the internal Unsafe class and load it via the bootstrap classloader (Since Bootstrap skips verifier check)">
+      <option name="closed" value="true" />
+      <created>1780825910770</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1780825910770</updated>
+    </task>
+    <task id="LOCAL-00048" summary="- Bugfix in gradle for proguard">
+      <option name="closed" value="true" />
+      <created>1780828050743</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1780828050743</updated>
+    </task>
+    <option name="localTasksCounter" value="49" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -626,8 +640,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- Added a design overview dot graph" />
-    <MESSAGE value="- Drop balancing" />
     <MESSAGE value="- Moved classes to root package&#10;- Merge 4 exact-duplicate Color constants&#10;- Inline the itemDepth() accessor&#10;- Fold the common setColor+fill idiom into static rect()/oval() helpers" />
     <MESSAGE value="- Replace 13 per-key Held fields with one held[] array" />
     <MESSAGE value="- Unified sound compression for sound effects now too, not just the music track&#10;- Extract randInterior() for the repeated genRandom interior-tile pick&#10;- Extract blocksMovement(tile), also fixing moveBoss recomputing map[index] four times per tile" />
@@ -651,6 +663,8 @@
     <MESSAGE value="- buildSrc ClassMerger fuses the Sound now into Game" />
     <MESSAGE value="- Sound.java restructured into a static design to better facilitate class merging more cleanly&#10;- buildSrc ClassMerger fuses the Sound now into Game" />
     <MESSAGE value="- Build time merge all classes into Game.class" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Build time merge all classes into Game.class" />
+    <MESSAGE value="- Compile time strip Frames and stackmap data from the resultime merged Game class, compress via Zopfli and pack as a resource with a minimal loader class (Main.java) that abuses IMPL_LOOKUP to fetch the internal Unsafe class and load it via the bootstrap classloader (Since Bootstrap skips verifier check)" />
+    <MESSAGE value="- Bugfix in gradle for proguard" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Bugfix in gradle for proguard" />
   </component>
 </project>
