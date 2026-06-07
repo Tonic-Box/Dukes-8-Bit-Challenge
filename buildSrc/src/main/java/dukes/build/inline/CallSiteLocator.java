@@ -1,5 +1,6 @@
-package dukes.build;
+package dukes.build.inline;
 
+import dukes.build.CompiledClasses;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;

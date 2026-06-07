@@ -1,4 +1,4 @@
-package dukes.build;
+package dukes.build.inline;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;

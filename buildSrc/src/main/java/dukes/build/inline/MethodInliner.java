@@ -1,5 +1,6 @@
-package dukes.build;
+package dukes.build.inline;
 
+import dukes.build.CompiledClasses;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -19,12 +20,11 @@ public final class MethodInliner {
     private MethodInliner() {
     }
 
-    /** Inlines each allowlisted method in place within {@code classesDir}; returns how many were inlined. */
-    public static int inline(File classesDir, List<String> allowlist) throws Exception {
+    /** Inlines each allowlisted method into the loaded class set; returns how many were inlined. */
+    public static int inline(CompiledClasses classes, List<String> allowlist) {
         if (allowlist.isEmpty()) {
             return 0;
         }
-        CompiledClasses classes = CompiledClasses.load(classesDir);
         CallSiteLocator locator = new CallSiteLocator(classes);
         for (String entry : allowlist) {
             String[] parts = entry.split("#");
@@ -35,7 +35,6 @@ public final class MethodInliner {
             MethodSplicer.splice(site.caller(), site.instruction(), callee);
             classes.removeMethod(declaringClass, callee);
         }
-        classes.writeModified();
         return allowlist.size();
     }
 

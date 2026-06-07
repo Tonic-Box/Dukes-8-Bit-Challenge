@@ -26,7 +26,7 @@ import java.util.stream.Stream;
  * The compiled classes one inliner run operates over. The only type that touches the filesystem or the ASM
  * read/write/verify machinery; analysis and transform code work against the {@link ClassNode}s it hands out.
  */
-final class CompiledClasses {
+public final class CompiledClasses {
 
     private final Map<String, ClassNode> byName;
     private final Map<String, Path> fileByName;
@@ -40,7 +40,7 @@ final class CompiledClasses {
     }
 
     /** Reads every compiled class under {@code classesDir} into a tree, so call sites resolve program-wide. */
-    static CompiledClasses load(File classesDir) throws Exception {
+    public static CompiledClasses load(File classesDir) throws Exception {
         // Frame computation and verification resolve types through the compiled classes plus the JDK
         // (the build JVM already has java.base/java.desktop on its module path, via the parent loader).
         URLClassLoader typeLoader = new URLClassLoader(new URL[]{classesDir.toURI().toURL()}, CompiledClasses.class.getClassLoader());
@@ -61,28 +61,28 @@ final class CompiledClasses {
     }
 
     /** The class registered under its internal name (e.g. {@code "Game"}), or null if absent. */
-    ClassNode get(String internalName) {
+    public ClassNode get(String internalName) {
         return byName.get(internalName);
     }
 
     /** Every loaded class, for whole-program scans. */
-    Collection<ClassNode> all() {
+    public Collection<ClassNode> all() {
         return byName.values();
     }
 
     /** Removes {@code method} from a class and marks the class for rewriting. */
-    void removeMethod(String internalName, MethodNode method) {
+    public void removeMethod(String internalName, MethodNode method) {
         byName.get(internalName).methods.remove(method);
         markModified(internalName);
     }
 
     /** Records that a class was mutated and must be rewritten on {@link #writeModified()}. */
-    private void markModified(String internalName) {
+    public void markModified(String internalName) {
         modified.add(internalName);
     }
 
     /** Recomputes stack map frames, verifies, and writes back every class that was marked modified. */
-    void writeModified() throws Exception {
+    public void writeModified() throws Exception {
         for (String className : modified) {
             ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES) {
                 @Override

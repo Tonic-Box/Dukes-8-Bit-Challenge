@@ -4,13 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Optimization to build">
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- tune-inline.bat script">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Game.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/CallSite.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/CallSiteLocator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/CompiledClasses.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/CompiledClasses.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/MethodInliner.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/MethodSplicer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/inline-allowlist.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inline-allowlist.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -564,7 +567,23 @@
       <option name="project" value="LOCAL" />
       <updated>1780777903915</updated>
     </task>
-    <option name="localTasksCounter" value="41" />
+    <task id="LOCAL-00041" summary="- buildSrc ASM pass inlines single-call methods into their one caller&#10;- Auto-tune the inline list against real post-ProGuard size (tools/tune-inline.sh)&#10;- Deadline-based frame pacing to kill the intermittent movement stutter&#10;- Shorter boss slam cooldown (4000 -&gt; 2500ms)">
+      <option name="closed" value="true" />
+      <created>1780794782305</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1780794782305</updated>
+    </task>
+    <task id="LOCAL-00042" summary="- tune-inline.bat script">
+      <option name="closed" value="true" />
+      <created>1780795638727</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1780795638727</updated>
+    </task>
+    <option name="localTasksCounter" value="43" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -579,8 +598,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- Size optimizations via effectOf/magOf helpers replacing the six accessors&#10;- Updated README" />
-    <MESSAGE value="- Size optimizations via effectOf/magOf helpers replacing the six accessors&#10;- Updated README&#10;- Cut runtime allocation ~8x via VRAM scene buffer and batched fog" />
     <MESSAGE value="- Size optimizations via effectOf/magOf helpers replacing the six accessors&#10;- Cut runtime allocation ~8x via VRAM scene buffer and batched fog&#10;- Updated README" />
     <MESSAGE value="- Updated README image" />
     <MESSAGE value="- Added in some explanatory comments" />
@@ -604,6 +621,8 @@
     <MESSAGE value="- Folded more similar/adjacent colors" />
     <MESSAGE value="- Compressed Item names and effect names" />
     <MESSAGE value="- Optimization to build" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Optimization to build" />
+    <MESSAGE value="- buildSrc ASM pass inlines single-call methods into their one caller&#10;- Auto-tune the inline list against real post-ProGuard size (tools/tune-inline.sh)&#10;- Deadline-based frame pacing to kill the intermittent movement stutter&#10;- Shorter boss slam cooldown (4000 -&gt; 2500ms)" />
+    <MESSAGE value="- tune-inline.bat script" />
+    <option name="LAST_COMMIT_MESSAGE" value="- tune-inline.bat script" />
   </component>
 </project>

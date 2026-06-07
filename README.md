@@ -114,11 +114,9 @@ Size is measured as the compiled `.class` files under `build/classes/java/main`.
 - **Root Package:** the classes are dropped to the root package to save on constant-pool reference sizes.
 - Other minor optimizations are explained inline with comments.
 
-### Build-time method inlining
-
-The source deliberately keeps many small single-use helper methods for readability, but every compiled method carries a fixed overhead. A custom build-time bytecode pass (in `buildSrc`, built on ASM) reclaims it: for each method called from exactly one place, it splices the body into that single caller and deletes the method.
-
-Which methods are worth inlining is decided by measurement, not guesswork: a tuner (`tools/tune-inline.sh`) rebuilds with each single-call candidate and keeps only those that actually reduce the measured `./gradlew size` (some inlines grow it instead). The winners are committed to `inline-allowlist.txt` and re-derived whenever the source changes.
+### Build-time bytecode passes
+- Single-call methods get inlined based on a tuned scan (`tools\tune-inline.sh` / `tools\tune-inline.bat`)
+- Constant `Color` fields packed into one load-decoded palette
 
 ### Size breakdown
 
@@ -126,8 +124,8 @@ Measured from a build (`./gradlew size`).
 
 | File | Size | Share |
 | --- | ---: | ---: |
-| `Game.class` | 22,279 B | 49% |
-| `Renderer.class` | 16,573 B | 37% |
+| `Game.class` | 22,279 B | 51% |
+| `Renderer.class` | 15,082 B | 34% |
 | `Sound.class` | 3,445 B | 8% |
 | `Main.class` | 2,957 B | 7% |
-| **Total** | **45,254 B (44.19 KB)** | |
+| **Total** | **43,763 B (42.74 KB)** | |

@@ -1,4 +1,4 @@
-package dukes.build;
+package dukes.build.inline;
 
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
