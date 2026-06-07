@@ -10,6 +10,9 @@ import java.util.concurrent.TimeUnit;
  * are scheduled note-by-note through one ScheduledExecutorService onto the JDK synthesizer's channels,
  * so no audio assets ship and a single playback path drives everything. Effects own channels 0-3 and
  * music owns channels 4-6 so they never collide. If no synthesizer is available every method is a no-op.
+ *
+ * <p>A static utility: there is one audio output, so the synthesizer, channels, scheduler, and mute state
+ * are class-level and the synth is opened (and the music ticker started) in the static initializer.
  */
 final class Sound {
 
@@ -58,14 +61,14 @@ final class Sound {
     private static final String BASS = "]04d44Y84`<4`@4[D4[H4bL4";
     private static final String ARP = "i02l22p42u62e82i:2l<2q>2l@2pB2sD2xF2gH2kJ2nL2sN2";
 
-    private final MidiChannel[] channels;
-    private final ScheduledExecutorService scheduler;
-    private boolean muted;
-    private boolean musicMuted;
-    private int musicEighth;
-    private long lastFootstepNanos;
+    private static final MidiChannel[] channels;
+    private static final ScheduledExecutorService scheduler;
+    private static boolean muted;
+    private static boolean musicMuted;
+    private static int musicEighth;
+    private static long lastFootstepNanos;
 
-    Sound() {
+    static {
         MidiChannel[] openChannels;
         ScheduledExecutorService timer;
         try {
@@ -89,18 +92,25 @@ final class Sound {
         channels = openChannels;
         scheduler = timer;
         if (scheduler != null) {
-            scheduler.scheduleAtFixedRate(this::advanceMusic, 0, EIGHTH_MS, TimeUnit.MILLISECONDS);
+            scheduler.scheduleAtFixedRate(Sound::advanceMusic, 0, EIGHTH_MS, TimeUnit.MILLISECONDS);
         }
     }
 
+    private Sound() {
+    }
+
+    /** No-op whose only job is to run the static initializer eagerly (open the synth, start the music ticker). */
+    static void init() {
+    }
+
     /** A fast, bright two-note downward slash for Duke's spin attack. */
-    void swordAttack() { play("0p:!-0i:*1"); }
+    static void swordAttack() { play("0p:!-0i:*1"); }
 
     /** A low, blunt two-note thud when an enemy lands a hit on Duke. */
-    void enemyAttack() { play("1CZ!31<Z,;"); }
+    static void enemyAttack() { play("1CZ!31<Z,;"); }
 
     /** A soft, dampened low thud for a footstep, throttled so rapid steps stay natural. */
-    void footstep() {
+    static void footstep() {
         if (channels == null) {
             return;
         }
@@ -113,34 +123,34 @@ final class Sound {
     }
 
     /** A short rising glockenspiel arpeggio when Duke takes the stairs. */
-    void stairs() { play("2`F!92dF/92gF=92lLKM"); }
+    static void stairs() { play("2`F!92dF/92gF=92lLKM"); }
 
     /** A bright two-note chime when Duke pockets a key. */
-    void keyPickup() { play("2kD!32pJ1?"); }
+    static void keyPickup() { play("2kD!32pJ1?"); }
 
     /** A heavy latch clunk resolving into a rising chime as a sealed vault door swings open. */
-    void doorUnlock() { play("1@R!92dD;;2kLQM"); }
+    static void doorUnlock() { play("1@R!92dD;;2kLQM"); }
 
     /** A sharp percussive crack when a breakable prop is smashed. */
-    void sceneryBreak() { play("0d`!)1HR#10T:,-"); }
+    static void sceneryBreak() { play("0d`!)1HR#10T:,-"); }
 
     /** A descending bass sequence as Duke tumbles into a pit. */
-    void pitFall() { play("0`N!10YN510QNI10JX]51<duu"); }
+    static void pitFall() { play("0`N!10YN510QNI10JX]51<duu"); }
 
     /** A harsh dissonant cluster hit when a mimic chest springs to life. */
-    void mimicReveal() { play("1Oh!11Ph!12xX!-2lR/91C`5A"); }
+    static void mimicReveal() { play("1Oh!11Ph!12xX!-2lR/91C`5A"); }
 
     /** A deep, percussive boom as the boss brings down an area slam. */
-    void bossSlam() { play("17d!314d*A10h4O"); }
+    static void bossSlam() { play("17d!314d*A10h4O"); }
 
     /** A bright descending fanfare when the boss is finally felled. */
-    void bossDefeat() { play("2lL!?2gL??2dL]?2`R{a"); }
+    static void bossDefeat() { play("2lL!?2gL??2dL]?2`R{a"); }
 
     /**
      * Plays a packed sound effect: five chars per note — channel+48, key+24, velocity-22,
      * (startMs/5)+33, (durationMs/5)+33 — biased so every byte stays printable, mirroring the music pack.
      */
-    private void play(String packed) {
+    private static void play(String packed) {
         if (channels == null) {
             return;
         }
@@ -151,7 +161,7 @@ final class Sound {
     }
 
     /** Toggles all audio: the tickers keep running but stay quiet, and any sounding notes are cut off. */
-    void toggleMute() {
+    static void toggleMute() {
         if (channels == null) return;
         muted = !muted;
         if (muted) {
@@ -160,7 +170,7 @@ final class Sound {
     }
 
     /** Toggles only the music track; sound effects are unaffected. */
-    void toggleMusicMute() {
+    static void toggleMusicMute() {
         if (channels == null) return;
         musicMuted = !musicMuted;
         if (musicMuted) {
@@ -174,7 +184,7 @@ final class Sound {
      * Schedules one note: key on at {@code startMs}, off {@code durationMs} later. The note-on is gated at
      * fire time by the mute flags ({@code music} notes also honor the music-only mute) so a toggle is instant.
      */
-    private void note(int channel, int key, int velocity, long startMs, long durationMs, boolean music) {
+    private static void note(int channel, int key, int velocity, long startMs, long durationMs, boolean music) {
         scheduler.schedule(() -> {
             if (!muted && !(music && musicMuted)) channels[channel].noteOn(key, velocity);
         }, startMs, TimeUnit.MILLISECONDS);
@@ -188,7 +198,7 @@ final class Sound {
     }
 
     /** One eighth-note tick of the looping track: starts the bass, arp, and melody notes that begin here. */
-    private void advanceMusic() {
+    private static void advanceMusic() {
         int eighth = musicEighth;
         musicEighth = (musicEighth + 1) % LOOP_EIGHTHS;
         if (muted || musicMuted) {
@@ -205,7 +215,7 @@ final class Sound {
      * Only the bass repeats a pitch on back-to-back notes, so only it gets the release gap; the melody and
      * arp ring their full length to keep the sustained, tailed sound of the original sequencer playback.
      */
-    private void tickVoice(int channel, String notes, int velocity, int pos) {
+    private static void tickVoice(int channel, String notes, int velocity, int pos) {
         long gap = channel == BASS_CHANNEL ? NOTE_GAP_MS : 0;
         for (int i = 0; i < notes.length(); i += 3) {
             if (notes.charAt(i + 1) - NOTE_PACK_OFFSET == pos) {

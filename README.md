@@ -65,7 +65,7 @@ Four classes, each with a single responsibility:
 | `Renderer` | All drawing; stateless and derived entirely from `Game`. |
 | `Sound` | Procedural MIDI: sound effects and a looping music track via the JDK synthesizer. |
 
-The source is these four classes for readability; a build-time pass (see [Build-time bytecode passes](#build-time-bytecode-passes)) fuses the stateless `Renderer` into `Game`, so the shipped build is three classes sharing one constant pool.
+The source is these four classes for readability; a build-time pass (see [Build-time bytecode passes](#build-time-bytecode-passes)) fuses the stateless `Renderer` and the static `Sound` into `Game`, so the shipped build is two classes (`Game` and `Main`) sharing one constant pool.
 
 Key decisions:
 
@@ -119,7 +119,7 @@ Size is measured as the compiled `.class` files under `build/classes/java/main`.
 ### Build-time bytecode passes
 - Single-call methods get inlined based on a tuned scan (`tools\tune-inline.sh` / `tools\tune-inline.bat`)
 - Constant `Color` fields packed into one load-decoded palette
-- The stateless `Renderer` is merged into `Game`
+- The stateless `Renderer` and the static `Sound` are merged into `Game` (four source classes ship as two), collapsing their constant pools into one
 
 ### Size breakdown
 
@@ -127,9 +127,8 @@ Measured from a build (`./gradlew size`).
 
 | File | Size | Share |
 | --- | ---: | ---: |
-| `Game.class` | 36,082 B | 85% |
-| `Sound.class` | 3,445 B | 8% |
+| `Game.class` | 38,964 B | 93% |
 | `Main.class` | 2,896 B | 7% |
-| **Total** | **42,423 B (41.43 KB)** | |
+| **Total** | **41,860 B (40.88 KB)** | |
 
-`Renderer.class` is absent because the build merges it into `Game` (see above).
+`Renderer.class` and `Sound.class` are absent because the build merges them into `Game` (see above).

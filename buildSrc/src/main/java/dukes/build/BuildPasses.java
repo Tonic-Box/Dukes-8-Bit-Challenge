@@ -3,7 +3,6 @@ package dukes.build;
 import dukes.build.color.ColorPacker;
 import dukes.build.inline.MethodInliner;
 import dukes.build.merge.ClassMerger;
-
 import java.io.File;
 import java.util.List;
 
@@ -23,8 +22,8 @@ public final class BuildPasses {
         int coloursPacked = ColorPacker.pack(classes);
         int methodsInlined = MethodInliner.inline(classes, inlineAllowlist);
         int methodsMerged = ClassMerger.merge(classes, "Game", "Renderer");
+        methodsMerged += ClassMerger.merge(classes, "Game", "Sound");
         classes.writeModified();
-        System.out.println("build passes: packed " + coloursPacked + " colour(s), inlined "
-                + methodsInlined + " method(s), merged " + methodsMerged + " Renderer method(s) into Game");
+        System.out.println("build passes: packed " + coloursPacked + " colour(s), inlined " + methodsInlined + " method(s), merged " + methodsMerged + " method(s) into Game");
     }
 }

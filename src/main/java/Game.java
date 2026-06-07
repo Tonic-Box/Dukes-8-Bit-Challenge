@@ -182,7 +182,6 @@ final class Game {
     private final Random random = new Random();
     // Generation uses its own seeded RNG so floor layouts are reproducible, independent of combat rolls.
     private final Random genRandom = new Random();
-    private final Sound sound = new Sound();
     // Each visited floor is cached as one packed int[] so revisiting restores it rather than regenerating.
     // Layout: an 11-int header, then 5 ints per enemy, 5 per loot, the map, and the explored mask.
     private static final int SNAP_ENEMY_BASE = 11;
@@ -285,6 +284,7 @@ final class Game {
     private final boolean[] req = new boolean[6];
 
     Game() {
+        Sound.init();
         startNewGame();
     }
 
@@ -458,11 +458,11 @@ final class Game {
             return;
         }
         if (code == KeyEvent.VK_M) {
-            sound.toggleMute();
+            Sound.toggleMute();
             return;
         }
         if (code == KeyEvent.VK_T) {
-            sound.toggleMusicMute();
+            Sound.toggleMusicMute();
             return;
         }
         if (state == DEAD) {
@@ -674,7 +674,7 @@ final class Game {
                 keys--;
                 map[index(nextX, nextY)] = FLOOR;
                 computeFieldOfView();
-                sound.doorUnlock();
+                Sound.doorUnlock();
             }
             return;
         }
@@ -712,10 +712,10 @@ final class Game {
             fallProgress = 0f;
             fallFloors = 1 + random.nextInt(3);
             moveProgress = 1f;
-            sound.pitFall();
+            Sound.pitFall();
             return;
         }
-        sound.footstep();
+        Sound.footstep();
         moveProgress = 0f;
     }
 
@@ -725,7 +725,7 @@ final class Game {
      */
     private void performAttack() {
         attackProgress = 0f;
-        sound.swordAttack();
+        Sound.swordAttack();
         int effect = effectOf(equippedWeapon);
         int reach = effect == EFF_REACH ? 2 : 1;
         for (int i = enemyCount - 1; i >= 0; i--) {
@@ -779,7 +779,7 @@ final class Game {
 
     private void breakScenery(int x, int y) {
         map[index(x, y)] = FLOOR;
-        sound.sceneryBreak();
+        Sound.sceneryBreak();
         if (random.nextInt(100) < 20) {
             spawnLoot(x, y, rollItem(random, 0), false);
         }
@@ -1168,7 +1168,7 @@ final class Game {
         if (i < 0) return;
         if (lootKey[i]) {
             keys++;
-            sound.keyPickup();
+            Sound.keyPickup();
             removeLoot(i);
         } else if (!lootChest[i] && inventoryCount < INVENTORY_SIZE) {
             inventory[inventoryCount++] = lootItem[i];
@@ -1192,7 +1192,7 @@ final class Game {
                         }
                     }
                     addEnemy(mimicX, mimicY, MIMIC, true);
-                    sound.mimicReveal();
+                    Sound.mimicReveal();
                 } else if (inventoryCount < INVENTORY_SIZE) {
                     inventory[inventoryCount++] = lootItem[i];
                     removeLoot(i);
@@ -1208,7 +1208,7 @@ final class Game {
      * destination is restored from that cache, and a fresh floor is generated only on a first visit.
      */
     private void changeFloor(int delta, boolean arriveAtDownStairs) {
-        sound.stairs();
+        Sound.stairs();
         saveFloor();
         floor += delta;
         // Start the new floor dark so its lit area fades in rather than snapping on arrival.
@@ -1722,7 +1722,7 @@ final class Game {
     /** A telegraphed area slam: everything within {@link #BOSS_SLAM_RADIUS} of the footprint is struck. */
     private void bossSlam() {
         bossShockwave = 1f;
-        sound.bossSlam();
+        Sound.bossSlam();
         if (bossDistanceToPlayer() <= BOSS_SLAM_RADIUS) {
             applyBossHitToPlayer(bossSlamDamage());
         }
@@ -1735,7 +1735,7 @@ final class Game {
             return false;
         }
         playerHp -= Math.max(1, raw - defense());
-        sound.enemyAttack();
+        Sound.enemyAttack();
         if (playerHp <= 0) {
             playerHp = 0;
             state = DEAD;
@@ -1785,7 +1785,7 @@ final class Game {
         grantXp(50 + floor * 8);
         spawnLoot(bossX, bossY, rollItem(random, 20), true);
         spawnLoot(bossX + BOSS_SIZE - 1, bossY + BOSS_SIZE - 1, rollItem(random, 20), true);
-        sound.bossDefeat();
+        Sound.bossDefeat();
     }
 
     /**
