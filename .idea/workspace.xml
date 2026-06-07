@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Shaved a few bytes in Main.java reducing locals&#10;- Updated readme with a graph of the build lifecycle">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Updated readme formatting">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -241,22 +240,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1780326724902</updated>
-    </task>
-    <task id="LOCAL-00003" summary="- Shrink Game.class via lookup tables, inlining, and constant cleanup">
-      <option name="closed" value="true" />
-      <created>1780458045757</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1780458045757</updated>
-    </task>
-    <task id="LOCAL-00004" summary="- Shrink Game.class via lookup tables, inlining, and constant cleanup&#10;- a few other smaller optimizations">
-      <option name="closed" value="true" />
-      <created>1780460739751</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1780460739751</updated>
     </task>
     <task id="LOCAL-00005" summary="- a few smaller size optimizations">
       <option name="closed" value="true" />
@@ -634,7 +617,23 @@
       <option name="project" value="LOCAL" />
       <updated>1780841629613</updated>
     </task>
-    <option name="localTasksCounter" value="52" />
+    <task id="LOCAL-00052" summary="- Shaved a few bytes in Main.java">
+      <option name="closed" value="true" />
+      <created>1780842669135</created>
+      <option name="number" value="00052" />
+      <option name="presentableId" value="LOCAL-00052" />
+      <option name="project" value="LOCAL" />
+      <updated>1780842669135</updated>
+    </task>
+    <task id="LOCAL-00053" summary="- Updated readme formatting">
+      <option name="closed" value="true" />
+      <created>1780842990558</created>
+      <option name="number" value="00053" />
+      <option name="presentableId" value="LOCAL-00053" />
+      <option name="project" value="LOCAL" />
+      <updated>1780842990558</updated>
+    </task>
+    <option name="localTasksCounter" value="54" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -649,8 +648,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- Balancing to mob npc stats" />
-    <MESSAGE value="- Output optimizations" />
     <MESSAGE value="- Merged some colors" />
     <MESSAGE value="- Simplified Game::keyDown&#10;- Optimized build" />
     <MESSAGE value="- pushed the camera into the Graphics transform" />
@@ -674,6 +671,8 @@
     <MESSAGE value="- Method Inlining: interaction-aware allowlist refinement" />
     <MESSAGE value="Fix bossSlam method collision; boss + inventory tweaks; stale-jar build guard&#10;- Rename Game.bossSlam -&gt; bossSlamAttack (collided with static Sound.bossSlam when merged, causing IncompatibleClassChangeError); merger now fails on duplicate methods&#10;- Boss: first attack is always a telegraphed slam; add a low, slow-scaling base defence&#10;- Inventory hotkey I -&gt; Tab (toggle);" />
     <MESSAGE value="- Shaved a few bytes in Main.java reducing locals&#10;- Updated readme with a graph of the build lifecycle" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Shaved a few bytes in Main.java reducing locals&#10;- Updated readme with a graph of the build lifecycle" />
+    <MESSAGE value="- Shaved a few bytes in Main.java" />
+    <MESSAGE value="- Updated readme formatting" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Updated readme formatting" />
   </component>
 </project>

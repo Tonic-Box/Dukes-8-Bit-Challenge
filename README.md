@@ -17,6 +17,15 @@ Requires **JDK 25**.
 ./gradlew build   # compile + package
 ```
 
+## Notes for game-play
+- It's to your benefit to try and fully explore each floor before going down:
+  - You'll find gear to equip
+  - Level up and get gold from killing stuff
+  - Every floor has a shop npc you can buy potions from
+- If you find a key, there is a locked room somewhere on your floor
+- Buy all the potions you can (It's the only thing gold is used for)
+- Every 5 floors is a boss
+
 ## Controls
 
 | Action | Key |
@@ -122,6 +131,9 @@ Size is measured as the compiled `.class` files and resources under `build/class
 - The merged `Game` is then frame-stripped and compressed into the `Game` resource (see the loader pattern below)
 - Compression uses a from-scratch DEFLATE encoder (Zopfli-style optimal LZ77 parse plus block splitting) that beats the stock library at the same format, so the stock inflater still decodes it
 
+**Loader pattern:**`Game` carries the entire program but its StackMapTable frames are pure verifier bookkeeping. `Main` defines the inflated class into the bootstrap class loader, which is trusted and so runs no verification - the only thing that reads those frames - letting the build strip them before compressing. The blob is still an ordinary Java 25 class file; only the frames are gone. This trades a small, fixed loader for the frame bytes plus the compression of everything else, roughly halving the measured size.
+
+
 ![build.png](build.png)
 
 ### Size breakdown
@@ -133,5 +145,3 @@ Measured from a build (`./gradlew size`), which sums the compiled classes and re
 | `Main.class` (bootstrap loader) | 2,229 B |
 | `Game` resource (the whole game, compressed) | 18,420 B |
 | **Total** | **20,649 B (20.17 KB)** |
-
-**Loader pattern:** `Game` carries the entire program but its StackMapTable frames are pure verifier bookkeeping. `Main` defines the inflated class into the bootstrap class loader, which is trusted and so runs no verification - the only thing that reads those frames - letting the build strip them before compressing. The blob is still an ordinary Java 25 class file; only the frames are gone. This trades a small, fixed loader for the frame bytes plus the compression of everything else, roughly halving the measured size.
