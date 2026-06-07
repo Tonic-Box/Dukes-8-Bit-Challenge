@@ -4,10 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Folded more similar/adjacent colors">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Optimization to build">
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Game.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -120,7 +123,7 @@
     "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle"
   }
 }]]></component>
-  <component name="RunManager" selected="Application.Main">
+  <component name="RunManager" selected="Gradle.dukes8bit [size]">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Main" />
       <module name="dukes8bit.main" />
@@ -224,10 +227,10 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.Main" />
         <item itemvalue="Gradle.dukes8bit [size]" />
-        <item itemvalue="Gradle.dukes8bit [run]" />
         <item itemvalue="Gradle.dukes8bit [build]" />
+        <item itemvalue="Application.Main" />
+        <item itemvalue="Gradle.dukes8bit [run]" />
         <item itemvalue="Gradle.dukes8bit [proguard]" />
       </list>
     </recent_temporary>
@@ -545,7 +548,23 @@
       <option name="project" value="LOCAL" />
       <updated>1780745672103</updated>
     </task>
-    <option name="localTasksCounter" value="39" />
+    <task id="LOCAL-00039" summary="- Compressed Item names and effect names">
+      <option name="closed" value="true" />
+      <created>1780747102540</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1780747102540</updated>
+    </task>
+    <task id="LOCAL-00040" summary="- Optimization to build">
+      <option name="closed" value="true" />
+      <created>1780777903915</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1780777903915</updated>
+    </task>
+    <option name="localTasksCounter" value="41" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -560,8 +579,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- Reworked items to have more variety and uniqueness via stat rolling and randomized names&#10;- balanced loot drops, rarity chances, and chest spawns a bit better&#10;- Balanced attack speeds and movement speeds of player and npcs&#10;- Standardized controls a bit better&#10;- Added 15% chance for opening chests to spawn a mimic" />
-    <MESSAGE value="- Added breakable scenery&#10;- Added pitfalls &#10;- Added hotkey for muting the music track" />
     <MESSAGE value="- Size optimizations via effectOf/magOf helpers replacing the six accessors&#10;- Updated README" />
     <MESSAGE value="- Size optimizations via effectOf/magOf helpers replacing the six accessors&#10;- Updated README&#10;- Cut runtime allocation ~8x via VRAM scene buffer and batched fog" />
     <MESSAGE value="- Size optimizations via effectOf/magOf helpers replacing the six accessors&#10;- Cut runtime allocation ~8x via VRAM scene buffer and batched fog&#10;- Updated README" />
@@ -585,6 +602,8 @@
     <MESSAGE value="- Merge seven near-duplicate colors into shared neutral-named survivors (pit shades, boss/HP/XP bar colors, stat-down indicator, wall edge)&#10;- Replace the six size-specific polygon scratch arrays with a single size-5 POLY_X/POLY_Y pair (fillPolygon only reads the first nPoints)" />
     <MESSAGE value="Unify audio onto one scheduler, drop the MIDI sequencer (−754 B)&#10;- Music now plays note-by-note through the SFX scheduler via an eighth-note ticker&#10;- Instant mute/music-mute via fire-time checks; bass gets a release gap to avoid self-cancelling repeats" />
     <MESSAGE value="- Folded more similar/adjacent colors" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Folded more similar/adjacent colors" />
+    <MESSAGE value="- Compressed Item names and effect names" />
+    <MESSAGE value="- Optimization to build" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Optimization to build" />
   </component>
 </project>

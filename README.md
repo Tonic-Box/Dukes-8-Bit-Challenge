@@ -120,8 +120,8 @@ Measured from a build (`./gradlew size`).
 
 | File | Size | Share |
 | --- | ---: | ---: |
-| `Game.class` | 23,100 B | 50% |
-| `Renderer.class` | 17,212 B | 37% |
-| `Sound.class` | 3,445 B | 7% |
-| `Main.class` | 2,852 B | 6% |
-| **Total** | **46,609 B (45.52 KB)** | |
+| `Game.class` | 22,279 B | 49% |
+| `Renderer.class` | 16,573 B | 37% |
+| `Sound.class` | 3,445 B | 8% |
+| `Main.class` | 2,957 B | 7% |
+| **Total** | **45,254 B (44.19 KB)** | |

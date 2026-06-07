@@ -31,29 +31,55 @@ tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
 }
 
-// ProGuard minifies in place, overwriting build/classes/java/main. Without this, a later run whose
-// sources are unchanged would leave those already-minified classes in place and feed them back through
-// ProGuard, double-minifying into a different byte count. Forcing a clean recompile each time keeps the
-// minify input pristine, so `size` is deterministic.
+// ProGuard minifies in place, so feeding already-minified classes back in would double-minify and drift the
+// byte count. Clean-recompile each run to keep the minify input pristine and `size` deterministic.
 tasks.named<JavaCompile>("compileJava") {
     outputs.upToDateWhen { false }
     doFirst { destinationDirectory.get().asFile.deleteRecursively() }
 }
 
-// No runtime dependencies, so the plain jar is already a complete runnable jar. ProGuard later
-// overwrites this jar in place; force a repackage each run so it always reflects the freshly-compiled
-// (non-minified) classes rather than serving back a previously-minified jar (which would double-minify).
+// Inlines the winning single-call methods listed in inline-allowlist.txt, which tools/tune-inline.sh generates
+// by measuring each candidate's real post-ProGuard size (a static gate can't predict ProGuard's optimizer).
+// Override with -Pinline=Game#a,Renderer#b for one-off experiments.
+val allowlistFile = layout.projectDirectory.file("inline-allowlist.txt").asFile
+val explicitInline: List<String>? = (findProperty("inline") as String?)
+    ?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() }
+val inlineMethods = tasks.register("inlineMethods") {
+    dependsOn("compileJava")
+    outputs.upToDateWhen { false }
+    val classesDir = layout.buildDirectory.dir("classes/java/main").get().asFile
+    doLast {
+        val allowlist = explicitInline ?: if (allowlistFile.exists())
+            allowlistFile.readLines().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("//") }
+        else emptyList()
+        val count = dukes.build.MethodInliner.inline(classesDir, allowlist)
+        println("inlineMethods: inlined $count method(s) before packaging.")
+    }
+}
+
+// Lists every private single-call candidate (on the freshly compiled, pre-inlining classes) for the tuner.
+tasks.register("listInlineCandidates") {
+    dependsOn("compileJava")
+    val classesDir = layout.buildDirectory.dir("classes/java/main").get().asFile
+    doLast {
+        dukes.build.MethodInliner.discoverCandidates(classesDir).sorted().forEach { println(it) }
+    }
+}
+
+// No runtime deps, so the plain jar is already runnable. Force a repackage each run so ProGuard minifies
+// freshly-compiled classes rather than re-minifying a previous jar.
 tasks.jar {
     archiveBaseName = "DukesDescent"
     manifest { attributes["Main-Class"] = "Main" }
+    dependsOn(inlineMethods)
     outputs.upToDateWhen { false }
 }
 
 tasks.register<ProGuardTask>("proguard") {
     group = "build"
-    description = "Minify in place (shrink + shorten member names, keep class names): the jar and build/classes/java/main."
+    description = "Minify in place (shrink + shorten members, keep class names): the jar and compiled classes."
     dependsOn("jar")
-    // Always re-run: the task overwrites the compile/jar outputs, which would otherwise confuse up-to-date checks.
+    // Always re-run: it overwrites the compile/jar outputs, which would confuse up-to-date checks.
     outputs.upToDateWhen { false }
 
     val jdk = System.getProperty("java.home")
@@ -66,13 +92,12 @@ tasks.register<ProGuardTask>("proguard") {
     libraryjars("$jdk/jmods/java.base.jmod")
     libraryjars("$jdk/jmods/java.desktop.jmod")
 
-    // Keep the launch entry point (Java 25 no-arg main); shrinking may still drop anything truly unused.
+    // Keep the launch entry point; shrinking may still drop anything unused.
     keep("public class Main { public static void main(java.lang.String[]); static void main(); }")
 
-    // Keep all class names readable (Game/Renderer/Sound/Main); members may be shortened. Two optimizer
-    // passes are turned off because they grow this codebase rather than shrink it: single-caller inlining
-    // (it inlines the whole program into the Main entry class, ~+13 KB) and method-parameter propagation
-    // (measured ~+17 B here). Pass count is raised to 8, where the optimizer converges. Everything else stays on.
+    // Keep class names readable; members may shorten. Two optimizations are off because they grow this build:
+    // unique-method inlining (cascades the program into Main, ~+13 KB) and parameter propagation (~+17 B).
+    // 8 passes is where the optimizer converges.
     keepnames("class **")
     overloadaggressively()
     allowaccessmodification()

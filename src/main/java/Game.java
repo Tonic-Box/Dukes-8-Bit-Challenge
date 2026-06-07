@@ -139,9 +139,9 @@ final class Game {
     private static final float BOSS_SHOCKWAVE_MS = 360f;
     // The slam only strikes the ring of tiles touching the footprint, so one step out of melee is safe.
     static final int BOSS_SLAM_RADIUS = 1;
-    // The slam is an occasional punctuation: a long cooldown keeps regular bites flowing between slams.
+    // The slam punctuates the regular bites: a cooldown spaces slams out so they stay a telegraphed threat.
     private static final int BOSS_SLAM_CHANCE = 55;
-    private static final float BOSS_SLAM_COOLDOWN_MS = 4000f;
+    private static final float BOSS_SLAM_COOLDOWN_MS = 2500f;
     private static final int BOSS_IDLE = 0;
     private static final int BOSS_WINDUP = 1;
 
@@ -781,7 +781,7 @@ final class Game {
         map[index(x, y)] = FLOOR;
         sound.sceneryBreak();
         if (random.nextInt(100) < 20) {
-            spawnLoot(x, y, rollItem(random), false);
+            spawnLoot(x, y, rollItem(random, 0), false);
         }
         if (breakCount < BREAK_CAP) {
             breakX[breakCount] = x;
@@ -832,7 +832,7 @@ final class Game {
         if (deadType == MIMIC) {
             spawnLoot(deadX, deadY, rollItem(random, 0, true), false);
         } else if (deadType == DEADLOCK || random.nextInt(6) == 0) {
-            spawnLoot(deadX, deadY, rollItem(random), false);
+            spawnLoot(deadX, deadY, rollItem(random, 0), false);
         }
     }
 
@@ -1015,7 +1015,6 @@ final class Game {
      * Picks a packed item int: rolls rarity (floor-biased toward higher tiers at depth), then picks the
      * template. Trinkets and effect-bearing gear are the rarer slice; plain gear tier scales with floor.
      */
-    private int rollItem(Random rng) { return rollItem(rng, 0, false); }
     private int rollItem(Random rng, int rarityBonus) { return rollItem(rng, rarityBonus, false); }
 
     private int rollItem(Random rng, int rarityBonus, boolean minRare) {
@@ -1521,11 +1520,11 @@ final class Game {
                 map[index(ax + forwardX * along + sideX * across, ay + forwardY * along + sideY * across)] = FLOOR;
             }
         }
-        spawnLoot(ax + forwardX * 3, ay + forwardY * 3, rollItem(genRandom), true);
+        spawnLoot(ax + forwardX * 3, ay + forwardY * 3, rollItem(genRandom, 0), true);
         if (genRandom.nextBoolean())
-            spawnLoot(ax + forwardX * 4 + sideX, ay + forwardY * 4 + sideY, rollItem(genRandom), true);
+            spawnLoot(ax + forwardX * 4 + sideX, ay + forwardY * 4 + sideY, rollItem(genRandom, 0), true);
         if (genRandom.nextInt(100) < 15)
-            spawnLoot(ax + forwardX * 4 - sideX, ay + forwardY * 4 - sideY, rollItem(genRandom), true);
+            spawnLoot(ax + forwardX * 4 - sideX, ay + forwardY * 4 - sideY, rollItem(genRandom, 0), true);
     }
 
     /** Drops one key on an open floor tile a good walk away from the vault door, never in its room. */
@@ -1864,7 +1863,7 @@ final class Game {
             if (!openSpot(x, y)) {
                 continue;
             }
-            spawnLoot(x, y, rollItem(genRandom), true);
+            spawnLoot(x, y, rollItem(genRandom, 0), true);
             placed++;
         }
     }

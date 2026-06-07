@@ -68,11 +68,23 @@ public final class Main extends Frame implements KeyEventDispatcher {
     }
 
     /**
-     * The frame loop: advance the game's clocks by the elapsed time, redraw the fixed-size scene and
-     * blit it scaled to the current canvas, honor a quit request, then pace to roughly 60 frames per second.
+     * The frame loop: advance the game's clocks by the elapsed time, redraw the fixed-size scene and blit it
+     * scaled to the current canvas, honor a quit request, then pace to a fixed 60 FPS deadline.
+     *
+     * <p>Pacing design: a flat {@code sleep(16)} per frame makes the period "work + sleep", which floats with
+     * the work done and with the OS timer granularity - Windows' default ~15.6 ms tick rounds a 16 ms sleep up
+     * to ~31 ms and the motion visibly stutters. Instead each frame is paced to an absolute deadline: sleep the
+     * bulk of the remaining time, then busy-spin the final sub-millisecond so the frame lands on the deadline
+     * exactly, decoupling the cadence from both the work and the sleep's imprecision at negligible CPU cost.
+     *
+     * <p>The classic "perpetually-sleeping daemon to force a 1 ms global timer" trick is deliberately omitted:
+     * JDK 25 already backs {@code Thread.sleep} with a high-resolution waitable timer (measured accurate to
+     * ~1 ms here), so the spin alone suffices and the daemon's capturing lambda would only add bytes for no gain.
      */
     private void run() {
+        long frameNanos = 1_000_000_000L / 60;
         long last = System.nanoTime();
+        long deadline = last;
         while (true) {
             long now = System.nanoTime();
             long deltaMillis = (now - last) / 1_000_000L;
@@ -106,11 +118,23 @@ public final class Main extends Frame implements KeyEventDispatcher {
                 strategy.show();
             } while (scene.contentsLost());
 
-            try {
-                Thread.sleep(16);
-            }
-            //Broad exception saves 11 bytes here
-            catch (Exception _) {
+            // Pace to the next frame deadline: sleep the bulk of the remaining time but leave a ~2 ms margin
+            // for timer overshoot, then busy-spin the tail so the frame lands on the deadline exactly. If a
+            // frame ran more than a whole period long, resync the deadline to now rather than chasing a spiral.
+            deadline += frameNanos;
+            long remaining = deadline - System.nanoTime();
+            if (remaining < -frameNanos) {
+                deadline = System.nanoTime();
+            } else {
+                if (remaining > 2_000_000L) {
+                    try {
+                        Thread.sleep((remaining - 2_000_000L) / 1_000_000L);
+                    } catch (Exception _) {
+                    }
+                }
+                while (System.nanoTime() < deadline) {
+                    Thread.onSpinWait();
+                }
             }
         }
     }

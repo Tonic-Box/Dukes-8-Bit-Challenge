@@ -1,0 +1,130 @@
+package dukes.build;
+
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.util.CheckClassAdapter;
+
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+
+/**
+ * The compiled classes one inliner run operates over. The only type that touches the filesystem or the ASM
+ * read/write/verify machinery; analysis and transform code work against the {@link ClassNode}s it hands out.
+ */
+final class CompiledClasses {
+
+    private final Map<String, ClassNode> byName;
+    private final Map<String, Path> fileByName;
+    private final ClassLoader typeLoader;
+    private final Set<String> modified = new LinkedHashSet<>();
+
+    private CompiledClasses(Map<String, ClassNode> byName, Map<String, Path> fileByName, ClassLoader typeLoader) {
+        this.byName = byName;
+        this.fileByName = fileByName;
+        this.typeLoader = typeLoader;
+    }
+
+    /** Reads every compiled class under {@code classesDir} into a tree, so call sites resolve program-wide. */
+    static CompiledClasses load(File classesDir) throws Exception {
+        // Frame computation and verification resolve types through the compiled classes plus the JDK
+        // (the build JVM already has java.base/java.desktop on its module path, via the parent loader).
+        URLClassLoader typeLoader = new URLClassLoader(new URL[]{classesDir.toURI().toURL()}, CompiledClasses.class.getClassLoader());
+
+        Map<String, ClassNode> byName = new LinkedHashMap<>();
+        Map<String, Path> fileByName = new HashMap<>();
+        List<Path> classFiles;
+        try (Stream<Path> tree = Files.walk(classesDir.toPath())) {
+            classFiles = tree.filter(path -> path.toString().endsWith(".class")).toList();
+        }
+        for (Path classFile : classFiles) {
+            ClassNode classNode = new ClassNode();
+            new ClassReader(Files.readAllBytes(classFile)).accept(classNode, 0);
+            byName.put(classNode.name, classNode);
+            fileByName.put(classNode.name, classFile);
+        }
+        return new CompiledClasses(byName, fileByName, typeLoader);
+    }
+
+    /** The class registered under its internal name (e.g. {@code "Game"}), or null if absent. */
+    ClassNode get(String internalName) {
+        return byName.get(internalName);
+    }
+
+    /** Every loaded class, for whole-program scans. */
+    Collection<ClassNode> all() {
+        return byName.values();
+    }
+
+    /** Removes {@code method} from a class and marks the class for rewriting. */
+    void removeMethod(String internalName, MethodNode method) {
+        byName.get(internalName).methods.remove(method);
+        markModified(internalName);
+    }
+
+    /** Records that a class was mutated and must be rewritten on {@link #writeModified()}. */
+    private void markModified(String internalName) {
+        modified.add(internalName);
+    }
+
+    /** Recomputes stack map frames, verifies, and writes back every class that was marked modified. */
+    void writeModified() throws Exception {
+        for (String className : modified) {
+            ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES) {
+                @Override
+                protected String getCommonSuperClass(String type1, String type2) {
+                    return commonSuperClass(type1, type2, typeLoader);
+                }
+            };
+            byName.get(className).accept(writer);
+            byte[] transformed = writer.toByteArray();
+            verify(transformed, className);
+            Files.write(fileByName.get(className), transformed);
+        }
+    }
+
+    private void verify(byte[] bytes, String className) {
+        StringWriter report = new StringWriter();
+        CheckClassAdapter.verify(new ClassReader(bytes), typeLoader, false, new PrintWriter(report));
+        if (!report.toString().isEmpty()) {
+            throw new IllegalStateException("Bytecode verification failed after inlining into " + className + ":\n" + report);
+        }
+    }
+
+    /** ASM frame-computation hook: nearest common ancestor of two internal type names. */
+    private static String commonSuperClass(String type1, String type2, ClassLoader loader) {
+        try {
+            Class<?> class1 = Class.forName(type1.replace('/', '.'), false, loader);
+            Class<?> class2 = Class.forName(type2.replace('/', '.'), false, loader);
+            if (class1.isAssignableFrom(class2)) {
+                return type1;
+            }
+            if (class2.isAssignableFrom(class1)) {
+                return type2;
+            }
+            if (class1.isInterface() || class2.isInterface()) {
+                return "java/lang/Object";
+            }
+            do {
+                class1 = class1.getSuperclass();
+            } while (!class1.isAssignableFrom(class2));
+            return class1.getName().replace('.', '/');
+        } catch (Throwable unresolved) {
+            return "java/lang/Object";
+        }
+    }
+}
