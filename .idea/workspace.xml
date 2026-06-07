@@ -4,12 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="Fix bossSlam method collision; boss + inventory tweaks; stale-jar build guard&#10;- Rename Game.bossSlam -&gt; bossSlamAttack (collided with static Sound.bossSlam when merged, causing IncompatibleClassChangeError); merger now fails on duplicate methods&#10;- Boss: first attack is always a telegraphed slam; add a low, slow-scaling base defence&#10;- Inventory hotkey I -&gt; Tab (toggle);">
-      <change afterPath="$PROJECT_DIR$/build.png" afterDir="false" />
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Shaved a few bytes in Main.java reducing locals&#10;- Updated readme with a graph of the build lifecycle">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/img.png" beforeDir="false" afterPath="$PROJECT_DIR$/screenshot.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/img_1.png" beforeDir="false" afterPath="$PROJECT_DIR$/graph.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -244,14 +241,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1780326724902</updated>
-    </task>
-    <task id="LOCAL-00002" summary="init">
-      <option name="closed" value="true" />
-      <created>1780358070612</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1780358070612</updated>
     </task>
     <task id="LOCAL-00003" summary="- Shrink Game.class via lookup tables, inlining, and constant cleanup">
       <option name="closed" value="true" />
@@ -637,7 +626,15 @@
       <option name="project" value="LOCAL" />
       <updated>1780839456237</updated>
     </task>
-    <option name="localTasksCounter" value="51" />
+    <task id="LOCAL-00051" summary="- Shaved a few bytes in Main.java reducing locals&#10;- Updated readme with a graph of the build lifecycle">
+      <option name="closed" value="true" />
+      <created>1780841629613</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1780841629613</updated>
+    </task>
+    <option name="localTasksCounter" value="52" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -652,7 +649,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- Unified sound compression for sound effects now too, not just the music track&#10;- Extract randInterior() for the repeated genRandom interior-tile pick&#10;- Extract blocksMovement(tile), also fixing moveBoss recomputing map[index] four times per tile" />
     <MESSAGE value="- Balancing to mob npc stats" />
     <MESSAGE value="- Output optimizations" />
     <MESSAGE value="- Merged some colors" />
@@ -677,6 +673,7 @@
     <MESSAGE value="- Bugfix in gradle for proguard" />
     <MESSAGE value="- Method Inlining: interaction-aware allowlist refinement" />
     <MESSAGE value="Fix bossSlam method collision; boss + inventory tweaks; stale-jar build guard&#10;- Rename Game.bossSlam -&gt; bossSlamAttack (collided with static Sound.bossSlam when merged, causing IncompatibleClassChangeError); merger now fails on duplicate methods&#10;- Boss: first attack is always a telegraphed slam; add a low, slow-scaling base defence&#10;- Inventory hotkey I -&gt; Tab (toggle);" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fix bossSlam method collision; boss + inventory tweaks; stale-jar build guard&#10;- Rename Game.bossSlam -&gt; bossSlamAttack (collided with static Sound.bossSlam when merged, causing IncompatibleClassChangeError); merger now fails on duplicate methods&#10;- Boss: first attack is always a telegraphed slam; add a low, slow-scaling base defence&#10;- Inventory hotkey I -&gt; Tab (toggle);" />
+    <MESSAGE value="- Shaved a few bytes in Main.java reducing locals&#10;- Updated readme with a graph of the build lifecycle" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Shaved a few bytes in Main.java reducing locals&#10;- Updated readme with a graph of the build lifecycle" />
   </component>
 </project>
