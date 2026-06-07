@@ -65,8 +65,6 @@ Four classes, each with a single responsibility:
 | `Renderer` | All drawing; stateless and derived entirely from `Game`. |
 | `Sound` | Procedural MIDI: sound effects and a looping music track via the JDK synthesizer. |
 
-The source is these four classes for readability; a build-time pass (see [Build-time bytecode passes](#build-time-bytecode-passes)) fuses the stateless `Renderer` and the static `Sound` into `Game`, so the shipped build is two classes (`Game` and `Main`) sharing one constant pool.
-
 Key decisions:
 
 - **Data-oriented state.** The world is flat primitive arrays (`int[] map`, parallel enemy arrays) rather than an object hierarchy, no per-entity classes or allocations.
@@ -119,16 +117,13 @@ Size is measured as the compiled `.class` files under `build/classes/java/main`.
 ### Build-time bytecode passes
 - Single-call methods get inlined based on a tuned scan (`tools\tune-inline.sh` / `tools\tune-inline.bat`)
 - Constant `Color` fields packed into one load-decoded palette
-- The stateless `Renderer` and the static `Sound` are merged into `Game` (four source classes ship as two), collapsing their constant pools into one
+- `Renderer`, `Sound`, and `Main` are merged into `Game`
 
 ### Size breakdown
 
 Measured from a build (`./gradlew size`).
 
-| File | Size | Share |
-| --- | ---: | ---: |
-| `Game.class` | 38,964 B | 93% |
-| `Main.class` | 2,896 B | 7% |
-| **Total** | **41,860 B (40.88 KB)** | |
-
-`Renderer.class` and `Sound.class` are absent because the build merges them into `Game` (see above).
+| Artifact | Size |
+| --- | ---: |
+| `Game.class` (the whole game) | 41,332 B (40.36 KB) |
+| `DukesDescent-1.0.jar` (packaged) | 21,155 B (20.66 KB) |

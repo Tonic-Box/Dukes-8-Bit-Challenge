@@ -5,7 +5,8 @@ import org.objectweb.asm.tree.ClassNode;
 
 /**
  * Merges one class entirely into another so two constant pools collapse into one: absorb the source's members,
- * repoint whoever referenced it, delete it. Fuses the stateless Renderer into Game (four source classes, three shipped).
+ * repoint whoever referenced it, delete it. Fuses Renderer, Sound, and the Main entry point into Game, so the
+ * four source classes ship as one.
  */
 public final class ClassMerger {
 

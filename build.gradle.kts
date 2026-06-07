@@ -19,7 +19,8 @@ java {
 }
 
 application {
-    mainClass = "Main"
+    // The build-time passes merge Main into Game (see buildSrc dukes.build.merge), so Game is the entry point.
+    mainClass = "Game"
 }
 
 tasks.withType<JavaCompile>().configureEach {
@@ -68,7 +69,7 @@ tasks.register("listInlineCandidates") {
 // freshly-compiled classes rather than re-minifying a previous jar.
 tasks.jar {
     archiveBaseName = "DukesDescent"
-    manifest { attributes["Main-Class"] = "Main" }
+    manifest { attributes["Main-Class"] = "Game" }
     dependsOn(transformClasses)
     outputs.upToDateWhen { false }
 }
@@ -89,8 +90,9 @@ tasks.register<ProGuardTask>("proguard") {
     libraryjars("$jdk/jmods/java.base.jmod")
     libraryjars("$jdk/jmods/java.desktop.jmod")
 
-    // Keep the launch entry point; shrinking may still drop anything unused.
-    keep("public class Main { public static void main(java.lang.String[]); static void main(); }")
+    // Keep the launch entry point; shrinking may still drop anything unused. Main is merged into Game by the
+    // build-time passes, so Game (made public by the merge) carries main().
+    keep("public class Game { public static void main(java.lang.String[]); static void main(); }")
 
     // Keep class names readable; members may shorten. Two optimizations are off because they grow this build:
     // unique-method inlining (cascades the program into Main, ~+13 KB) and parameter propagation (~+17 B).

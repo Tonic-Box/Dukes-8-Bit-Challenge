@@ -4,14 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- buildSrc ClassMerger fuses the stateless Renderer into Game (4 source classes ship as 3) collapsing two constant pools into one">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Sound.java restructured into a static design to better facilitate class merging more cleanly&#10;- buildSrc ClassMerger fuses the Sound now into Game">
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/BuildPasses.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/BuildPasses.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/merge/ClassMerger.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/merge/ClassMerger.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/merge/MemberAbsorber.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/merge/MemberAbsorber.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/inline-allowlist.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inline-allowlist.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Game.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Sound.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Sound.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -597,7 +595,15 @@
       <option name="project" value="LOCAL" />
       <updated>1780809762394</updated>
     </task>
-    <option name="localTasksCounter" value="45" />
+    <task id="LOCAL-00045" summary="- Sound.java restructured into a static design to better facilitate class merging more cleanly&#10;- buildSrc ClassMerger fuses the Sound now into Game">
+      <option name="closed" value="true" />
+      <created>1780812965322</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1780812965322</updated>
+    </task>
+    <option name="localTasksCounter" value="46" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -612,8 +618,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- Added in some explanatory comments" />
-    <MESSAGE value="- Gave the README some love&#10;- discarded items no longer litter the floor" />
     <MESSAGE value="- Added Size breakdown section to readme&#10;- Fixed some local names" />
     <MESSAGE value="- Added a design overview dot graph" />
     <MESSAGE value="- Drop balancing" />
@@ -637,6 +641,8 @@
     <MESSAGE value="- tune-inline.bat script" />
     <MESSAGE value="- Pack constant Color fields into one decoded palette&#10;- Single BuildPasses dispatcher runs all passes&#10;- Tidy build.gradle" />
     <MESSAGE value="- buildSrc ClassMerger fuses the stateless Renderer into Game (4 source classes ship as 3) collapsing two constant pools into one" />
-    <option name="LAST_COMMIT_MESSAGE" value="- buildSrc ClassMerger fuses the stateless Renderer into Game (4 source classes ship as 3) collapsing two constant pools into one" />
+    <MESSAGE value="- buildSrc ClassMerger fuses the Sound now into Game" />
+    <MESSAGE value="- Sound.java restructured into a static design to better facilitate class merging more cleanly&#10;- buildSrc ClassMerger fuses the Sound now into Game" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Sound.java restructured into a static design to better facilitate class merging more cleanly&#10;- buildSrc ClassMerger fuses the Sound now into Game" />
   </component>
 </project>

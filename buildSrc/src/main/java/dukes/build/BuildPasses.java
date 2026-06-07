@@ -23,6 +23,7 @@ public final class BuildPasses {
         int methodsInlined = MethodInliner.inline(classes, inlineAllowlist);
         int methodsMerged = ClassMerger.merge(classes, "Game", "Renderer");
         methodsMerged += ClassMerger.merge(classes, "Game", "Sound");
+        methodsMerged += ClassMerger.merge(classes, "Game", "Main");
         classes.writeModified();
         System.out.println("build passes: packed " + coloursPacked + " colour(s), inlined " + methodsInlined + " method(s), merged " + methodsMerged + " method(s) into Game");
     }
