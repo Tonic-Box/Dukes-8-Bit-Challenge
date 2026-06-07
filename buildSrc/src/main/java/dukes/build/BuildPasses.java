@@ -2,6 +2,7 @@ package dukes.build;
 
 import dukes.build.color.ColorPacker;
 import dukes.build.inline.MethodInliner;
+import dukes.build.merge.ClassMerger;
 
 import java.io.File;
 import java.util.List;
@@ -16,13 +17,14 @@ public final class BuildPasses {
     private BuildPasses() {
     }
 
-    /** Packs colours then inlines the allowlisted methods over {@code classesDir}, reporting each pass's tally. */
+    /** Runs each pass over {@code classesDir} in order, reporting what each did. */
     public static void apply(File classesDir, List<String> inlineAllowlist) throws Exception {
         CompiledClasses classes = CompiledClasses.load(classesDir);
         int coloursPacked = ColorPacker.pack(classes);
         int methodsInlined = MethodInliner.inline(classes, inlineAllowlist);
+        int methodsMerged = ClassMerger.merge(classes, "Game", "Renderer");
         classes.writeModified();
         System.out.println("build passes: packed " + coloursPacked + " colour(s), inlined "
-                + methodsInlined + " method(s)");
+                + methodsInlined + " method(s), merged " + methodsMerged + " Renderer method(s) into Game");
     }
 }

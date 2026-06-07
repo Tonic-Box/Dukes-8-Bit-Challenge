@@ -76,6 +76,14 @@ public final class CompiledClasses {
         markModified(internalName);
     }
 
+    /** Drops a class entirely: deletes its compiled file and forgets it (used when merging it into another). */
+    public void removeClass(String internalName) throws Exception {
+        Files.deleteIfExists(fileByName.get(internalName));
+        byName.remove(internalName);
+        fileByName.remove(internalName);
+        modified.remove(internalName);
+    }
+
     /** Records that a class was mutated and must be rewritten on {@link #writeModified()}. */
     public void markModified(String internalName) {
         modified.add(internalName);

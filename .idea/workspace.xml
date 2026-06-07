@@ -4,15 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- tune-inline.bat script">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Pack constant Color fields into one decoded palette&#10;- Single BuildPasses dispatcher runs all passes&#10;- Tidy build.gradle">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/CallSite.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/CallSiteLocator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/BuildPasses.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/BuildPasses.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/CompiledClasses.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/CompiledClasses.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/MethodInliner.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/MethodSplicer.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/inline-allowlist.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inline-allowlist.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -583,7 +579,15 @@
       <option name="project" value="LOCAL" />
       <updated>1780795638727</updated>
     </task>
-    <option name="localTasksCounter" value="43" />
+    <task id="LOCAL-00043" summary="- Pack constant Color fields into one decoded palette&#10;- Single BuildPasses dispatcher runs all passes&#10;- Tidy build.gradle">
+      <option name="closed" value="true" />
+      <created>1780806504987</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1780806504987</updated>
+    </task>
+    <option name="localTasksCounter" value="44" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -598,7 +602,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- Size optimizations via effectOf/magOf helpers replacing the six accessors&#10;- Cut runtime allocation ~8x via VRAM scene buffer and batched fog&#10;- Updated README" />
     <MESSAGE value="- Updated README image" />
     <MESSAGE value="- Added in some explanatory comments" />
     <MESSAGE value="- Gave the README some love&#10;- discarded items no longer litter the floor" />
@@ -623,6 +626,7 @@
     <MESSAGE value="- Optimization to build" />
     <MESSAGE value="- buildSrc ASM pass inlines single-call methods into their one caller&#10;- Auto-tune the inline list against real post-ProGuard size (tools/tune-inline.sh)&#10;- Deadline-based frame pacing to kill the intermittent movement stutter&#10;- Shorter boss slam cooldown (4000 -&gt; 2500ms)" />
     <MESSAGE value="- tune-inline.bat script" />
-    <option name="LAST_COMMIT_MESSAGE" value="- tune-inline.bat script" />
+    <MESSAGE value="- Pack constant Color fields into one decoded palette&#10;- Single BuildPasses dispatcher runs all passes&#10;- Tidy build.gradle" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Pack constant Color fields into one decoded palette&#10;- Single BuildPasses dispatcher runs all passes&#10;- Tidy build.gradle" />
   </component>
 </project>
