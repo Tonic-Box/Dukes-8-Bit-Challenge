@@ -1,4 +1,7 @@
 import proguard.gradle.ProGuardTask
+import java.util.jar.JarEntry
+import java.util.jar.JarOutputStream
+import java.util.jar.Manifest
 
 buildscript {
     repositories { mavenCentral() }
@@ -19,8 +22,8 @@ java {
 }
 
 application {
-    // The build-time passes merge Main into Game (see buildSrc dukes.build.merge), so Game is the entry point.
-    mainClass = "Game"
+    // Game ships as a compressed resource (see the proguard task); the Main loader inflates and launches it.
+    mainClass = "Main"
 }
 
 tasks.withType<JavaCompile>().configureEach {
@@ -69,7 +72,7 @@ tasks.register("listInlineCandidates") {
 // freshly-compiled classes rather than re-minifying a previous jar.
 tasks.jar {
     archiveBaseName = "DukesDescent"
-    manifest { attributes["Main-Class"] = "Game" }
+    manifest { attributes["Main-Class"] = "Main" }
     dependsOn(transformClasses)
     outputs.upToDateWhen { false }
 }
@@ -89,10 +92,12 @@ tasks.register<ProGuardTask>("proguard") {
     outjars(tmpJar)
     libraryjars("$jdk/jmods/java.base.jmod")
     libraryjars("$jdk/jmods/java.desktop.jmod")
+    libraryjars("$jdk/jmods/jdk.unsupported.jmod")
 
-    // Keep the launch entry point; shrinking may still drop anything unused. Main is merged into Game by the
-    // build-time passes, so Game (made public by the merge) carries main().
-    keep("public class Game { public static void main(java.lang.String[]); static void main(); }")
+    // Main is the launch entry point; Game is reached reflectively, so keep its main() as the shrink root
+    // (everything it uses is retained, members still shorten). Both class names are preserved by keepnames.
+    keep("public class Main { public static void main(java.lang.String[]); }")
+    keep("class Game { static void main(); }")
 
     // Keep class names readable; members may shorten. Two optimizations are off because they grow this build:
     // unique-method inlining (cascades the program into Main, ~+13 KB) and parameter propagation (~+17 B).
@@ -106,18 +111,33 @@ tasks.register<ProGuardTask>("proguard") {
     dontnote()
 
     doLast {
-        // Swap in the minified jar, then replace the compiled classes with its minified .class files
-        // (the classes are what the size metric measures).
-        tmpJar.copyTo(jarFile, overwrite = true)
+        // Replace the compiled classes with ProGuard's minified output (the classes are what the size metric measures).
         classesDir.deleteRecursively()
         copy {
             from(zipTree(tmpJar)) { include("**/*.class") }
             into(classesDir)
         }
         tmpJar.delete()
+        // Frame-strip the minified Game, deflate it into the "Game" resource, and drop the .class: the Main
+        // loader inflates and bootstrap-defines it at startup. The shipped classes are just Main.
+        val resourcesDir = layout.buildDirectory.dir("resources/main").get().asFile
+        val blobBytes = dukes.build.pack.ResourcePacker.pack(File(classesDir, "Game.class"), File(resourcesDir, "Game"))
+        // Repackage the runnable jar to match: the Main loader plus the Game blob, no Game.class.
+        val manifest = Manifest()
+        manifest.mainAttributes.putValue("Manifest-Version", "1.0")
+        manifest.mainAttributes.putValue("Main-Class", "Main")
+        JarOutputStream(jarFile.outputStream().buffered(), manifest).use { jar ->
+            listOf(classesDir, resourcesDir).forEach { root ->
+                root.walkTopDown().filter { it.isFile }.forEach { file ->
+                    jar.putNextEntry(JarEntry(file.relativeTo(root).invariantSeparatorsPath))
+                    file.inputStream().use { it.copyTo(jar) }
+                    jar.closeEntry()
+                }
+            }
+        }
         val classBytes = classesDir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
-        println("Minified in place -> classes %d B (%.2f KB), jar %d B  %s"
-            .format(classBytes, classBytes / 1024.0, jarFile.length(), jarFile.name))
+        println("Minified -> classes %d B + Game blob %d B (%.2f KB total), jar %d B  %s"
+            .format(classBytes, blobBytes, (classBytes + blobBytes) / 1024.0, jarFile.length(), jarFile.name))
     }
 }
 

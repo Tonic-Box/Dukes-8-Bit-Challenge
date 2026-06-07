@@ -56,21 +56,22 @@ Requires **JDK 25**.
 
 ## Architecture
 
-Four classes, each with a single responsibility:
+Four game classes, each with a single responsibility, plus a small bootstrap loader:
 
 | Class | Responsibility |
 | --- | --- |
-| `Main` | Window, render loop, and keyboard input. |
+| `App` | Window, render loop, and keyboard input. |
 | `Game` | All simulation: map generation, field of view, entities, combat, progression, and state. |
 | `Renderer` | All drawing; stateless and derived entirely from `Game`. |
 | `Sound` | Procedural MIDI: sound effects and a looping music track via the JDK synthesizer. |
+| `Main` | Bootstrap loader that unpacks and launches the game (see [Build-time bytecode passes](#build-time-bytecode-passes)). |
 
 Key decisions:
 
 - **Data-oriented state.** The world is flat primitive arrays (`int[] map`, parallel enemy arrays) rather than an object hierarchy, no per-entity classes or allocations.
 - **Real-time over discrete logic.** Player, enemy, and attack actions run on independent millisecond clocks and are interpolated each frame.
 - **Fully procedural content.** Floors use rectangular rooms joined by corridors; visibility uses per-tile ray casting; sprites are composed of primitive shapes.
-- **Procedural audio.** Effects and music share one playback path: both are scheduled note-by-note through a single executor onto the JDK synthesizer's channels (effects on 0-3, music on 4-6), with the looping track driven by an eighth-note ticker. Nothing is loaded from disk, so the resources directory stays empty.
+- **Procedural audio.** Effects and music share one playback path: both are scheduled note-by-note through a single executor onto the JDK synthesizer's channels (effects on 0-3, music on 4-6), with the looping track driven by an eighth-note ticker. No audio or art assets are loaded from disk; everything is synthesized at runtime.
 - **Seeded then persistent floors.** A floor's first layout, enemies, and merchant are produced from a per-floor seed (`baseSeed + floor`); after that the floor's state is snapshotted and restored on return, so revisiting preserves your changes rather than regenerating.
 
 ## Algorithms & patterns
@@ -104,7 +105,7 @@ A few implementation choices and the reasoning behind them:
 
 ## Optimization strategies
 
-Size is measured as the compiled `.class` files under `build/classes/java/main`.
+Size is measured as the compiled `.class` files and resources under `build/classes/java/main` and `build/resources/main`; the game itself ships as a compressed resource (see the size breakdown below).
 
 - **Debug info stripped** (`-g:none`): line-number, local-variable, and source-file tables are removed from the bytecode while source remains fully readable.
 - **No asset files:** both graphics and audio are generated at runtime.
@@ -117,13 +118,18 @@ Size is measured as the compiled `.class` files under `build/classes/java/main`.
 ### Build-time bytecode passes
 - Single-call methods get inlined based on a tuned scan (`tools\tune-inline.sh` / `tools\tune-inline.bat`)
 - Constant `Color` fields packed into one load-decoded palette
-- `Renderer`, `Sound`, and `Main` are merged into `Game`
+- `App`, `Renderer`, and `Sound` are merged into `Game`, collapsing four constant pools into one
+- The merged `Game` is then frame-stripped and compressed into the `Game` resource (see the loader pattern below)
+- Compression uses a from-scratch DEFLATE encoder (Zopfli-style optimal LZ77 parse plus block splitting) that beats the stock library at the same format, so the stock inflater still decodes it
 
 ### Size breakdown
 
-Measured from a build (`./gradlew size`).
+Measured from a build (`./gradlew size`), which sums the compiled classes and resources.
 
 | Artifact | Size |
 | --- | ---: |
-| `Game.class` (the whole game) | 41,332 B (40.36 KB) |
-| `DukesDescent-1.0.jar` (packaged) | 21,155 B (20.66 KB) |
+| `Main.class` (bootstrap loader) | 2,308 B |
+| `Game` resource (the whole game, compressed) | 18,359 B |
+| **Total** | **20,667 B (20.18 KB)** |
+
+**Loader pattern.** `Game` carries the entire program but its StackMapTable frames are pure verifier bookkeeping. `Main` defines the inflated class into the bootstrap class loader, which is trusted and so runs no verification - the only thing that reads those frames - letting the build strip them before compressing. The blob is still an ordinary Java 25 class file; only the frames are gone. This trades a small, fixed loader for the frame bytes plus the compression of everything else, roughly halving the measured size.

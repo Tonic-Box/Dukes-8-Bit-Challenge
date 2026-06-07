@@ -4,12 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Sound.java restructured into a static design to better facilitate class merging more cleanly&#10;- buildSrc ClassMerger fuses the Sound now into Game">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Build time merge all classes into Game.class">
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/BuildPasses.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/BuildPasses.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/merge/ClassMerger.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/merge/ClassMerger.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/merge/MemberAbsorber.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/merge/MemberAbsorber.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inline-allowlist.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inline-allowlist.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/App.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -603,7 +603,15 @@
       <option name="project" value="LOCAL" />
       <updated>1780812965322</updated>
     </task>
-    <option name="localTasksCounter" value="46" />
+    <task id="LOCAL-00046" summary="- Build time merge all classes into Game.class">
+      <option name="closed" value="true" />
+      <created>1780815761966</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1780815761966</updated>
+    </task>
+    <option name="localTasksCounter" value="47" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -618,7 +626,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- Added Size breakdown section to readme&#10;- Fixed some local names" />
     <MESSAGE value="- Added a design overview dot graph" />
     <MESSAGE value="- Drop balancing" />
     <MESSAGE value="- Moved classes to root package&#10;- Merge 4 exact-duplicate Color constants&#10;- Inline the itemDepth() accessor&#10;- Fold the common setColor+fill idiom into static rect()/oval() helpers" />
@@ -643,6 +650,7 @@
     <MESSAGE value="- buildSrc ClassMerger fuses the stateless Renderer into Game (4 source classes ship as 3) collapsing two constant pools into one" />
     <MESSAGE value="- buildSrc ClassMerger fuses the Sound now into Game" />
     <MESSAGE value="- Sound.java restructured into a static design to better facilitate class merging more cleanly&#10;- buildSrc ClassMerger fuses the Sound now into Game" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Sound.java restructured into a static design to better facilitate class merging more cleanly&#10;- buildSrc ClassMerger fuses the Sound now into Game" />
+    <MESSAGE value="- Build time merge all classes into Game.class" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Build time merge all classes into Game.class" />
   </component>
 </project>

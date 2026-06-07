@@ -36,7 +36,7 @@ Game#summonAdds
 Game#tickPoison
 Game#updateBoss
 Game#vaultChancePercent
-Main#run
+App#run
 Renderer#drawBossBar
 Renderer#drawChest
 Renderer#drawDeath
