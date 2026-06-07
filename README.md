@@ -38,7 +38,7 @@ Requires **JDK 25**.
 
 - **Goal:** descend as far as possible. Score is the deepest floor reached.
 - **Fog of war:** only tiles in line of sight are visible; explored tiles stay dimly remembered and a minimap in the top corner tracks the layout, stairs, vault doors, and enemies you have uncovered.
-- **Enemies** (Bug, NullPointer, MemoryLeak, ForkBomb, Deadlock) wake only once they enter your light, then pursue in real time, pulsing as they strike. Numbers and stats scale gently with depth; a ForkBomb splits into Bugs on death and a Deadlock is a slow, heavy brute.
+- **Enemies:** (Bug, NullPointer, MemoryLeak, ForkBomb, Deadlock) wake only once they enter your light, then pursue in real time, pulsing as they strike. Numbers and stats scale gently with depth; a ForkBomb splits into Bugs on death and a Deadlock is a slow, heavy brute.
 - **Gear, effects & rarity:** weapons, armor, and trinkets drop as loot and from chests. Beyond raw attack and defense they carry effects: lifesteal, crit, reach, poison, knockback, thorns, dodge, heal-on-kill, and trinket perks - that flash visibly when they proc. Every drop also rolls a rarity - Common, Rare, or Legendary - that scales both its stats and its effect strength; higher rarities are scarce early and grow more common with depth (and bosses roll with boosted odds). The inventory screen shows your stats and the exact +/- of equipping each item.
 - **Chests & mimics:** chests are opened with **E** when you stand beside them - but one in seven is a **mimic**, a demi-boss that springs to life and attacks. Mimics hit harder than the floor's regular enemies and are guaranteed to drop at least a Rare when slain.
 - **Breakable scenery:** pots, crates, and vases sit in rooms and corridors, blocking the way until a sword swing smashes them. A broken prop occasionally coughs up loot.
@@ -68,40 +68,40 @@ Four game classes, each with a single responsibility, plus a small bootstrap loa
 
 Key decisions:
 
-- **Data-oriented state.** The world is flat primitive arrays (`int[] map`, parallel enemy arrays) rather than an object hierarchy, no per-entity classes or allocations.
-- **Real-time over discrete logic.** Player, enemy, and attack actions run on independent millisecond clocks and are interpolated each frame.
-- **Fully procedural content.** Floors use rectangular rooms joined by corridors; visibility uses per-tile ray casting; sprites are composed of primitive shapes.
-- **Procedural audio.** Effects and music share one playback path: both are scheduled note-by-note through a single executor onto the JDK synthesizer's channels (effects on 0-3, music on 4-6), with the looping track driven by an eighth-note ticker. No audio or art assets are loaded from disk; everything is synthesized at runtime.
-- **Seeded then persistent floors.** A floor's first layout, enemies, and merchant are produced from a per-floor seed (`baseSeed + floor`); after that the floor's state is snapshotted and restored on return, so revisiting preserves your changes rather than regenerating.
+- **Data-oriented state:** The world is flat primitive arrays (`int[] map`, parallel enemy arrays) rather than an object hierarchy, no per-entity classes or allocations.
+- **Real-time over discrete logic:** Player, enemy, and attack actions run on independent millisecond clocks and are interpolated each frame.
+- **Fully procedural content:** Floors use rectangular rooms joined by corridors; visibility uses per-tile ray casting; sprites are composed of primitive shapes.
+- **Procedural audio:** Effects and music share one playback path: both are scheduled note-by-note through a single executor onto the JDK synthesizer's channels (effects on 0-3, music on 4-6), with the looping track driven by an eighth-note ticker. No audio or art assets are loaded from disk; everything is synthesized at runtime.
+- **Seeded then persistent floors:** A floor's first layout, enemies, and merchant are produced from a per-floor seed (`baseSeed + floor`); after that the floor's state is snapshotted and restored on return, so revisiting preserves your changes rather than regenerating.
 
 ## Algorithms & patterns
 
 The notable techniques the game uses.
 
-- **Floor generation — rejection sampling.** Random rooms are placed one by one, rejecting any that overlap (plus a one-tile border), then linked to the previous room by an L-shaped corridor. A per-floor seed makes every floor rebuild identically.
-- **Field of view — Bresenham ray casting.** A line is walked from the player to each tile in radius, marking it visible until the line hits a wall, door, or scenery. Visible tiles become permanently explored.
-- **Vault isolation — region check before carving.** A vault carves only where its footprint, door, and wall border are all solid rock, so the locked door is the only way in. Its key spawns a fixed distance away.
-- **Pit clusters — seeded neighbor growth.** A pit grows from one tile by attaching random open neighbors (up to four), each required to pass a 3x3-floor interior test so clusters never reach corridors.
-- **Smooth motion — positional interpolation.** Entities store a previous and current tile plus a 0–1 progress; the rendered position is their linear blend, animating between discrete steps.
-- **Lighting — light levels with run-batched overlay.** Each tile's light eases toward visible or remembered; tiles draw lit, then a translucent overlay sized by `1 - light` dims them, with equal-darkness runs merged into one fill.
-- **Entity storage — structure of arrays, swap-remove.** Enemies and loot are parallel primitive arrays; removal copies the last element into the freed slot for O(1) unordered deletion.
-- **Floor persistence — packed snapshots.** A floor serializes into one depth-keyed `int[]` (header, fixed-stride entity/loot records, then map and explored masks) and restores on return; first visits generate from the seed.
-- **Item encoding — bit-packing.** Each item is one `int`: template id in the low bits, rarity tier above. Stats and effects scale by rarity when read.
-- **Rarity rolls — depth-weighted bands.** Rarity is drawn from probability bands that widen with depth (Legendary from floor 7, Rare scaling, both clamped); bosses add a flat Rare bonus.
-- **Boss collision — footprint AABB.** The 3x3 boss is an axis-aligned box; a move checks every destination tile, and the slam hits the bordering ring.
-- **Display scaling — fixed-resolution buffer.** The game renders to a fixed-size buffer stretched to the window each frame, keeping world coordinates resolution-independent.
+- **Floor generation - rejection sampling:** Random rooms are placed one by one, rejecting any that overlap (plus a one-tile border), then linked to the previous room by an L-shaped corridor. A per-floor seed makes every floor rebuild identically.
+- **Field of view - Bresenham ray casting:** A line is walked from the player to each tile in radius, marking it visible until the line hits a wall, door, or scenery. Visible tiles become permanently explored.
+- **Vault isolation - region check before carving:** A vault carves only where its footprint, door, and wall border are all solid rock, so the locked door is the only way in. Its key spawns a fixed distance away.
+- **Pit clusters - seeded neighbor growth:** A pit grows from one tile by attaching random open neighbors (up to four), each required to pass a 3x3-floor interior test so clusters never reach corridors.
+- **Smooth motion - positional interpolation:** Entities store a previous and current tile plus a 0–1 progress; the rendered position is their linear blend, animating between discrete steps.
+- **Lighting - light levels with run-batched overlay:** Each tile's light eases toward visible or remembered; tiles draw lit, then a translucent overlay sized by `1 - light` dims them, with equal-darkness runs merged into one fill.
+- **Entity storage - structure of arrays, swap-remove:** Enemies and loot are parallel primitive arrays; removal copies the last element into the freed slot for O(1) unordered deletion.
+- **Floor persistence - packed snapshots:** A floor serializes into one depth-keyed `int[]` (header, fixed-stride entity/loot records, then map and explored masks) and restores on return; first visits generate from the seed.
+- **Item encoding - bit-packing:** Each item is one `int`: template id in the low bits, rarity tier above. Stats and effects scale by rarity when read.
+- **Rarity rolls - depth-weighted bands:** Rarity is drawn from probability bands that widen with depth (Legendary from floor 7, Rare scaling, both clamped); bosses add a flat Rare bonus.
+- **Boss collision - footprint AABB:** The 3x3 boss is an axis-aligned box; a move checks every destination tile, and the slam hits the bordering ring.
+- **Display scaling - fixed-resolution buffer:** The game renders to a fixed-size buffer stretched to the window each frame, keeping world coordinates resolution-independent.
 
 ## Code design notes
 
 A few implementation choices and the reasoning behind them:
 
-- **Input as flags drained by the loop.** Key events (AWT's event thread) only set held/request booleans; the game loop reads and acts on them. Simulation stays on a single thread, and discrete actions (potion, buy, pause, stairs) use edge detection so a held key fires once instead of repeating with the OS key-repeat.
-- **Single integer game state.** `PLAYING` / `SHOP` / `PAUSED` / `DEAD` is one `int` switched on in update and render; a minimal state machine that needs no extra classes or enums.
-- **Integer-rounded camera.** The camera follows Duke's interpolated sub-pixel position but is rounded to whole pixels before drawing, so the scrolling dungeon stays crisp instead of shimmering.
-- **Placement sanity checks.** The merchant is only placed where the surrounding 3×3 block is floor, guaranteeing it sits in open room space and can never wall off a corridor.
-- **Directional avatar.** Duke is drawn as four facing sprites (front / back / left / right); the right profile is the left one mirrored with a transform, so only one side is hand-built.
-- **Boss as separate state.** A floor boss lives in its own fields rather than the per-tile enemy arrays, keeping its multi-tile collision, telegraphed slam, and enrage phase separate from the lightweight regular enemies.
-- **VRAM scene buffer.** The fixed-resolution scene is drawn into a `VolatileImage` so the scaled blit runs on the GPU; the render loop uses the standard validate / `contentsLost` retry and allocates no per-frame pixel rasters.
+- **Input as flags drained by the loop:** Key events (AWT's event thread) only set held/request booleans; the game loop reads and acts on them. Simulation stays on a single thread, and discrete actions (potion, buy, pause, stairs) use edge detection so a held key fires once instead of repeating with the OS key-repeat.
+- **Single integer game state:** `PLAYING` / `SHOP` / `PAUSED` / `DEAD` is one `int` switched on in update and render; a minimal state machine that needs no extra classes or enums.
+- **Integer-rounded camera:** The camera follows Duke's interpolated sub-pixel position but is rounded to whole pixels before drawing, so the scrolling dungeon stays crisp instead of shimmering.
+- **Placement sanity checks:** The merchant is only placed where the surrounding 3×3 block is floor, guaranteeing it sits in open room space and can never wall off a corridor.
+- **Directional avatar:** Duke is drawn as four facing sprites (front / back / left / right); the right profile is the left one mirrored with a transform, so only one side is hand-built.
+- **Boss as separate state:** A floor boss lives in its own fields rather than the per-tile enemy arrays, keeping its multi-tile collision, telegraphed slam, and enrage phase separate from the lightweight regular enemies.
+- **VRAM scene buffer:** The fixed-resolution scene is drawn into a `VolatileImage` so the scaled blit runs on the GPU; the render loop uses the standard validate / `contentsLost` retry and allocates no per-frame pixel rasters.
 
 ## Optimization strategies
 
@@ -109,7 +109,7 @@ Size is measured as the compiled `.class` files and resources under `build/class
 
 - **Debug info stripped** (`-g:none`): line-number, local-variable, and source-file tables are removed from the bytecode while source remains fully readable.
 - **No asset files:** both graphics and audio are generated at runtime.
-- **Packed data tables:** numeric tables (enemy stats, item base stats/effects/magnitudes) and the music and sound-effect note sequences are stored as printable-char strings — one char per value, biased to stay printable — and expanded at load, rather than the much larger array-initialization bytecode a literal `int[]` would compile to. The item and effect name lists are likewise one delimited string, split once at load.
+- **Packed data tables:** numeric tables (enemy stats, item base stats/effects/magnitudes) and the music and sound-effect note sequences are stored as printable-char strings - one char per value, biased to stay printable - and expanded at load, rather than the much larger array-initialization bytecode a literal `int[]` would compile to. The item and effect name lists are likewise one delimited string, split once at load.
 - **Computed and merged data:** structural tables are derived instead of stored (an item's slot comes from its id), and near-duplicate colors are collapsed onto shared constants.
 - **No per-frame allocation:** colors and the fog-overlay palette are hoisted into constants and lookup tables, polygon scratch buffers are shared, and entities are reused in fixed arrays, keeping peak memory low.
 - **Root Package:** the classes are dropped to the root package to save on constant-pool reference sizes.
@@ -134,4 +134,4 @@ Measured from a build (`./gradlew size`), which sums the compiled classes and re
 | `Game` resource (the whole game, compressed) | 18,420 B |
 | **Total** | **20,649 B (20.17 KB)** |
 
-**Loader pattern.** `Game` carries the entire program but its StackMapTable frames are pure verifier bookkeeping. `Main` defines the inflated class into the bootstrap class loader, which is trusted and so runs no verification - the only thing that reads those frames - letting the build strip them before compressing. The blob is still an ordinary Java 25 class file; only the frames are gone. This trades a small, fixed loader for the frame bytes plus the compression of everything else, roughly halving the measured size.
+**Loader pattern:** `Game` carries the entire program but its StackMapTable frames are pure verifier bookkeeping. `Main` defines the inflated class into the bootstrap class loader, which is trusted and so runs no verification - the only thing that reads those frames - letting the build strip them before compressing. The blob is still an ordinary Java 25 class file; only the frames are gone. This trades a small, fixed loader for the frame bytes plus the compression of everything else, roughly halving the measured size.
