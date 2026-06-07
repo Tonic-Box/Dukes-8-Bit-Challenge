@@ -5,7 +5,7 @@ challenge. Descend through randomly generated floors, fight Java-themed enemies,
 loot effect-bearing gear of escalating rarity, crack open sealed vaults, dodge
 mimic chests, topple floor bosses, and see how deep you can get before you fall.
 
-![img.png](img.png)
+![screenshot.png](screenshot.png)
 
 ## Build & Run
 
@@ -52,7 +52,7 @@ Requires **JDK 25**.
 
 ## Overview
 
-![img_1.png](img_1.png)
+![graph.png](graph.png)
 
 ## Architecture
 
@@ -122,14 +122,16 @@ Size is measured as the compiled `.class` files and resources under `build/class
 - The merged `Game` is then frame-stripped and compressed into the `Game` resource (see the loader pattern below)
 - Compression uses a from-scratch DEFLATE encoder (Zopfli-style optimal LZ77 parse plus block splitting) that beats the stock library at the same format, so the stock inflater still decodes it
 
+![build.png](build.png)
+
 ### Size breakdown
 
 Measured from a build (`./gradlew size`), which sums the compiled classes and resources.
 
 | Artifact | Size |
 | --- | ---: |
-| `Main.class` (bootstrap loader) | 2,258 B |
+| `Main.class` (bootstrap loader) | 2,254 B |
 | `Game` resource (the whole game, compressed) | 18,420 B |
-| **Total** | **20,678 B (20.19 KB)** |
+| **Total** | **20,674 B (20.19 KB)** |
 
 **Loader pattern.** `Game` carries the entire program but its StackMapTable frames are pure verifier bookkeeping. `Main` defines the inflated class into the bootstrap class loader, which is trusted and so runs no verification - the only thing that reads those frames - letting the build strip them before compressing. The blob is still an ordinary Java 25 class file; only the frames are gone. This trades a small, fixed loader for the frame bytes plus the compression of everything else, roughly halving the measured size.

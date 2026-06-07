@@ -37,8 +37,12 @@ public final class Main {
         try (InputStream in = new InflaterInputStream(Main.class.getResourceAsStream("/Game"), new Inflater(true))) {
             bytecode = in.readAllBytes();
         }
-        Class<?> game = (Class<?>) defineClass.invoke(internalUnsafe, "Game", bytecode, 0, bytecode.length, null, null);
-        lookup.findStatic(game, "main", MethodType.methodType(void.class)).invoke();
+
+        lookup.findStatic(
+                (Class<?>) defineClass.invoke(internalUnsafe, "Game", bytecode, 0, bytecode.length, null, null),
+                "main",
+                MethodType.methodType(void.class)
+        ).invoke();
     }
 
     /** Reads a static field, bypassing access control, via Unsafe's raw object-field access. */

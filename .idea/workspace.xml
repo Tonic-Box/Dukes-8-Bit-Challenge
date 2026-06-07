@@ -4,14 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Method Inlining: interaction-aware allowlist refinement">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="Fix bossSlam method collision; boss + inventory tweaks; stale-jar build guard&#10;- Rename Game.bossSlam -&gt; bossSlamAttack (collided with static Sound.bossSlam when merged, causing IncompatibleClassChangeError); merger now fails on duplicate methods&#10;- Boss: first attack is always a telegraphed slam; add a low, slow-scaling base defence&#10;- Inventory hotkey I -&gt; Tab (toggle);">
+      <change afterPath="$PROJECT_DIR$/build.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/merge/MemberAbsorber.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/merge/MemberAbsorber.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/App.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/App.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Game.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Renderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Renderer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/img.png" beforeDir="false" afterPath="$PROJECT_DIR$/screenshot.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/img_1.png" beforeDir="false" afterPath="$PROJECT_DIR$/graph.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -125,7 +124,7 @@
     &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.gradle&quot;
   }
 }</component>
-  <component name="RunManager" selected="Gradle.dukes8bit [build]">
+  <component name="RunManager" selected="Gradle.dukes8bit [size]">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Main" />
       <module name="dukes8bit.main" />
@@ -229,8 +228,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.dukes8bit [build]" />
         <item itemvalue="Gradle.dukes8bit [size]" />
+        <item itemvalue="Gradle.dukes8bit [build]" />
         <item itemvalue="Gradle.dukes8bit [clean]" />
         <item itemvalue="Gradle.dukes8bit [run]" />
         <item itemvalue="Application.Main" />
@@ -245,14 +244,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1780326724902</updated>
-    </task>
-    <task id="LOCAL-00001" summary="init">
-      <option name="closed" value="true" />
-      <created>1780352601387</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1780352601387</updated>
     </task>
     <task id="LOCAL-00002" summary="init">
       <option name="closed" value="true" />
@@ -638,7 +629,15 @@
       <option name="project" value="LOCAL" />
       <updated>1780834674314</updated>
     </task>
-    <option name="localTasksCounter" value="50" />
+    <task id="LOCAL-00050" summary="Fix bossSlam method collision; boss + inventory tweaks; stale-jar build guard&#10;- Rename Game.bossSlam -&gt; bossSlamAttack (collided with static Sound.bossSlam when merged, causing IncompatibleClassChangeError); merger now fails on duplicate methods&#10;- Boss: first attack is always a telegraphed slam; add a low, slow-scaling base defence&#10;- Inventory hotkey I -&gt; Tab (toggle);">
+      <option name="closed" value="true" />
+      <created>1780839456237</created>
+      <option name="number" value="00050" />
+      <option name="presentableId" value="LOCAL-00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1780839456237</updated>
+    </task>
+    <option name="localTasksCounter" value="51" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -653,7 +652,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- Replace 13 per-key Held fields with one held[] array" />
     <MESSAGE value="- Unified sound compression for sound effects now too, not just the music track&#10;- Extract randInterior() for the repeated genRandom interior-tile pick&#10;- Extract blocksMovement(tile), also fixing moveBoss recomputing map[index] four times per tile" />
     <MESSAGE value="- Balancing to mob npc stats" />
     <MESSAGE value="- Output optimizations" />
@@ -678,6 +676,7 @@
     <MESSAGE value="- Compile time strip Frames and stackmap data from the resultime merged Game class, compress via Zopfli and pack as a resource with a minimal loader class (Main.java) that abuses IMPL_LOOKUP to fetch the internal Unsafe class and load it via the bootstrap classloader (Since Bootstrap skips verifier check)" />
     <MESSAGE value="- Bugfix in gradle for proguard" />
     <MESSAGE value="- Method Inlining: interaction-aware allowlist refinement" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Method Inlining: interaction-aware allowlist refinement" />
+    <MESSAGE value="Fix bossSlam method collision; boss + inventory tweaks; stale-jar build guard&#10;- Rename Game.bossSlam -&gt; bossSlamAttack (collided with static Sound.bossSlam when merged, causing IncompatibleClassChangeError); merger now fails on duplicate methods&#10;- Boss: first attack is always a telegraphed slam; add a low, slow-scaling base defence&#10;- Inventory hotkey I -&gt; Tab (toggle);" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix bossSlam method collision; boss + inventory tweaks; stale-jar build guard&#10;- Rename Game.bossSlam -&gt; bossSlamAttack (collided with static Sound.bossSlam when merged, causing IncompatibleClassChangeError); merger now fails on duplicate methods&#10;- Boss: first attack is always a telegraphed slam; add a low, slow-scaling base defence&#10;- Inventory hotkey I -&gt; Tab (toggle);" />
   </component>
 </project>
