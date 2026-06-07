@@ -4,9 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Bugfix in gradle for proguard">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Method Inlining: interaction-aware allowlist refinement">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/inline-allowlist.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inline-allowlist.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/merge/MemberAbsorber.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/merge/MemberAbsorber.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/App.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/App.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Game.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Renderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Renderer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -120,7 +125,7 @@
     &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.gradle&quot;
   }
 }</component>
-  <component name="RunManager" selected="Gradle.dukes8bit [size]">
+  <component name="RunManager" selected="Gradle.dukes8bit [build]">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Main" />
       <module name="dukes8bit.main" />
@@ -224,8 +229,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.dukes8bit [size]" />
         <item itemvalue="Gradle.dukes8bit [build]" />
+        <item itemvalue="Gradle.dukes8bit [size]" />
         <item itemvalue="Gradle.dukes8bit [clean]" />
         <item itemvalue="Gradle.dukes8bit [run]" />
         <item itemvalue="Application.Main" />
@@ -625,7 +630,15 @@
       <option name="project" value="LOCAL" />
       <updated>1780828050743</updated>
     </task>
-    <option name="localTasksCounter" value="49" />
+    <task id="LOCAL-00049" summary="- Method Inlining: interaction-aware allowlist refinement">
+      <option name="closed" value="true" />
+      <created>1780834674314</created>
+      <option name="number" value="00049" />
+      <option name="presentableId" value="LOCAL-00049" />
+      <option name="project" value="LOCAL" />
+      <updated>1780834674314</updated>
+    </task>
+    <option name="localTasksCounter" value="50" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -640,7 +653,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- Moved classes to root package&#10;- Merge 4 exact-duplicate Color constants&#10;- Inline the itemDepth() accessor&#10;- Fold the common setColor+fill idiom into static rect()/oval() helpers" />
     <MESSAGE value="- Replace 13 per-key Held fields with one held[] array" />
     <MESSAGE value="- Unified sound compression for sound effects now too, not just the music track&#10;- Extract randInterior() for the repeated genRandom interior-tile pick&#10;- Extract blocksMovement(tile), also fixing moveBoss recomputing map[index] four times per tile" />
     <MESSAGE value="- Balancing to mob npc stats" />
@@ -665,6 +677,7 @@
     <MESSAGE value="- Build time merge all classes into Game.class" />
     <MESSAGE value="- Compile time strip Frames and stackmap data from the resultime merged Game class, compress via Zopfli and pack as a resource with a minimal loader class (Main.java) that abuses IMPL_LOOKUP to fetch the internal Unsafe class and load it via the bootstrap classloader (Since Bootstrap skips verifier check)" />
     <MESSAGE value="- Bugfix in gradle for proguard" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Bugfix in gradle for proguard" />
+    <MESSAGE value="- Method Inlining: interaction-aware allowlist refinement" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Method Inlining: interaction-aware allowlist refinement" />
   </component>
 </project>

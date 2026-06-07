@@ -16,7 +16,9 @@ import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Pulls the source class into the target: adopts its class hierarchy, moves its fields and methods
@@ -31,6 +33,10 @@ final class MemberAbsorber {
     static int absorb(ClassNode target, ClassNode source) {
         adoptHierarchy(target, source);
         List<String> selfFields = selfReferentialFields(source, target.name);
+        Set<String> targetSignatures = new HashSet<>();
+        for (MethodNode method : target.methods) {
+            targetSignatures.add(method.name + method.desc);
+        }
 
         MethodNode sourceStaticInit = null;
         MethodNode sourceConstructor = null;
@@ -42,6 +48,11 @@ final class MemberAbsorber {
                 case "<clinit>" -> sourceStaticInit = method;
                 case "<init>" -> sourceConstructor = method;
                 default -> {
+                    if (!targetSignatures.add(method.name + method.desc)) {
+                        throw new IllegalStateException("Merge collision: " + source.name + " and " + target.name
+                                + " both declare " + method.name + method.desc + ". Rename one - a duplicate method"
+                                + " is not rejected by the no-verify bootstrap load and fails only at call time.");
+                    }
                     target.methods.add(method);
                     moved++;
                 }

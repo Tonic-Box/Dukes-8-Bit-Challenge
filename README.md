@@ -25,7 +25,7 @@ Requires **JDK 25**.
 | Attack (also smashes breakable scenery) | Space |
 | Interact - open shop, buy potion, open adjacent chest, equip selected item, confirm menu | E |
 | Cancel - drink potion (in world), leave shop, close inventory | Q |
-| Open inventory | I |
+| Open inventory | Tab |
 | Drop selected item (in inventory) | D |
 | Navigate menus | W / S |
 | Open a sealed vault door | Walk into it holding a key |
@@ -129,7 +129,7 @@ Measured from a build (`./gradlew size`), which sums the compiled classes and re
 | Artifact | Size |
 | --- | ---: |
 | `Main.class` (bootstrap loader) | 2,258 B |
-| `Game` resource (the whole game, compressed) | 18,309 B |
-| **Total** | **20,567 B (20.08 KB)** |
+| `Game` resource (the whole game, compressed) | 18,420 B |
+| **Total** | **20,678 B (20.19 KB)** |
 
 **Loader pattern.** `Game` carries the entire program but its StackMapTable frames are pure verifier bookkeeping. `Main` defines the inflated class into the bootstrap class loader, which is trusted and so runs no verification - the only thing that reads those frames - letting the build strip them before compressing. The blob is still an ordinary Java 25 class file; only the frames are gone. This trades a small, fixed loader for the frame bytes plus the compression of everything else, roughly halving the measured size.

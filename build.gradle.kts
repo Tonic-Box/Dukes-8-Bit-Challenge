@@ -75,6 +75,14 @@ tasks.jar {
     manifest { attributes["Main-Class"] = "Main" }
     dependsOn(transformClasses)
     outputs.upToDateWhen { false }
+    // Because I'm dumb and break my own builds by having cli open in the libs dir and jar isn't able to remove the directory
+    doFirst {
+        val jar = archiveFile.get().asFile
+        if (jar.exists() && !jar.delete()) {
+            throw GradleException("Could not delete a stale ${jar.name} - it is held open by another process "
+                + "(a running game window, or a leftover Gradle daemon). Close it and rebuild.")
+        }
+    }
 }
 
 tasks.register<ProGuardTask>("proguard") {

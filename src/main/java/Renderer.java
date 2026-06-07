@@ -765,7 +765,7 @@ final class Renderer {
         rect(graphics, XP_FILL, barX, xpY, barWidth * Math.min(game.playerXp, game.xpForNext()) / game.xpForNext(), 7);
 
         graphics.setColor(GRAY_LIGHT);
-        graphics.drawString("WASD move   Space attack   Q potion   I inventory   E interact   M mute all   T mute music   Stairs descend",
+        graphics.drawString("WASD move   Space attack   Q potion   Tab inventory   E interact   M mute all   T mute music   Stairs descend",
                 12, top + 58);
     }
 

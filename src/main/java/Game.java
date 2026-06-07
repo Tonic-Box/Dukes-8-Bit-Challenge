@@ -267,6 +267,8 @@ final class Game {
     private float bossMoveProgress;
     private float bossAttackCooldown;
     private float bossSlamCooldown;
+    // The boss's first strike against the player is always a telegraphed slam, not an instant bite.
+    private boolean bossFirstStrikeDone;
 
     private int vaultDoorX;
     private int vaultDoorY;
@@ -498,7 +500,7 @@ final class Game {
             return;
         }
         if (state == INVENTORY) {
-            if (code == KeyEvent.VK_Q || code == KeyEvent.VK_ESCAPE) {
+            if (code == KeyEvent.VK_Q || code == KeyEvent.VK_ESCAPE || code == KeyEvent.VK_TAB) {
                 state = PLAYING;
             } else if (code == KeyEvent.VK_W && inventorySelection > 0) {
                 inventorySelection--;
@@ -515,7 +517,7 @@ final class Game {
             state = PAUSED;
             pauseSelection = 0;
         }
-        if (code == KeyEvent.VK_I) {
+        if (code == KeyEvent.VK_TAB) {
             state = INVENTORY;
             inventorySelection = 0;
         }
@@ -756,7 +758,7 @@ final class Game {
         if (bossActive) {
             int distance = bossDistanceToPlayer();
             if (distance >= 1 && distance <= reach) {
-                int damage = Math.max(1, attackPower() + random.nextInt(3));
+                int damage = Math.max(1, attackPower() + random.nextInt(3) - bossDefense());
                 if (effect == EFF_CRIT && random.nextInt(100) < magOf(equippedWeapon)) {
                     damage *= 2;
                 }
@@ -1314,6 +1316,7 @@ final class Game {
         bossMoveProgress = 0f;
         bossAttackCooldown = BOSS_ATTACK_MS;
         bossSlamCooldown = BOSS_SLAM_COOLDOWN_MS;
+        bossFirstStrikeDone = false;
         moveProgress = 1f;
         enemyProgress = 0f;
         attackProgress = 1f;
@@ -1597,6 +1600,7 @@ final class Game {
         bossMoveProgress = 0f;
         bossAttackCooldown = BOSS_ATTACK_MS;
         bossSlamCooldown = BOSS_SLAM_COOLDOWN_MS;
+        bossFirstStrikeDone = false;
     }
 
     /** True when the tile lies within the live boss's square footprint. */
@@ -1640,6 +1644,11 @@ final class Game {
         return 7 + floor + (bossEnraged ? 3 : 0);
     }
 
+    /** Flat damage reduction on hits the boss takes; starts low and grows slowly with depth. */
+    private int bossDefense() {
+        return 2 + floor / 5;
+    }
+
     /**
      * Drives the boss each frame: decays its flashes, resolves a telegraphed slam when its wind-up
      * elapses, advances it toward Duke on its own clock, and—pressed against him—either bites or begins
@@ -1659,7 +1668,7 @@ final class Game {
             if (bossWindup <= 0f) {
                 bossWindup = 0f;
                 bossState = BOSS_IDLE;
-                bossSlam();
+                bossSlamAttack();
                 bossAttackCooldown = currentAttackInterval();
             }
             return;
@@ -1670,7 +1679,9 @@ final class Game {
             stepBoss();
         }
         if (bossDistanceToPlayer() == 1 && bossAttackCooldown <= 0f) {
-            if (bossSlamCooldown <= 0f && random.nextInt(100) < BOSS_SLAM_CHANCE) {
+            boolean firstStrike = !bossFirstStrikeDone;
+            bossFirstStrikeDone = true;
+            if (firstStrike || (bossSlamCooldown <= 0f && random.nextInt(100) < BOSS_SLAM_CHANCE)) {
                 bossState = BOSS_WINDUP;
                 bossWindup = BOSS_WINDUP_MS;
                 bossSlamCooldown = BOSS_SLAM_COOLDOWN_MS;
@@ -1720,7 +1731,7 @@ final class Game {
     }
 
     /** A telegraphed area slam: everything within {@link #BOSS_SLAM_RADIUS} of the footprint is struck. */
-    private void bossSlam() {
+    private void bossSlamAttack() {
         bossShockwave = 1f;
         Sound.bossSlam();
         if (bossDistanceToPlayer() <= BOSS_SLAM_RADIUS) {

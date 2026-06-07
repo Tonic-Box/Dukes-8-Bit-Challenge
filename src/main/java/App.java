@@ -42,6 +42,8 @@ public final class App extends Frame implements KeyEventDispatcher {
         strategy = canvas.getBufferStrategy();
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
         enableEvents(AWTEvent.WINDOW_EVENT_MASK);
+        setFocusTraversalKeysEnabled(false);
+        canvas.setFocusTraversalKeysEnabled(false);
     }
 
     /**
