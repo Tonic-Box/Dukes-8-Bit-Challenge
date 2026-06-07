@@ -114,6 +114,12 @@ Size is measured as the compiled `.class` files under `build/classes/java/main`.
 - **Root Package:** the classes are dropped to the root package to save on constant-pool reference sizes.
 - Other minor optimizations are explained inline with comments.
 
+### Build-time method inlining
+
+The source deliberately keeps many small single-use helper methods for readability, but every compiled method carries a fixed overhead. A custom build-time bytecode pass (in `buildSrc`, built on ASM) reclaims it: for each method called from exactly one place, it splices the body into that single caller and deletes the method.
+
+Which methods are worth inlining is decided by measurement, not guesswork: a tuner (`tools/tune-inline.sh`) rebuilds with each single-call candidate and keeps only those that actually reduce the measured `./gradlew size` (some inlines grow it instead). The winners are committed to `inline-allowlist.txt` and re-derived whenever the source changes.
+
 ### Size breakdown
 
 Measured from a build (`./gradlew size`).
