@@ -96,7 +96,7 @@ tasks.register<ProGuardTask>("proguard") {
 
     // Main is the launch entry point; Game is reached reflectively, so keep its main() as the shrink root
     // (everything it uses is retained, members still shorten). Both class names are preserved by keepnames.
-    keep("public class Main { public static void main(java.lang.String[]); }")
+    keep("public class Main { static void main(); }")
     keep("class Game { static void main(); }")
 
     // Keep class names readable; members may shorten. Two optimizations are off because they grow this build:
