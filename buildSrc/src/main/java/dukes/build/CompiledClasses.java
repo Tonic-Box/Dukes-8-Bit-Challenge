@@ -53,7 +53,7 @@ public final class CompiledClasses {
         }
         for (Path classFile : classFiles) {
             ClassNode classNode = new ClassNode();
-            new ClassReader(Files.readAllBytes(classFile)).accept(classNode, 0);
+            new ClassReader(Files.readAllBytes(classFile)).accept(classNode, ClassReader.SKIP_FRAMES);
             byName.put(classNode.name, classNode);
             fileByName.put(classNode.name, classFile);
         }
@@ -89,15 +89,14 @@ public final class CompiledClasses {
         modified.add(internalName);
     }
 
-    /** Recomputes stack map frames, verifies, and writes back every class that was marked modified. */
+    /**
+     * Computes stack sizes (not frames), verifies, and writes back every modified class. Frames are left out
+     * deliberately: ProGuard preverifies the classes it reads and the shipped Game is frame-stripped anyway,
+     * so recomputing them here (the only step needing whole-program type resolution) would be wasted work.
+     */
     public void writeModified() throws Exception {
         for (String className : modified) {
-            ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES) {
-                @Override
-                protected String getCommonSuperClass(String type1, String type2) {
-                    return commonSuperClass(type1, type2, typeLoader);
-                }
-            };
+            ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
             byName.get(className).accept(writer);
             byte[] transformed = writer.toByteArray();
             verify(transformed, className);
@@ -110,29 +109,6 @@ public final class CompiledClasses {
         CheckClassAdapter.verify(new ClassReader(bytes), typeLoader, false, new PrintWriter(report));
         if (!report.toString().isEmpty()) {
             throw new IllegalStateException("Bytecode verification failed after inlining into " + className + ":\n" + report);
-        }
-    }
-
-    /** ASM frame-computation hook: nearest common ancestor of two internal type names. */
-    private static String commonSuperClass(String type1, String type2, ClassLoader loader) {
-        try {
-            Class<?> class1 = Class.forName(type1.replace('/', '.'), false, loader);
-            Class<?> class2 = Class.forName(type2.replace('/', '.'), false, loader);
-            if (class1.isAssignableFrom(class2)) {
-                return type1;
-            }
-            if (class2.isAssignableFrom(class1)) {
-                return type2;
-            }
-            if (class1.isInterface() || class2.isInterface()) {
-                return "java/lang/Object";
-            }
-            do {
-                class1 = class1.getSuperclass();
-            } while (!class1.isAssignableFrom(class2));
-            return class1.getName().replace('.', '/');
-        } catch (Throwable unresolved) {
-            return "java/lang/Object";
         }
     }
 }

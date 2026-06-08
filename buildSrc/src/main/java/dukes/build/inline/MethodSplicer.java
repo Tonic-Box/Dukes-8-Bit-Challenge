@@ -82,13 +82,13 @@ final class MethodSplicer {
     /**
      * The callee's instructions cloned with fresh labels, every local index shifted up by {@code baseLocal},
      * and every return rewritten as a jump to {@code endLabel} (leaving any return value on the stack, exactly
-     * what the caller expects after the call). Frames and line numbers are dropped - COMPUTE_FRAMES rebuilds
-     * the former and debug info is stripped anyway.
+     * what the caller expects after the call). Frames and line numbers are dropped - nothing downstream reads
+     * frames (the classes are written frameless and ProGuard re-preverifies) and debug info is stripped anyway.
      */
     private static InsnList cloneRemappedBody(MethodNode callee, int baseLocal, Map<LabelNode, LabelNode> labelMap, LabelNode endLabel) {
         InsnList body = new InsnList();
         for (AbstractInsnNode insn = callee.instructions.getFirst(); insn != null; insn = insn.getNext()) {
-            // Frames are recomputed by COMPUTE_FRAMES and line numbers are stripped, so drop both.
+            // Frames are written out stripped (recomputed downstream) and line numbers are stripped, so drop both.
             if (insn instanceof FrameNode || insn instanceof LineNumberNode) {
                 continue;
             }

@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Updated readme formatting">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Updated readme">
+      <change beforePath="$PROJECT_DIR$/buildSrc/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/build.gradle.kts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -240,14 +239,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1780326724902</updated>
-    </task>
-    <task id="LOCAL-00005" summary="- a few smaller size optimizations">
-      <option name="closed" value="true" />
-      <created>1780463615236</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1780463615236</updated>
     </task>
     <task id="LOCAL-00006" summary="- Updated the readme">
       <option name="closed" value="true" />
@@ -633,7 +624,15 @@
       <option name="project" value="LOCAL" />
       <updated>1780842990558</updated>
     </task>
-    <option name="localTasksCounter" value="54" />
+    <task id="LOCAL-00054" summary="- Updated readme">
+      <option name="closed" value="true" />
+      <created>1780866601804</created>
+      <option name="number" value="00054" />
+      <option name="presentableId" value="LOCAL-00054" />
+      <option name="project" value="LOCAL" />
+      <updated>1780866601804</updated>
+    </task>
+    <option name="localTasksCounter" value="55" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -648,7 +647,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- Merged some colors" />
     <MESSAGE value="- Simplified Game::keyDown&#10;- Optimized build" />
     <MESSAGE value="- pushed the camera into the Graphics transform" />
     <MESSAGE value="-Fixed inconsistencies in gradle tasks&#10;- pushed the camera into the Graphics transform&#10;- removed redundant returns from Game::keyDown&#10;- Hoist trinket lookup&#10;- Indexed request flags" />
@@ -673,6 +671,7 @@
     <MESSAGE value="- Shaved a few bytes in Main.java reducing locals&#10;- Updated readme with a graph of the build lifecycle" />
     <MESSAGE value="- Shaved a few bytes in Main.java" />
     <MESSAGE value="- Updated readme formatting" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Updated readme formatting" />
+    <MESSAGE value="- Updated readme" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Updated readme" />
   </component>
 </project>

@@ -4,6 +4,7 @@ plugins {
 
 repositories {
     mavenCentral()
+    maven { url = uri("https://www.jitpack.io") }
 }
 
 dependencies {
@@ -11,4 +12,6 @@ dependencies {
     implementation("org.ow2.asm:asm:9.8")
     implementation("org.ow2.asm:asm-tree:9.8")
     implementation("org.ow2.asm:asm-util:9.8")
+
+    implementation("com.github.Tonic-Box:YABR:main-SNAPSHOT")
 }
