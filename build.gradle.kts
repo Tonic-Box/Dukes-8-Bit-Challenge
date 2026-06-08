@@ -27,6 +27,9 @@ tasks.withType<JavaCompile>().configureEach {
     options.release = 25
     options.isDebug = false
     options.encoding = "UTF-8"
+    // De-sugar string concatenation to StringBuilder instead of invokedynamic, dropping the BootstrapMethods
+    // block + 23 indy sites + the StringConcatFactory handle from the merged class.
+    options.compilerArgs.add("-XDstringConcat=inline")
 }
 
 // ProGuard minifies in place, so feeding already-minified classes back in would double-minify and drift the

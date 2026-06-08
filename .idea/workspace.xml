@@ -4,8 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Now manually handles optimally packing and deflating output jar">
-      <change beforePath="$PROJECT_DIR$/src/main/java/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Game.java" afterDir="false" />
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- update readme">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -244,22 +245,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1780326724902</updated>
-    </task>
-    <task id="LOCAL-00010" summary="- Fixed sizing of minimap&#10;- Implemented stretching and resizability for the game view">
-      <option name="closed" value="true" />
-      <created>1780535589806</created>
-      <option name="number" value="00010" />
-      <option name="presentableId" value="LOCAL-00010" />
-      <option name="project" value="LOCAL" />
-      <updated>1780535589806</updated>
-    </task>
-    <task id="LOCAL-00011" summary="- Added shaded jar task&#10;- added output shaded jar size to size task output">
-      <option name="closed" value="true" />
-      <created>1780539023113</created>
-      <option name="number" value="00011" />
-      <option name="presentableId" value="LOCAL-00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1780539023113</updated>
     </task>
     <task id="LOCAL-00012" summary="Runtime memory optimizations&#10;- Pre-allocate static polygon scratch arrays in Renderer&#10;- Replace AffineTransform save/restore in drawDukeRight with paired inverse transforms&#10;- Swap HashMap&lt;Integer,int[]&gt; floor cache for a direct int[][] array">
       <option name="closed" value="true" />
@@ -637,7 +622,23 @@
       <option name="project" value="LOCAL" />
       <updated>1780902644721</updated>
     </task>
-    <option name="localTasksCounter" value="59" />
+    <task id="LOCAL-00059" summary="- Packed DIR_X, DIR_Y, RARITY_STAT_BONUS, RARITY_MAG_SCALE through the existing unpack()">
+      <option name="closed" value="true" />
+      <created>1780905158013</created>
+      <option name="number" value="00059" />
+      <option name="presentableId" value="LOCAL-00059" />
+      <option name="project" value="LOCAL" />
+      <updated>1780905158015</updated>
+    </task>
+    <task id="LOCAL-00060" summary="- update readme">
+      <option name="closed" value="true" />
+      <created>1780906978425</created>
+      <option name="number" value="00060" />
+      <option name="presentableId" value="LOCAL-00060" />
+      <option name="project" value="LOCAL" />
+      <updated>1780906978425</updated>
+    </task>
+    <option name="localTasksCounter" value="61" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -652,8 +653,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- Duke outline hoist + redundant setColor removal&#10;- Extract shared drawDukeBase preamble&#10;- effectLabel/bossName switch -&gt; array" />
-    <MESSAGE value="- Merge seven near-duplicate colors into shared neutral-named survivors (pit shades, boss/HP/XP bar colors, stat-down indicator, wall edge)&#10;- Replace the six size-specific polygon scratch arrays with a single size-5 POLY_X/POLY_Y pair (fillPolygon only reads the first nPoints)" />
     <MESSAGE value="Unify audio onto one scheduler, drop the MIDI sequencer (−754 B)&#10;- Music now plays note-by-note through the SFX scheduler via an eighth-note ticker&#10;- Instant mute/music-mute via fire-time checks; bass gets a release gap to avoid self-cancelling repeats" />
     <MESSAGE value="- Folded more similar/adjacent colors" />
     <MESSAGE value="- Compressed Item names and effect names" />
@@ -677,6 +676,8 @@
     <MESSAGE value="- Ditched ASM and rewrote the compile-time passes using YABR (No more ASM dep)&#10;- Mob NPC stat scaling balancing" />
     <MESSAGE value="- Update readme" />
     <MESSAGE value="- Now manually handles optimally packing and deflating output jar" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Now manually handles optimally packing and deflating output jar" />
+    <MESSAGE value="- Packed DIR_X, DIR_Y, RARITY_STAT_BONUS, RARITY_MAG_SCALE through the existing unpack()" />
+    <MESSAGE value="- update readme" />
+    <option name="LAST_COMMIT_MESSAGE" value="- update readme" />
   </component>
 </project>
