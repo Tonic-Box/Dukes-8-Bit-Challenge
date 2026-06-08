@@ -13,7 +13,7 @@ Requires **JDK 25**.
 
 ```
 ./gradlew run     # play
-./gradlew size    # print the measured runtime size
+./gradlew size    # print the measured compiled sizes
 ./gradlew build   # compile + package
 ```
 
@@ -144,5 +144,5 @@ Measured from a build (`./gradlew size`), which sums the compiled classes and re
 | Artifact | Size |
 | --- | ---: |
 | `Main.class` (bootstrap loader) | 2,229 B |
-| `Game` resource (the whole game, compressed) | 17,467 B |
-| **Total** | **19,696 B (19.23 KB)** |
+| `Game` resource (the whole game, compressed) | 17,530 B |
+| **Total** | **19,759 B (19.30 KB)** |
