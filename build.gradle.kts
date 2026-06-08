@@ -1,7 +1,4 @@
 import proguard.gradle.ProGuardTask
-import java.util.jar.JarEntry
-import java.util.jar.JarOutputStream
-import java.util.jar.Manifest
 
 buildscript {
     repositories { mavenCentral() }
@@ -132,19 +129,18 @@ tasks.register<ProGuardTask>("proguard") {
         val gameClass = File(classesDir, "Game.class")
         val gameBlob = File(resourcesDir, "Game")
         val blobBytes = dukes.yabr.pack.ResourcePacker.pack(gameClass, gameBlob)
-        // Repackage the runnable jar to match: the Main loader plus the Game blob, no Game.class.
-        val manifest = Manifest()
-        manifest.mainAttributes.putValue("Manifest-Version", "1.0")
-        manifest.mainAttributes.putValue("Main-Class", "Main")
-        JarOutputStream(jarFile.outputStream().buffered(), manifest).use { jar ->
-            listOf(classesDir, resourcesDir).forEach { root ->
-                root.walkTopDown().filter { it.isFile }.forEach { file ->
-                    jar.putNextEntry(JarEntry(file.relativeTo(root).invariantSeparatorsPath))
-                    file.inputStream().use { it.copyTo(jar) }
-                    jar.closeEntry()
-                }
+        // Repackage the runnable jar to match: the Main loader plus the Game blob, no Game.class. We write the
+        // ZIP ourselves (dukes.yabr.pack.JarPacker) so each entry uses OptimalDeflate - which beats the stock
+        // Deflater on the class bytes - and the already-compressed Game blob is stored rather than re-deflated.
+        val manifestBytes = "Manifest-Version: 1.0\r\nMain-Class: Main\r\n\r\n".toByteArray()
+        val jarEntries = mutableListOf(dukes.yabr.pack.JarPacker.Entry("META-INF/MANIFEST.MF", manifestBytes))
+        listOf(classesDir, resourcesDir).forEach { root ->
+            root.walkTopDown().filter { it.isFile }.forEach { file ->
+                jarEntries.add(dukes.yabr.pack.JarPacker.Entry(
+                    file.relativeTo(root).invariantSeparatorsPath, file.readBytes()))
             }
         }
+        dukes.yabr.pack.JarPacker.write(jarFile, jarEntries)
         val classBytes = classesDir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
         println("Minified -> classes %d B + Game blob %d B (%.2f KB total), jar %d B  %s"
             .format(classBytes, blobBytes, (classBytes + blobBytes) / 1024.0, jarFile.length(), jarFile.name))

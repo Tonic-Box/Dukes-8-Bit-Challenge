@@ -131,6 +131,7 @@ Implemented with **YABR**, My own bytecode library (No use of ASM, Javassist, et
 - `App`, `Renderer`, and `Sound` are merged into `Game`, collapsing four constant pools into one
 - The merged `Game` is then frame-stripped and compressed into the `Game` resource (see the loader pattern below)
 - Compression uses a from-scratch DEFLATE encoder (Zopfli-style optimal LZ77 parse plus block splitting) that beats the stock library at the same format, so the stock inflater still decodes it
+- The runnable jar is self-packed by that same encoder rather than `JarOutputStream`: each entry is optimally deflated, and the already-compressed `Game` blob is stored verbatim instead of wastefully re-deflated
 
 **Loader pattern:**`Game` carries the entire program but its StackMapTable frames are pure verifier bookkeeping. `Main` defines the inflated class into the bootstrap class loader, which is trusted and so runs no verification - the only thing that reads those frames - letting the build strip them before compressing. The blob is still an ordinary Java 25 class file; only the frames are gone. This trades a small, fixed loader for the frame bytes plus the compression of everything else, roughly halving the measured size.
 
@@ -145,4 +146,5 @@ Measured from a build (`./gradlew size`), which sums the compiled classes and re
 | --- | ---: |
 | `Main.class` (bootstrap loader) | 2,229 B |
 | `Game` resource (the whole game, compressed) | 17,530 B |
-| **Total** | **19,759 B (19.30 KB)** |
+| **Total (measured)** | **19,759 B (19.30 KB)** |
+| Packaged `DukesDescent-1.0.jar` | 18,942 B (18.50 KB) |
