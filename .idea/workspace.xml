@@ -4,11 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Update readme">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.png" beforeDir="false" />
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Now manually handles optimally packing and deflating output jar">
+      <change beforePath="$PROJECT_DIR$/src/main/java/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Game.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -247,14 +244,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1780326724902</updated>
-    </task>
-    <task id="LOCAL-00009" summary="Add replayability: gear effects, vaults, bosses, persistent floors, minimap&#10;- Effect-typed gear (lifesteal, crit, reach, poison, knockback, thorns, dodge, heal-on-kill) with proc flashes, plus a stats + equip-delta inventory screen and ~10 new items&#10;- Keys &amp; sealed vault rooms: locked doors gate treasure, with a key hidden elsewhere on the floor and vault odds that climb with depth&#10;- Arena bosses every 5th floor: a large 3x3 guardian with a telegraphed slam, an enrage that summons minions, and stairs sealed until it falls&#10;- Persistent floors: revisiting restores cleared enemies, opened doors, looted chests, and felled bosses instead of regenerating&#10;- Fog-aware minimap in the top-right tracking layout, stairs, and entities&#10;- README refreshed; floor snapshots packed into a primitive int[]">
-      <option name="closed" value="true" />
-      <created>1780532594643</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1780532594643</updated>
     </task>
     <task id="LOCAL-00010" summary="- Fixed sizing of minimap&#10;- Implemented stretching and resizability for the game view">
       <option name="closed" value="true" />
@@ -640,7 +629,15 @@
       <option name="project" value="LOCAL" />
       <updated>1780900914297</updated>
     </task>
-    <option name="localTasksCounter" value="58" />
+    <task id="LOCAL-00058" summary="- Now manually handles optimally packing and deflating output jar">
+      <option name="closed" value="true" />
+      <created>1780902644721</created>
+      <option name="number" value="00058" />
+      <option name="presentableId" value="LOCAL-00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1780902644721</updated>
+    </task>
+    <option name="localTasksCounter" value="59" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -655,7 +652,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- Compute item slots instead of storing them&#10;- Collapse duplicate colors + reuse minimap palette&#10;- Build optimizations" />
     <MESSAGE value="- Duke outline hoist + redundant setColor removal&#10;- Extract shared drawDukeBase preamble&#10;- effectLabel/bossName switch -&gt; array" />
     <MESSAGE value="- Merge seven near-duplicate colors into shared neutral-named survivors (pit shades, boss/HP/XP bar colors, stat-down indicator, wall edge)&#10;- Replace the six size-specific polygon scratch arrays with a single size-5 POLY_X/POLY_Y pair (fillPolygon only reads the first nPoints)" />
     <MESSAGE value="Unify audio onto one scheduler, drop the MIDI sequencer (−754 B)&#10;- Music now plays note-by-note through the SFX scheduler via an eighth-note ticker&#10;- Instant mute/music-mute via fire-time checks; bass gets a release gap to avoid self-cancelling repeats" />
@@ -680,6 +676,7 @@
     <MESSAGE value="- BuildSrc optimizations" />
     <MESSAGE value="- Ditched ASM and rewrote the compile-time passes using YABR (No more ASM dep)&#10;- Mob NPC stat scaling balancing" />
     <MESSAGE value="- Update readme" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Update readme" />
+    <MESSAGE value="- Now manually handles optimally packing and deflating output jar" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Now manually handles optimally packing and deflating output jar" />
   </component>
 </project>

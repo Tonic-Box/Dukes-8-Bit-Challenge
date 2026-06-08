@@ -108,10 +108,10 @@ final class Game {
     static final int RARE = 1;
     static final int LEGENDARY = 2;
     private static final String[] RARITY_LABEL = {"", " [Rare]", " [Legendary]"};
-    // Flat stat added to ITEM_VALUE per tier; effect magnitudes are scaled separately.
-    private static final int[] RARITY_STAT_BONUS = {0, 2, 5};
-    // Multiplier numerator for effect magnitudes (denominator 10): ×1.0 / ×1.5 / ×2.5.
-    private static final int[] RARITY_MAG_SCALE = {10, 15, 25};
+    // Flat stat added to ITEM_VALUE per tier (packed, char = value + '0'): 0,2,5. Effect magnitudes scale separately.
+    private static final int[] RARITY_STAT_BONUS = unpack("025");
+    // Multiplier numerator for effect magnitudes (denominator 10), packed: 10,15,25 → ×1.0 / ×1.5 / ×2.5.
+    private static final int[] RARITY_MAG_SCALE = unpack(":?I");
     // Weapon ATK and armor DEF gain an uncapped bonus from the floor an item dropped on, scaled to
     // track enemy growth (enemy HP rises floor/2, enemy attack rises floor/4) so deep gear keeps pace.
     private static final int DEPTH_ATK_DIVISOR = 2;
@@ -161,8 +161,9 @@ final class Game {
     private static final float HIT_DURATION_MS = 180f;
     private static final float REGEN_INTERVAL_MS = 6500f;
     private static final int HP_PER_LEVEL = 4;
-    private static final int[] DIR_X = {0, 0, -1, 1};
-    private static final int[] DIR_Y = {-1, 1, 0, 0};
+    // Four-direction step deltas (N,S,W,E), packed one char per value (char = value + '0', so -1 → '/').
+    private static final int[] DIR_X = unpack("00/1");
+    private static final int[] DIR_Y = unpack("/100");
 
     private static final float FALL_DURATION_MS = 900f;
     private static final float LIGHT_RISE_MS = 120f;
