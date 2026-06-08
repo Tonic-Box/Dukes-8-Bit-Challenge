@@ -4,8 +4,28 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Updated readme">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- BuildSrc optimizations">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/buildSrc/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/BuildPasses.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/CompiledClasses.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/color/ColorPacker.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/color/ColorScanner.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/color/PackedColor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/color/PalettePacker.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/inline/CallSite.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/inline/CallSiteLocator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/inline/MethodInliner.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/inline/MethodSplicer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/merge/Bytecode.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/merge/ClassMerger.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/merge/MemberAbsorber.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/merge/ReferenceRedirector.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/pack/OptimalDeflate.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/pack/OptimalDeflate.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/build/pack/ResourcePacker.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Game.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,19 +59,7 @@
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="dukes8bit" type="f1a62948:ProjectNode" />
                 <item name="Tasks" type="e4a08cd1:TasksNode" />
-                <item name="application" type="c8890929:TasksNode$1" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="dukes8bit" type="f1a62948:ProjectNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
                 <item name="build" type="c8890929:TasksNode$1" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="dukes8bit" type="f1a62948:ProjectNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
-                <item name="verification" type="c8890929:TasksNode$1" />
               </path>
             </expand>
             <select />
@@ -99,39 +107,50 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.dukes8bit [build].executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.dukes8bit [clean].executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.dukes8bit [proguard].executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.dukes8bit [run].executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.dukes8bit [size].executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.dukes8bit [test].executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/zacke/IdeaProjects/dukes8bit/build.gradle.kts&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.5091954&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.gradle&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.Main.executor": "Run",
+    "Gradle.Download Sources.executor": "Run",
+    "Gradle.dukes8bit [:buildSrc:build].executor": "Run",
+    "Gradle.dukes8bit [build].executor": "Run",
+    "Gradle.dukes8bit [clean].executor": "Run",
+    "Gradle.dukes8bit [proguard].executor": "Run",
+    "Gradle.dukes8bit [run].executor": "Run",
+    "Gradle.dukes8bit [size].executor": "Run",
+    "Gradle.dukes8bit [test].executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/zacke/IdeaProjects/dukes8bit/build.gradle.kts",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.5091954",
+    "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle"
   }
-}</component>
-  <component name="RunManager" selected="Gradle.dukes8bit [size]">
-    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Main" />
-      <module name="dukes8bit.main" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value=".*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
+}]]></component>
+  <component name="RunManager" selected="Gradle.dukes8bit [build]">
+    <configuration name="dukes8bit [:buildSrc:build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":buildSrc:build" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
     </configuration>
     <configuration name="dukes8bit [build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
@@ -223,11 +242,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.dukes8bit [size]" />
         <item itemvalue="Gradle.dukes8bit [build]" />
+        <item itemvalue="Gradle.dukes8bit [:buildSrc:build]" />
+        <item itemvalue="Gradle.dukes8bit [size]" />
         <item itemvalue="Gradle.dukes8bit [clean]" />
         <item itemvalue="Gradle.dukes8bit [run]" />
-        <item itemvalue="Application.Main" />
       </list>
     </recent_temporary>
   </component>
@@ -239,14 +258,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1780326724902</updated>
-    </task>
-    <task id="LOCAL-00006" summary="- Updated the readme">
-      <option name="closed" value="true" />
-      <created>1780463980313</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1780463980313</updated>
     </task>
     <task id="LOCAL-00007" summary="- Updated the readme">
       <option name="closed" value="true" />
@@ -632,7 +643,15 @@
       <option name="project" value="LOCAL" />
       <updated>1780866601804</updated>
     </task>
-    <option name="localTasksCounter" value="55" />
+    <task id="LOCAL-00055" summary="- BuildSrc optimizations">
+      <option name="closed" value="true" />
+      <created>1780879245254</created>
+      <option name="number" value="00055" />
+      <option name="presentableId" value="LOCAL-00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1780879245254</updated>
+    </task>
+    <option name="localTasksCounter" value="56" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -647,7 +666,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- Simplified Game::keyDown&#10;- Optimized build" />
     <MESSAGE value="- pushed the camera into the Graphics transform" />
     <MESSAGE value="-Fixed inconsistencies in gradle tasks&#10;- pushed the camera into the Graphics transform&#10;- removed redundant returns from Game::keyDown&#10;- Hoist trinket lookup&#10;- Indexed request flags" />
     <MESSAGE value="- Compute item slots instead of storing them&#10;- Collapse duplicate colors + reuse minimap palette&#10;- Build optimizations" />
@@ -672,6 +690,7 @@
     <MESSAGE value="- Shaved a few bytes in Main.java" />
     <MESSAGE value="- Updated readme formatting" />
     <MESSAGE value="- Updated readme" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Updated readme" />
+    <MESSAGE value="- BuildSrc optimizations" />
+    <option name="LAST_COMMIT_MESSAGE" value="- BuildSrc optimizations" />
   </component>
 </project>

@@ -1,15 +1,16 @@
-package dukes.build;
+package dukes.yabr;
 
-import dukes.build.color.ColorPacker;
-import dukes.build.inline.MethodInliner;
-import dukes.build.merge.ClassMerger;
+import dukes.yabr.color.ColorPacker;
+import dukes.yabr.inline.MethodInliner;
+import dukes.yabr.merge.ClassMerger;
+
 import java.io.File;
 import java.util.List;
 
 /**
  * The single entry point the build calls to run every build-time bytecode pass. Loads the compiled classes
- * once, applies each pass to the shared in-memory tree in order, writes the result once, and reports what each
- * pass did - so adding a pass is a line here rather than another Gradle task.
+ * once, applies each pass (colour, inline, merge) to the shared pool in order, writes the result once, and
+ * reports what each pass did.
  */
 public final class BuildPasses {
 
@@ -25,6 +26,7 @@ public final class BuildPasses {
         methodsMerged += ClassMerger.merge(classes, "Game", "Sound");
         methodsMerged += ClassMerger.merge(classes, "Game", "App");
         classes.writeModified();
-        System.out.println("build passes: packed " + coloursPacked + " colour(s), inlined " + methodsInlined + " method(s), merged " + methodsMerged + " method(s) into Game");
+        System.out.println("build passes: packed " + coloursPacked + " colour(s), inlined " + methodsInlined
+                + " method(s), merged " + methodsMerged + " method(s) into Game");
     }
 }

@@ -1,8 +1,7 @@
-package dukes.build.pack;
+package dukes.yabr.pack;
 
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.tree.ClassNode;
+import com.tonic.parser.ClassFile;
+import com.tonic.parser.ClassPool;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -13,7 +12,7 @@ import java.util.zip.Inflater;
  * Packs a compiled class into a compressed resource blob and removes the original .class. The StackMapTable
  * frames are stripped (only the JVM's verifier reads them) and the frameless class is compressed with
  * {@link OptimalDeflate}; the {@code Main} loader inflates it and defines it into the trusted, unverified
- * bootstrap loader at startup, so the frames are never needed. The class file version is left untouched.
+ * bootstrap loader at startup, so the frames are never needed.
  */
 public final class ResourcePacker {
 
@@ -22,11 +21,11 @@ public final class ResourcePacker {
 
     /** Strips frames from {@code classFile}, compresses it into {@code resourceFile}, and deletes the class file. */
     public static int pack(File classFile, File resourceFile) throws Exception {
-        ClassNode node = new ClassNode();
-        new ClassReader(Files.readAllBytes(classFile.toPath())).accept(node, ClassReader.SKIP_FRAMES);
-        ClassWriter writer = new ClassWriter(0);
-        node.accept(writer);
-        byte[] frameless = writer.toByteArray();
+        // An empty pool avoids loading the JDK: packing only loads, strips frames, and writes - no edits, so no
+        // frame regeneration runs and no type resolution is needed.
+        ClassFile node = new ClassPool(true).loadClass(Files.readAllBytes(classFile.toPath()));
+        node.stripStackMapTables();
+        byte[] frameless = node.write();
 
         byte[] compressed = OptimalDeflate.compress(frameless);
         verifyRoundTrip(frameless, compressed);

@@ -737,7 +737,7 @@ final class Game {
             if (ring < 1 || ring > reach) {
                 continue;
             }
-            int damage = Math.max(1, attackPower() + random.nextInt(3) - ENEMY_STATS[enemyType[i] * 5 + 4] - floor / 6);
+            int damage = Math.max(1, attackPower() + random.nextInt(3) - ENEMY_STATS[enemyType[i] * 5 + 4] - floor / 5);
             if (effect == EFF_CRIT && random.nextInt(100) < magOf(equippedWeapon)) {
                 damage *= 2;
                 enemyCrit[i] = 1f;
@@ -871,7 +871,7 @@ final class Game {
         enemyPrevX[slot] = x;
         enemyPrevY[slot] = y;
         enemyType[slot] = type;
-        enemyHp[slot] = ENEMY_STATS[type * 5] + floor / 2;
+        enemyHp[slot] = ENEMY_STATS[type * 5] + floor * 3 / 5;
         enemyHit[slot] = 0f;
         enemyCrit[slot] = 0f;
         enemyPoison[slot] = 0f;

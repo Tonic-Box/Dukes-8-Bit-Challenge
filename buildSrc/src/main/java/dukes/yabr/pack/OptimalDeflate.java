@@ -1,4 +1,4 @@
-package dukes.build.pack;
+package dukes.yabr.pack;
 
 import java.io.ByteArrayOutputStream;
 import java.util.*;
@@ -65,7 +65,7 @@ final class OptimalDeflate {
     }
 
     /** Compresses {@code data} to a raw DEFLATE stream (no zlib/gzip wrapper). */
-    static byte[] compress(byte[] data) {
+    public static byte[] compress(byte[] data) {
         return new OptimalDeflate(data).run();
     }
 

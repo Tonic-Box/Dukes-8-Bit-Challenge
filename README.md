@@ -125,6 +125,7 @@ Size is measured as the compiled `.class` files and resources under `build/class
 - Other minor optimizations are explained inline with comments.
 
 ### Build-time bytecode passes
+Implemented with **YABR**, My own bytecode library (No use of ASM, Javassist, etc), run over the freshly compiled classes before packaging:
 - Single-call methods get inlined based on a tuned scan (`tools\tune-inline.sh` / `tools\tune-inline.bat`)
 - Constant `Color` fields packed into one load-decoded palette
 - `App`, `Renderer`, and `Sound` are merged into `Game`, collapsing four constant pools into one
@@ -143,5 +144,5 @@ Measured from a build (`./gradlew size`), which sums the compiled classes and re
 | Artifact | Size |
 | --- | ---: |
 | `Main.class` (bootstrap loader) | 2,229 B |
-| `Game` resource (the whole game, compressed) | 18,420 B |
-| **Total** | **20,649 B (20.17 KB)** |
+| `Game` resource (the whole game, compressed) | 17,467 B |
+| **Total** | **19,696 B (19.23 KB)** |
