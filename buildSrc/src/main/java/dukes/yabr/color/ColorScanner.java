@@ -10,7 +10,6 @@ import com.tonic.analysis.instruction.NewInstruction;
 import com.tonic.analysis.instruction.PutFieldInstruction;
 import com.tonic.analysis.instruction.SipushInstruction;
 import com.tonic.parser.ClassFile;
-import dukes.yabr.Instructions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +24,7 @@ final class ColorScanner {
     }
 
     static List<PackedColor> scan(ClassFile owner, CodeWriter staticInit) {
-        List<Instruction> insns = Instructions.toList(staticInit.getInstructions());
+        List<Instruction> insns = staticInit.getInstructionList();
         List<PackedColor> colors = new ArrayList<>();
         for (int i = 0; i < insns.size(); i++) {
             if (insns.get(i) instanceof NewInstruction newColor && newColor.resolveClass().equals(PackedColor.TYPE)) {

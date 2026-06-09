@@ -145,6 +145,6 @@ Measured from a build (`./gradlew size`), which sums the compiled classes and re
 | Artifact | Size |
 | --- | ---: |
 | `Main.class` (bootstrap loader) | 2,229 B |
-| `Game` resource (the whole game, compressed) | 17,512 B |
-| **Total (measured)** | **19,741 B (19.28 KB)** |
-| Packaged `DukesDescent-1.0.jar` | 18,924 B (18.48 KB) |
+| `Game` resource (the whole game, compressed) | 17,397 B |
+| **Total (measured)** | **19,626 B (19.17 KB)** |
+| Packaged `DukesDescent-1.0.jar` | 18,809 B (18.37 KB) |

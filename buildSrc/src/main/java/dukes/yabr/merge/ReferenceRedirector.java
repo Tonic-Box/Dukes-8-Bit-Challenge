@@ -7,7 +7,6 @@ import com.tonic.parser.ClassFile;
 import com.tonic.parser.ConstPool;
 import com.tonic.parser.FieldEntry;
 import com.tonic.parser.MethodEntry;
-import dukes.yabr.Instructions;
 import dukes.yabr.CompiledClasses;
 
 import java.util.List;
@@ -37,7 +36,7 @@ final class ReferenceRedirector {
                 changed |= redirectFieldReads(referrer, sourceField, targetField, targetDescriptor);
             }
             if (sourceField != null) {
-                Bytecode.removeFieldInitializer(Bytecode.method(referrer, "<init>"), source.getClassName(),
+                Bytecode.removeFieldInitializer(referrer.getMethod("<init>"), source.getClassName(),
                         referrer.getClassName(), sourceField::equals);
                 referrer.removeField(sourceField, sourceDescriptor);
                 changed = true;
@@ -59,7 +58,7 @@ final class ReferenceRedirector {
             }
             CodeWriter writer = new CodeWriter(method);
             boolean methodChanged = false;
-            for (Instruction insn : Instructions.toList(writer.getInstructions())) {
+            for (Instruction insn : writer.getInstructionList()) {
                 if (insn instanceof GetFieldInstruction get && !get.isStatic()
                         && get.getOwnerClass().equals(referrer.getClassName()) && get.getFieldName().equals(sourceField)) {
                     writer.replaceInstruction(insn, new GetFieldInstruction(constPool, GETFIELD.getCode(), 0, targetRef));

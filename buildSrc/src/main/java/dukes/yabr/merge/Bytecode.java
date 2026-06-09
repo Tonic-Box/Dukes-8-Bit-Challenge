@@ -5,9 +5,7 @@ import com.tonic.analysis.instruction.ALoadInstruction;
 import com.tonic.analysis.instruction.Instruction;
 import com.tonic.analysis.instruction.NewInstruction;
 import com.tonic.analysis.instruction.PutFieldInstruction;
-import com.tonic.parser.ClassFile;
 import com.tonic.parser.MethodEntry;
-import dukes.yabr.Instructions;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -16,16 +14,6 @@ import java.util.function.Predicate;
 final class Bytecode {
 
     private Bytecode() {
-    }
-
-    /** The first method named {@code name} in {@code classFile}, or null. */
-    static MethodEntry method(ClassFile classFile, String name) {
-        for (MethodEntry method : classFile.getMethods()) {
-            if (method.getName().equals(name)) {
-                return method;
-            }
-        }
-        return null;
     }
 
     /**
@@ -40,7 +28,7 @@ final class Bytecode {
             return;
         }
         CodeWriter writer = new CodeWriter(constructor);
-        List<Instruction> insns = Instructions.toList(writer.getInstructions());
+        List<Instruction> insns = writer.getInstructionList();
         for (int i = 0; i < insns.size(); i++) {
             if (insns.get(i) instanceof NewInstruction nw && nw.resolveClass().equals(newType)) {
                 int end = i;

@@ -2,10 +2,7 @@ package dukes.yabr.inline;
 
 import com.tonic.analysis.CodeWriter;
 import com.tonic.analysis.instruction.Instruction;
-import com.tonic.analysis.instruction.InvokeInterfaceInstruction;
-import com.tonic.analysis.instruction.InvokeSpecialInstruction;
-import com.tonic.analysis.instruction.InvokeStaticInstruction;
-import com.tonic.analysis.instruction.InvokeVirtualInstruction;
+import com.tonic.analysis.instruction.InvokeInsn;
 import com.tonic.parser.ClassFile;
 import com.tonic.parser.ConstPool;
 import com.tonic.parser.MethodEntry;
@@ -90,35 +87,8 @@ record CallSiteLocator(CompiledClasses classes) {
 
     /** True when {@code insn} is a plain invoke of {@code callee} declared in {@code owner}. */
     static boolean callsMethod(Instruction insn, String owner, MethodEntry callee) {
-        String calledOwner;
-        String calledName;
-        String calledDesc;
-        switch (insn) {
-            case InvokeVirtualInstruction call -> {
-                calledOwner = call.getOwnerClass();
-                calledName = call.getMethodName();
-                calledDesc = call.getMethodDescriptor();
-            }
-            case InvokeSpecialInstruction call -> {
-                calledOwner = call.getOwnerClass();
-                calledName = call.getMethodName();
-                calledDesc = call.getMethodDescriptor();
-            }
-            case InvokeStaticInstruction call -> {
-                calledOwner = call.getOwnerClass();
-                calledName = call.getMethodName();
-                calledDesc = call.getMethodDescriptor();
-            }
-            case InvokeInterfaceInstruction call -> {
-                calledOwner = call.getOwnerClass();
-                calledName = call.getMethodName();
-                calledDesc = call.getMethodDescriptor();
-            }
-            case null, default -> {
-                return false;
-            }
-        }
-        return owner.equals(calledOwner) && callee.getName().equals(calledName) && callee.getDesc().equals(calledDesc);
+        return insn instanceof InvokeInsn call && owner.equals(call.getOwnerClass())
+                && callee.getName().equals(call.getMethodName()) && callee.getDesc().equals(call.getMethodDescriptor());
     }
 
     /** True if any method handle in the class's constant pool targets {@code callee} (a {@code ::} method reference). */

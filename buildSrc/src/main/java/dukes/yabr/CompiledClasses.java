@@ -1,5 +1,9 @@
 package dukes.yabr;
 
+import com.tonic.analysis.verifier.VerificationError;
+import com.tonic.analysis.verifier.VerificationResult;
+import com.tonic.analysis.verifier.Verifier;
+import com.tonic.analysis.verifier.VerifierConfig;
 import com.tonic.parser.ClassFile;
 import com.tonic.parser.ClassPool;
 import com.tonic.parser.MethodEntry;
@@ -93,22 +97,33 @@ public final class CompiledClasses {
             ClassFile classFile = byName.get(className);
             classFile.stripStackMapTables();
             byte[] transformed = classFile.write();
-            // verify(transformed, className);   // build-time verification oracle, disabled (see below)
+            verify(classFile, className);
             Files.write(fileByName.get(className), transformed);
         }
     }
 
-    // Build-time verification oracle, disabled along with the rest of the ASM tooling. It catches malformed
-    // bytecode at its source rather than at runtime under the no-verify loader. To re-enable: restore the
-    // org.objectweb.asm:asm and asm-util buildSrc dependencies, give this class a `typeLoader` field (a
-    // URLClassLoader over classesDir with this class's loader as parent, built in load()), reinstate the call in
-    // writeModified, and uncomment the method below (with the matching imports).
-    //
-    // private void verify(byte[] bytes, String className) {
-    //     StringWriter report = new StringWriter();
-    //     CheckClassAdapter.verify(new ClassReader(bytes), typeLoader, false, new PrintWriter(report));
-    //     if (!report.toString().isEmpty()) {
-    //         throw new IllegalStateException("Bytecode verification failed after transforming " + className + ":\n" + report);
-    //     }
-    // }
+    /**
+     * Build-time oracle: runs YABR's verifier over each transformed class and fails the build on malformed
+     * bytecode, catching transform bugs at their source instead of at runtime under the no-verify loader. Only the
+     * pool- and frame-independent checks are enabled - instruction encoding and branch/exception-table ranges -
+     * because the pool carries no JDK types (so type/stack-map inference falls back to Object) and frames are
+     * stripped before shipping, which would otherwise drown the result in false type/frame warnings.
+     */
+    private void verify(ClassFile classFile, String className) {
+        VerifierConfig config = VerifierConfig.builder()
+                .verifyStructure(true)
+                .verifyControlFlow(true)
+                .strictTypeChecking(false)
+                .verifyStackMapTable(false)
+                .collectAll()
+                .build();
+        VerificationResult result = Verifier.builder().classPool(pool).config(config).build().verify(classFile);
+        if (result.hasErrors()) {
+            StringBuilder message = new StringBuilder("Bytecode verification failed after transforming " + className + ":");
+            for (VerificationError error : result.getErrors()) {
+                message.append("\n  ").append(error.format());
+            }
+            throw new IllegalStateException(message.toString());
+        }
+    }
 }

@@ -4,9 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- update readme">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- JavaCompile -XDstringConcat=inline (makes javac compile string concatenation to StringBuilder instead of invokedynamic">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/CompiledClasses.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/CompiledClasses.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/Instructions.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/color/ColorPacker.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/color/ColorPacker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/color/ColorScanner.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/color/ColorScanner.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/color/PalettePacker.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/color/PalettePacker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/inline/CallSiteLocator.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/inline/CallSiteLocator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/inline/MethodSplicer.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/inline/MethodSplicer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/merge/Bytecode.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/merge/Bytecode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/merge/MemberAbsorber.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/merge/MemberAbsorber.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/merge/ReferenceRedirector.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/merge/ReferenceRedirector.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,6 +55,31 @@
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="dukes8bit" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="verification" type="c8890929:TasksNode$1" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="dukes8bit" type="f1a62948:ProjectNode" />
+                <item name="buildSrc" type="2d1252cf:ModuleNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="dukes8bit" type="f1a62948:ProjectNode" />
+                <item name="buildSrc" type="2d1252cf:ModuleNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="dukes8bit" type="f1a62948:ProjectNode" />
+                <item name="buildSrc" type="2d1252cf:ModuleNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="build" type="c8890929:TasksNode$1" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="dukes8bit" type="f1a62948:ProjectNode" />
+                <item name="buildSrc" type="2d1252cf:ModuleNode" />
                 <item name="Tasks" type="e4a08cd1:TasksNode" />
                 <item name="verification" type="c8890929:TasksNode$1" />
               </path>
@@ -116,7 +151,7 @@
     "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle"
   }
 }]]></component>
-  <component name="RunManager" selected="Gradle.dukes8bit [size]">
+  <component name="RunManager" selected="Gradle.dukes8bit [build]">
     <configuration name="dukes8bit [:buildSrc:build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -229,9 +264,9 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.dukes8bit [size]" />
         <item itemvalue="Gradle.dukes8bit [build]" />
         <item itemvalue="Gradle.dukes8bit [:buildSrc:build]" />
+        <item itemvalue="Gradle.dukes8bit [size]" />
         <item itemvalue="Gradle.dukes8bit [clean]" />
         <item itemvalue="Gradle.dukes8bit [run]" />
       </list>
@@ -245,14 +280,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1780326724902</updated>
-    </task>
-    <task id="LOCAL-00012" summary="Runtime memory optimizations&#10;- Pre-allocate static polygon scratch arrays in Renderer&#10;- Replace AffineTransform save/restore in drawDukeRight with paired inverse transforms&#10;- Swap HashMap&lt;Integer,int[]&gt; floor cache for a direct int[][] array">
-      <option name="closed" value="true" />
-      <created>1780545747937</created>
-      <option name="number" value="00012" />
-      <option name="presentableId" value="LOCAL-00012" />
-      <option name="project" value="LOCAL" />
-      <updated>1780545747937</updated>
     </task>
     <task id="LOCAL-00013" summary="- General cleanup">
       <option name="closed" value="true" />
@@ -638,7 +665,15 @@
       <option name="project" value="LOCAL" />
       <updated>1780906978425</updated>
     </task>
-    <option name="localTasksCounter" value="61" />
+    <task id="LOCAL-00061" summary="- JavaCompile -XDstringConcat=inline (makes javac compile string concatenation to StringBuilder instead of invokedynamic">
+      <option name="closed" value="true" />
+      <created>1780910634805</created>
+      <option name="number" value="00061" />
+      <option name="presentableId" value="LOCAL-00061" />
+      <option name="project" value="LOCAL" />
+      <updated>1780910634805</updated>
+    </task>
+    <option name="localTasksCounter" value="62" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -653,7 +688,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Unify audio onto one scheduler, drop the MIDI sequencer (−754 B)&#10;- Music now plays note-by-note through the SFX scheduler via an eighth-note ticker&#10;- Instant mute/music-mute via fire-time checks; bass gets a release gap to avoid self-cancelling repeats" />
     <MESSAGE value="- Folded more similar/adjacent colors" />
     <MESSAGE value="- Compressed Item names and effect names" />
     <MESSAGE value="- Optimization to build" />
@@ -678,6 +712,7 @@
     <MESSAGE value="- Now manually handles optimally packing and deflating output jar" />
     <MESSAGE value="- Packed DIR_X, DIR_Y, RARITY_STAT_BONUS, RARITY_MAG_SCALE through the existing unpack()" />
     <MESSAGE value="- update readme" />
-    <option name="LAST_COMMIT_MESSAGE" value="- update readme" />
+    <MESSAGE value="- JavaCompile -XDstringConcat=inline (makes javac compile string concatenation to StringBuilder instead of invokedynamic" />
+    <option name="LAST_COMMIT_MESSAGE" value="- JavaCompile -XDstringConcat=inline (makes javac compile string concatenation to StringBuilder instead of invokedynamic" />
   </component>
 </project>

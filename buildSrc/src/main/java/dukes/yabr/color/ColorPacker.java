@@ -33,7 +33,7 @@ public final class ColorPacker {
     }
 
     private static int packClass(ClassFile owner) throws Exception {
-        MethodEntry staticInit = staticInitializer(owner);
+        MethodEntry staticInit = owner.getStaticInitializer();
         if (staticInit == null || staticInit.getCodeAttribute() == null) {
             return 0;
         }
@@ -44,14 +44,5 @@ public final class ColorPacker {
         }
         PalettePacker.pack(owner, writer, colors);
         return colors.size();
-    }
-
-    private static MethodEntry staticInitializer(ClassFile owner) {
-        for (MethodEntry method : owner.getMethods()) {
-            if (method.getName().equals("<clinit>")) {
-                return method;
-            }
-        }
-        return null;
     }
 }
