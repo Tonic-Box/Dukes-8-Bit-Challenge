@@ -130,6 +130,7 @@ Implemented with **YABR**, My own bytecode library (No use of ASM, Javassist, et
 - Constant `Color` fields packed into one load-decoded palette
 - `App`, `Renderer`, and `Sound` are merged into `Game`, collapsing four constant pools into one
 - The merged `Game` is then frame-stripped and compressed into the `Game` resource (see the loader pattern below)
+- Exploiting that same unverified loader, the object-type names in private/static method descriptors are collapsed to a one-char placeholder: those methods are never dispatched through a JDK type, and the loader matches calls by descriptor shape (arity and slot kinds), not by the named types, so the real type names are dead weight in the constant pool. JDK calls, overrides, fields, and `invokedynamic` sites keep their real descriptors, since the JVM still resolves those by exact match
 - Compression uses a from-scratch DEFLATE encoder (Zopfli-style optimal LZ77 parse plus block splitting) that beats the stock library at the same format, so the stock inflater still decodes it
 - The runnable jar is self-packed by that same encoder rather than `JarOutputStream`: each entry is optimally deflated, and the already-compressed `Game` blob is stored verbatim instead of wastefully re-deflated
 
@@ -145,6 +146,6 @@ Measured from a build (`./gradlew size`), which sums the compiled classes and re
 | Artifact | Size |
 | --- | ---: |
 | `Main.class` (bootstrap loader) | 2,229 B |
-| `Game` resource (the whole game, compressed) | 17,397 B |
-| **Total (measured)** | **19,626 B (19.17 KB)** |
-| Packaged `DukesDescent-1.0.jar` | 18,809 B (18.37 KB) |
+| `Game` resource (the whole game, compressed) | 17,360 B |
+| **Total (measured)** | **19,589 B (19.13 KB)** |
+| Packaged `DukesDescent-1.0.jar` | 18,772 B (18.33 KB) |

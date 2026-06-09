@@ -31,7 +31,12 @@ final class ReferenceRedirector {
             }
             String sourceField = fieldNamed(referrer, sourceDescriptor);
             String targetField = fieldNamed(referrer, targetDescriptor);
-            boolean changed = referrer.redirectOwner(source.getClassName(), targetName) > 0;
+            boolean changed = false;
+            // The field removal and its initializer match on the source class - the field's "Lsource;" descriptor
+            // and the new-operand's source type - so they must run before redirectOwner rewrites those to the
+            // target. (redirectOwner now canonicalises class-type operands and descriptors, not just member-ref
+            // owners; running it first would leave the self-field and its "new target()" initializer in place - an
+            // infinite-recursion constructor.)
             if (targetField != null && sourceField != null) {
                 changed |= redirectFieldReads(referrer, sourceField, targetField, targetDescriptor);
             }
@@ -41,6 +46,7 @@ final class ReferenceRedirector {
                 referrer.removeField(sourceField, sourceDescriptor);
                 changed = true;
             }
+            changed |= referrer.redirectOwner(source.getClassName(), targetName) > 0;
             if (changed) {
                 classes.markModified(referrer.getClassName());
             }

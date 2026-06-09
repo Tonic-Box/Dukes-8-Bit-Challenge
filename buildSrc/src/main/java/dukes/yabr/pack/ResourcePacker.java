@@ -21,9 +21,11 @@ public final class ResourcePacker {
 
     /** Strips frames from {@code classFile}, compresses it into {@code resourceFile}, and deletes the class file. */
     public static int pack(File classFile, File resourceFile) throws Exception {
-        // An empty pool avoids loading the JDK: packing only loads, strips frames, and writes - no edits, so no
-        // frame regeneration runs and no type resolution is needed.
+        // An empty pool avoids loading the JDK: collapsing descriptors and stripping frames are constant-pool/
+        // attribute edits only, so no code is rewritten, no frame regeneration runs, and no type resolution is
+        // needed.
         ClassFile node = new ClassPool(true).loadClass(Files.readAllBytes(classFile.toPath()));
+        DescriptorCollapser.collapse(node);
         node.stripStackMapTables();
         byte[] frameless = node.write();
 
