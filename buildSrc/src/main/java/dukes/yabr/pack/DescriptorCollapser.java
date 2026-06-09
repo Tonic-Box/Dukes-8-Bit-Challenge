@@ -35,6 +35,9 @@ import java.util.Set;
  * still matches by exact descriptor. Collapsible methods are private or static (never virtually dispatched, never
  * JDK-called) and not reached through a {@code MethodHandle}. A descriptor whose collapse would make two methods
  * share a name+descriptor is dropped, and a self-reference guard fails the build on any decl/ref mismatch.
+ *
+ * <p>Fields are intentionally not collapsed: ProGuard's aggressive overloading reuses field names across object
+ * types, so every field descriptor collapses into a name+descriptor collision and is dropped - no net benefit.
  */
 public final class DescriptorCollapser {
 

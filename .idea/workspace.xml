@@ -4,11 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- JavaCompile -XDstringConcat=inline (makes javac compile string concatenation to StringBuilder instead of invokedynamic">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Fix merge self-field recursion (removals before redirectOwner)&#10;- Collapse no-verify-safe method descriptors">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/merge/ReferenceRedirector.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/merge/ReferenceRedirector.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/pack/DescriptorCollapser.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/pack/DescriptorCollapser.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/pack/ResourcePacker.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/pack/ResourcePacker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -272,14 +274,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1780326724902</updated>
-    </task>
-    <task id="LOCAL-00013" summary="- General cleanup">
-      <option name="closed" value="true" />
-      <created>1780545899667</created>
-      <option name="number" value="00013" />
-      <option name="presentableId" value="LOCAL-00013" />
-      <option name="project" value="LOCAL" />
-      <updated>1780545899667</updated>
     </task>
     <task id="LOCAL-00014" summary="- Reworked items to have more variety and uniqueness via stat rolling and randomized names&#10;- balanced loot drops, rarity chances, and chest spawns a bit better&#10;- Balanced attack speeds and movement speeds of player and npcs&#10;- Standardized controls a bit better&#10;- Added 15% chance for opening chests to spawn a mimic">
       <option name="closed" value="true" />
@@ -665,7 +659,15 @@
       <option name="project" value="LOCAL" />
       <updated>1780910634805</updated>
     </task>
-    <option name="localTasksCounter" value="62" />
+    <task id="LOCAL-00062" summary="- Fix merge self-field recursion (removals before redirectOwner)&#10;- Collapse no-verify-safe method descriptors">
+      <option name="closed" value="true" />
+      <created>1780980264962</created>
+      <option name="number" value="00062" />
+      <option name="presentableId" value="LOCAL-00062" />
+      <option name="project" value="LOCAL" />
+      <updated>1780980264962</updated>
+    </task>
+    <option name="localTasksCounter" value="63" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -680,7 +682,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- Folded more similar/adjacent colors" />
     <MESSAGE value="- Compressed Item names and effect names" />
     <MESSAGE value="- Optimization to build" />
     <MESSAGE value="- buildSrc ASM pass inlines single-call methods into their one caller&#10;- Auto-tune the inline list against real post-ProGuard size (tools/tune-inline.sh)&#10;- Deadline-based frame pacing to kill the intermittent movement stutter&#10;- Shorter boss slam cooldown (4000 -&gt; 2500ms)" />
@@ -705,6 +706,7 @@
     <MESSAGE value="- Packed DIR_X, DIR_Y, RARITY_STAT_BONUS, RARITY_MAG_SCALE through the existing unpack()" />
     <MESSAGE value="- update readme" />
     <MESSAGE value="- JavaCompile -XDstringConcat=inline (makes javac compile string concatenation to StringBuilder instead of invokedynamic" />
-    <option name="LAST_COMMIT_MESSAGE" value="- JavaCompile -XDstringConcat=inline (makes javac compile string concatenation to StringBuilder instead of invokedynamic" />
+    <MESSAGE value="- Fix merge self-field recursion (removals before redirectOwner)&#10;- Collapse no-verify-safe method descriptors" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Fix merge self-field recursion (removals before redirectOwner)&#10;- Collapse no-verify-safe method descriptors" />
   </component>
 </project>

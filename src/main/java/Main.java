@@ -25,7 +25,7 @@ public final class Main {
         }
 
         lookup.findStatic(
-                (Class<?>) defineClass.invoke(internalUnsafe, "Game", bytecode, 0, bytecode.length, null, null),
+                (Class<?>) defineClass.invoke(internalUnsafe, "G", bytecode, 0, bytecode.length, null, null),
                 "main", MethodType.methodType(void.class)
         ).invoke();
     }
