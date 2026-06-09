@@ -40,7 +40,6 @@ final class Renderer {
     private static final Color DUKE_BELLY = new Color(236, 239, 246);
     private static final Color DUKE_FOOT = new Color(242, 170, 44);
     private static final Color BUG_LEG = new Color(120, 32, 28);
-    private static final Color LEAK_DRIP = new Color(156, 232, 174);
     private static final Color MERCHANT_ROBE = new Color(150, 110, 60);
     private static final Color MERCHANT_SKIN = new Color(232, 196, 158);
     private static final Color PROMPT = new Color(245, 240, 210);
@@ -65,7 +64,6 @@ final class Renderer {
     private static final Color DOOR_FRAME_LIT = new Color(120, 88, 52);
     private static final Color DOOR_PANEL_LIT = new Color(168, 120, 66);
     private static final Color DOOR_LOCK_LIT = new Color(232, 200, 110);
-    private static final Color KEY_SHADE = new Color(176, 142, 52);
     private static final Color BOSS_SHADOW = new Color(0, 0, 0, 96);
     private static final Color[] BOSS_BODIES = {
             new Color(58, 36, 74),
@@ -359,8 +357,6 @@ final class Renderer {
                 rect(graphics, DOOR_PANEL_LIT, px + 4, py + 6, 16, 13);
                 graphics.setColor(BROWN);
                 graphics.drawRect(px + 4, py + 6, 16, 13);
-                graphics.drawLine(px + 4, py + 12, px + 20, py + 12);
-                graphics.drawLine(px + 12, py + 6, px + 12, py + 19);
             }
             default -> {
                 oval(graphics, VASE_NECK, px + 5, py + 4, 14, 6);
@@ -376,8 +372,6 @@ final class Renderer {
         rect(graphics, DOOR_PANEL_LIT, px + 3, py + 2, Game.TILE - 6, Game.TILE - 4);
         int cx = px + Game.TILE / 2;
         rect(graphics, DOOR_LOCK_LIT, cx - 3, py + Game.TILE / 2 - 3, 6, 8);
-        rect(graphics, DARK, cx - 1, py + Game.TILE / 2 - 1, 2, 2);
-        graphics.fillRect(cx - 1, py + Game.TILE / 2 + 1, 2, 3);
     }
 
     /** A small golden key with a ring bow, shaft, and a pair of teeth. */
@@ -385,10 +379,7 @@ final class Renderer {
         int cx = px + Game.TILE / 2;
         int cy = py + Game.TILE / 2;
         oval(graphics, STAIRS_LIT, cx - 7, cy - 5, 7, 7);
-        oval(graphics, BACKGROUND, cx - 5, cy - 3, 3, 3);
         rect(graphics, STAIRS_LIT, cx - 1, cy - 2, 8, 2);
-        rect(graphics, KEY_SHADE, cx + 3, cy, 2, 3);
-        graphics.fillRect(cx + 6, cy, 2, 3);
     }
 
     private void drawChest(Graphics graphics, int px, int py) {
@@ -523,7 +514,6 @@ final class Renderer {
             case Game.LEAK -> {
                 graphics.setColor(LEAK_COLOR);
                 graphics.fillRoundRect(px + 3, py + 5, Game.TILE - 6, Game.TILE - 8, 14, 14);
-                rect(graphics, LEAK_DRIP, px + 8, py + 8, 4, 3);
             }
             case Game.FORKBOMB -> {
                 rect(graphics, FORK_COLOR, px + 5, py + 8, Game.TILE - 10, Game.TILE - 12);
@@ -533,22 +523,10 @@ final class Renderer {
             case Game.MIMIC -> {
                 rect(graphics, BUG_LEG, px + 3, py + 14, Game.TILE - 6, 9);
                 rect(graphics, MIMIC_LID, px + 3, py + 4, Game.TILE - 6, 8);
-                graphics.setColor(Color.WHITE);
-                for (int tooth = 0; tooth < 4; tooth++) {
-                    graphics.fillRect(px + 5 + tooth * 4, py + 11, 2, 3);
-                    graphics.fillRect(px + 6 + tooth * 4, py + 14, 2, 3);
-                }
                 oval(graphics, MIMIC_EYE, px + 6, py + 5, 4, 4);
                 graphics.fillOval(px + 14, py + 5, 4, 4);
-                oval(graphics, DARK, px + 7, py + 6, 2, 2);
-                graphics.fillOval(px + 15, py + 6, 2, 2);
             }
-            default -> {
-                rect(graphics, BUG_LEG, px + 5, py + Game.TILE - 6, 2, 5);
-                graphics.fillRect(px + 11, py + Game.TILE - 6, 2, 5);
-                graphics.fillRect(px + 17, py + Game.TILE - 6, 2, 5);
-                oval(graphics, RED_MAIN, px + 4, py + 6, Game.TILE - 8, Game.TILE - 10);
-            }
+            default -> oval(graphics, RED_MAIN, px + 4, py + 6, Game.TILE - 8, Game.TILE - 10);
         }
         if (type != Game.MIMIC) {
             rect(graphics, DARK, px + 8, py + 10, 3, 3);
@@ -592,15 +570,7 @@ final class Renderer {
         oval(graphics, BOSS_SHADOW, px + 8, py + size - 16, size - 16, 14);
 
         graphics.setColor(enraged ? BOSS_BODY_ENRAGED : BOSS_BODIES[type & 3]);
-        POLY_Y[0] = py + 16; POLY_Y[1] = py - 1; POLY_Y[2] = py + 16;
-        for (int i = 0; i < 5; i++) {
-            int sx = px + 12 + i * ((size - 24) / 4);
-            POLY_X[0] = sx; POLY_X[1] = sx + 7; POLY_X[2] = sx + 14;
-            graphics.fillPolygon(POLY_X, POLY_Y, 3);
-        }
         graphics.fillRoundRect(px + 6, py + 10, size - 12, size - 20, 30, 30);
-        graphics.setColor(PURPLE);
-        graphics.drawRoundRect(px + 6, py + 10, size - 12, size - 20, 30, 30);
 
         int pulse = (int) (Math.sin(anim / 160.0) * 3) + 3;
         oval(graphics, RED_SOFT, px + size / 2 - 14 - pulse / 2, py + size / 2 - 10 - pulse / 2, 28 + pulse, 24 + pulse);
@@ -614,12 +584,6 @@ final class Renderer {
         oval(graphics, DARK, px + 19, eyeY + 3, 3, 3);
         graphics.fillOval(px + size - 22, eyeY + 3, 3, 3);
         graphics.fillOval(px + size / 2 - 1, py + 20, 3, 3);
-
-        graphics.setColor(DARK);
-        int mawY = py + size - 28;
-        POLY_X[0] = px + 22; POLY_X[1] = px + 30; POLY_X[2] = px + 38; POLY_X[3] = px + 46; POLY_X[4] = px + 54;
-        POLY_Y[0] = mawY; POLY_Y[1] = mawY + 9; POLY_Y[2] = mawY; POLY_Y[3] = mawY + 9; POLY_Y[4] = mawY;
-        graphics.fillPolygon(POLY_X, POLY_Y, 5);
 
         if (telegraph > 0f) {
             graphics.setColor(BOSS_TELEGRAPH);
@@ -901,8 +865,6 @@ final class Renderer {
         POLY_X[0] = px + 8; POLY_X[1] = px + Game.TILE - 8; POLY_X[2] = px + Game.TILE - 4; POLY_X[3] = px + 4;
         POLY_Y[0] = py + 13; POLY_Y[1] = py + 13; POLY_Y[2] = py + Game.TILE - 1; POLY_Y[3] = py + Game.TILE - 1;
         graphics.fillPolygon(POLY_X, POLY_Y, 4);
-        rect(graphics, DOOR_LOCK_LIT, cx - 4, py + 13, 8, 2);
-        graphics.fillRect(cx - 1, py + 15, 2, Game.TILE - 17);
         oval(graphics, MERCHANT_SKIN, cx - 5, py + 4, 10, 9);
         rect(graphics, BROWN, cx - 6, py + 3, 12, 2);
         graphics.fillRect(cx - 4, py, 8, 3);

@@ -4,13 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Fix merge self-field recursion (removals before redirectOwner)&#10;- Collapse no-verify-safe method descriptors">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Descriptor collapsing">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/pack/DescriptorCollapser.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/pack/DescriptorCollapser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/pack/ResourcePacker.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/pack/ResourcePacker.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Renderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Renderer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -145,7 +142,7 @@
     &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.gradle&quot;
   }
 }</component>
-  <component name="RunManager" selected="Gradle.dukes8bit [size]">
+  <component name="RunManager" selected="Gradle.dukes8bit [run]">
     <configuration name="dukes8bit [:buildSrc:build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -258,11 +255,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Gradle.dukes8bit [run]" />
         <item itemvalue="Gradle.dukes8bit [size]" />
         <item itemvalue="Gradle.dukes8bit [build]" />
         <item itemvalue="Gradle.dukes8bit [:buildSrc:build]" />
         <item itemvalue="Gradle.dukes8bit [clean]" />
-        <item itemvalue="Gradle.dukes8bit [run]" />
       </list>
     </recent_temporary>
   </component>
@@ -274,14 +271,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1780326724902</updated>
-    </task>
-    <task id="LOCAL-00014" summary="- Reworked items to have more variety and uniqueness via stat rolling and randomized names&#10;- balanced loot drops, rarity chances, and chest spawns a bit better&#10;- Balanced attack speeds and movement speeds of player and npcs&#10;- Standardized controls a bit better&#10;- Added 15% chance for opening chests to spawn a mimic">
-      <option name="closed" value="true" />
-      <created>1780558008474</created>
-      <option name="number" value="00014" />
-      <option name="presentableId" value="LOCAL-00014" />
-      <option name="project" value="LOCAL" />
-      <updated>1780558008474</updated>
     </task>
     <task id="LOCAL-00015" summary="- Added breakable scenery&#10;- Added pitfalls &#10;- Added hotkey for muting the music track">
       <option name="closed" value="true" />
@@ -667,7 +656,15 @@
       <option name="project" value="LOCAL" />
       <updated>1780980264962</updated>
     </task>
-    <option name="localTasksCounter" value="63" />
+    <task id="LOCAL-00063" summary="- Descriptor collapsing">
+      <option name="closed" value="true" />
+      <created>1781017955663</created>
+      <option name="number" value="00063" />
+      <option name="presentableId" value="LOCAL-00063" />
+      <option name="project" value="LOCAL" />
+      <updated>1781017955663</updated>
+    </task>
+    <option name="localTasksCounter" value="64" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -682,7 +679,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- Compressed Item names and effect names" />
     <MESSAGE value="- Optimization to build" />
     <MESSAGE value="- buildSrc ASM pass inlines single-call methods into their one caller&#10;- Auto-tune the inline list against real post-ProGuard size (tools/tune-inline.sh)&#10;- Deadline-based frame pacing to kill the intermittent movement stutter&#10;- Shorter boss slam cooldown (4000 -&gt; 2500ms)" />
     <MESSAGE value="- tune-inline.bat script" />
@@ -707,6 +703,7 @@
     <MESSAGE value="- update readme" />
     <MESSAGE value="- JavaCompile -XDstringConcat=inline (makes javac compile string concatenation to StringBuilder instead of invokedynamic" />
     <MESSAGE value="- Fix merge self-field recursion (removals before redirectOwner)&#10;- Collapse no-verify-safe method descriptors" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Fix merge self-field recursion (removals before redirectOwner)&#10;- Collapse no-verify-safe method descriptors" />
+    <MESSAGE value="- Descriptor collapsing" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Descriptor collapsing" />
   </component>
 </project>
