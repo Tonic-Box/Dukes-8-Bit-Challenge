@@ -181,18 +181,21 @@ final class OptimalDeflate {
     /** Redistributes over-long codes down to {@code limit} while preserving a complete prefix code. */
     private static int[] limitLengths(int[] natural, int[] frequency, List<Integer> symbols, int maxSymbol, int limit) {
         int[] countAtLength = new int[limit + 1];
-        int overflow = 0;
         for (int i = 0; i <= maxSymbol; i++) {
             if (natural[i] > 0) {
-                int l = natural[i];
-                if (l > limit) {
-                    l = limit;
-                    overflow++;
-                }
-                countAtLength[l]++;
+                countAtLength[Math.min(natural[i], limit)]++;
             }
         }
-        while (overflow > 0) {
+        // Capping codes at `limit` over-subscribes the Kraft sum (scaled so a complete code totals 2^limit); push one
+        // code a level deeper at a time - each move lowers the sum by exactly one - until the code is complete again.
+        // Driving the loop by the Kraft surplus rather than the count of capped codes is what keeps the tree valid
+        // when a code was capped from more than one level too deep (where surplus exceeds half that count).
+        long full = 1L << limit;
+        long kraft = 0;
+        for (int l = 1; l <= limit; l++) {
+            kraft += (long) countAtLength[l] << (limit - l);
+        }
+        while (kraft > full) {
             int bits = limit - 1;
             while (countAtLength[bits] == 0) {
                 bits--;
@@ -200,7 +203,7 @@ final class OptimalDeflate {
             countAtLength[bits]--;
             countAtLength[bits + 1] += 2;
             countAtLength[limit]--;
-            overflow -= 2;
+            kraft--;
         }
         Integer[] order = symbols.toArray(new Integer[0]);
         Arrays.sort(order, (a, b) -> {

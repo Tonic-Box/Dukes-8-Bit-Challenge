@@ -23,6 +23,23 @@ application {
     mainClass = "Main"
 }
 
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.test {
+    useJUnitPlatform()
+    // Constructing Game calls Sound.init(); point the MIDI synth at a name that does not resolve so the synth
+    // fails to open and Sound becomes a no-op - otherwise its non-daemon scheduler keeps the test JVM alive.
+    systemProperty("javax.sound.midi.Synthesizer", "#none")
+    systemProperty("java.awt.headless", "true")
+}
+
 tasks.withType<JavaCompile>().configureEach {
     options.release = 25
     options.isDebug = false
@@ -51,6 +68,9 @@ val explicitInline: List<String>? = (findProperty("inline") as String?)
     ?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() }
 val transformClasses = tasks.register("transformClasses") {
     dependsOn("compileJava")
+    // The passes (and ProGuard after) mutate build/classes/java/main in place, which is also the test classpath,
+    // so let `test` run against the pristine compiled classes first whenever both are in the graph.
+    mustRunAfter("test")
     outputs.upToDateWhen { false }
     doLast {
         val allowlist = explicitInline ?: if (allowlistFile.exists())
