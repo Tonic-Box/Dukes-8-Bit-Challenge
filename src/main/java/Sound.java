@@ -1,18 +1,12 @@
 import javax.sound.midi.MidiChannel;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Synthesizer;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
- * Procedural MIDI audio for Duke's Descent. Both the short effect blips and the looping chiptune track
- * are scheduled note-by-note through one ScheduledExecutorService onto the JDK synthesizer's channels,
- * so no audio assets ship and a single playback path drives everything. Effects own channels 0-3 and
- * music owns channels 4-6 so they never collide. If no synthesizer is available every method is a no-op.
- *
- * <p>A static utility: there is one audio output, so the synthesizer, channels, scheduler, and mute state
- * are class-level and the synth is opened (and the music ticker started) in the static initializer.
+ * Procedural MIDI audio: short effect blips and a looping chiptune track played note-by-note on the JDK
+ * synthesizer (effects own channels 0-3, music 4-6) with no audio assets shipped. Notes are queued by
+ * absolute fire time and played by {@link #pump}, called once per frame by the game loop, so audio needs
+ * no background thread. Every method is a no-op if no synthesizer is available.
  */
 final class Sound {
 
@@ -61,8 +55,15 @@ final class Sound {
     private static final String BASS = "]04d44Y84`<4`@4[D4[H4bL4";
     private static final String ARP = "i02l22p42u62e82i:2l<2q>2l@2pB2sD2xF2gH2kJ2nL2sN2";
 
+    // Pending notes, fired by absolute time in update(). evData packs one note: music<<24 | off<<23 |
+    // channel<<16 | key<<8 | velocity. The cap is a saturation guard; overlapping notes never approach it.
+    private static final int MAX_EVENTS = 256;
+    private static final long[] eventFireMs = new long[MAX_EVENTS];
+    private static final int[] eventData = new int[MAX_EVENTS];
+    private static int eventCount;
+    private static long nextTickMs;
+
     private static final MidiChannel[] channels;
-    private static final ScheduledExecutorService scheduler;
     private static boolean muted;
     private static boolean musicMuted;
     private static int musicEighth;
@@ -70,7 +71,6 @@ final class Sound {
 
     static {
         MidiChannel[] openChannels;
-        ScheduledExecutorService timer;
         try {
             Synthesizer synthesizer = MidiSystem.getSynthesizer();
             synthesizer.open();
@@ -84,22 +84,16 @@ final class Sound {
             configureMusicChannel(openChannels[MELODY_CHANNEL], SQUARE_LEAD);
             configureMusicChannel(openChannels[BASS_CHANNEL], SYNTH_BASS);
             configureMusicChannel(openChannels[ARP_CHANNEL], SQUARE_LEAD);
-            timer = Executors.newSingleThreadScheduledExecutor();
         } catch (Exception unavailable) {
             openChannels = null;
-            timer = null;
         }
         channels = openChannels;
-        scheduler = timer;
-        if (scheduler != null) {
-            scheduler.scheduleAtFixedRate(Sound::advanceMusic, 0, EIGHTH_MS, TimeUnit.MILLISECONDS);
-        }
     }
 
     private Sound() {
     }
 
-    /** No-op whose only job is to run the static initializer eagerly (open the synth, start the music ticker). */
+    /** No-op whose only job is to run the static initializer eagerly (open the synth). */
     static void init() {
     }
 
@@ -181,14 +175,63 @@ final class Sound {
     }
 
     /**
-     * Schedules one note: key on at {@code startMs}, off {@code durationMs} later. The note-on is gated at
-     * fire time by the mute flags ({@code music} notes also honor the music-only mute) so a toggle is instant.
+     * Queues one note: key on at {@code startMs}, off {@code durationMs} later (both relative to now). The
+     * note-on is gated at fire time by the mute flags ({@code music} notes also honor the music-only mute)
+     * so a toggle is instant; the note-off always fires so a key never sticks.
      */
     private static void note(int channel, int key, int velocity, long startMs, long durationMs, boolean music) {
-        scheduler.schedule(() -> {
-            if (!muted && !(music && musicMuted)) channels[channel].noteOn(key, velocity);
-        }, startMs, TimeUnit.MILLISECONDS);
-        scheduler.schedule(() -> channels[channel].noteOff(key), startMs + durationMs, TimeUnit.MILLISECONDS);
+        long now = System.currentTimeMillis();
+        int tag = (music ? 1 << 24 : 0) | (channel << 16) | (key << 8);
+        enqueue(now + startMs, tag | velocity);
+        enqueue(now + startMs + durationMs, tag | 1 << 23);
+    }
+
+    /** Appends a packed note event, dropping it if the (generously sized) queue is saturated. */
+    private static void enqueue(long fireMs, int data) {
+        if (eventCount < MAX_EVENTS) {
+            eventFireMs[eventCount] = fireMs;
+            eventData[eventCount] = data;
+            eventCount++;
+        }
+    }
+
+    /**
+     * Pumped once per frame by the game loop: advances the eighth-note music ticker for any boundaries crossed
+     * since the last call, then fires every queued note whose time has come (removing it by swapping in the
+     * last entry). After a long stall the ticker resyncs to now rather than firing a burst of catch-up eighths.
+     */
+    static void pump(long nowMs) {
+        if (channels == null) {
+            return;
+        }
+        if (nextTickMs == 0) {
+            nextTickMs = nowMs;
+        }
+        while (nowMs >= nextTickMs) {
+            advanceMusic();
+            nextTickMs += EIGHTH_MS;
+            if (nowMs - nextTickMs > EIGHTH_MS * 8) {
+                nextTickMs = nowMs;
+            }
+        }
+        int i = 0;
+        while (i < eventCount) {
+            if (eventFireMs[i] <= nowMs) {
+                int data = eventData[i];
+                int channel = (data >> 16) & 0x7f;
+                int key = (data >> 8) & 0x7f;
+                if ((data & 1 << 23) != 0) {
+                    channels[channel].noteOff(key);
+                } else if (!muted && !((data & 1 << 24) != 0 && musicMuted)) {
+                    channels[channel].noteOn(key, data & 0x7f);
+                }
+                eventCount--;
+                eventFireMs[i] = eventFireMs[eventCount];
+                eventData[i] = eventData[eventCount];
+            } else {
+                i++;
+            }
+        }
     }
 
     /** Sets a music voice's instrument and trims it to background volume. */

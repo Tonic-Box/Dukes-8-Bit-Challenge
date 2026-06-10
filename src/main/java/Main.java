@@ -1,37 +1,15 @@
-import sun.misc.Unsafe;
-import java.lang.invoke.*;
-import java.lang.reflect.Field;
-import java.security.ProtectionDomain;
-import java.util.zip.*;
+import java.lang.invoke.MethodHandles;
+import java.util.zip.InflaterInputStream;
 
 public final class Main {
     private Main() {}
 
     static void main() throws Throwable {
-        Field field = Unsafe.class.getDeclaredField("theUnsafe");
-        field.setAccessible(true);
-        Unsafe unsafe = (Unsafe) field.get(null);
-
-        MethodHandles.Lookup lookup = (MethodHandles.Lookup) read(unsafe, MethodHandles.Lookup.class, "IMPL_LOOKUP");
-        Class<?> internalUnsafeType = Class.forName("jdk.internal.misc.Unsafe");
-        Object internalUnsafe = read(unsafe, internalUnsafeType, "theUnsafe");
-        MethodHandle defineClass = lookup.findVirtual(internalUnsafeType, "defineClass", MethodType.methodType(
-                Class.class, String.class, byte[].class,
-                int.class, int.class, ClassLoader.class, ProtectionDomain.class));
-
-        byte[] bytecode;
-        try (var inputStream = new InflaterInputStream(Main.class.getResourceAsStream("/Game"), new Inflater(true))) {
-            bytecode = inputStream.readAllBytes();
-        }
-
-        lookup.findStatic(
-                (Class<?>) defineClass.invoke(internalUnsafe, "G", bytecode, 0, bytecode.length, null, null),
-                "main", MethodType.methodType(void.class)
-        ).invoke();
-    }
-
-    private static Object read(Unsafe unsafe, Class<?> owner, String name) throws Exception {
-        Field field = owner.getDeclaredField(name);
-        return unsafe.getObject(unsafe.staticFieldBase(field), unsafe.staticFieldOffset(field));
+        // The /Game blob is a zlib stream, so a plain single-arg InflaterInputStream decodes it - no `new Inflater`
+        // needed. No try-with-resources either: the stream reads an in-jar resource and the JVM runs until exit, so
+        // closing it earns nothing and only adds an exception table plus synthetic close/suppress handling here.
+        MethodHandles.lookup().defineClass(new InflaterInputStream(
+                Main.class.getResourceAsStream("/Game")).readAllBytes())
+                .getDeclaredMethod("main").invoke(null);
     }
 }

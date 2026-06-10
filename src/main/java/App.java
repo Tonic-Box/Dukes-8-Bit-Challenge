@@ -92,6 +92,7 @@ public final class App extends Frame implements KeyEventDispatcher {
             long deltaMillis = (now - last) / 1_000_000L;
             last = now;
             game.update(deltaMillis);
+            Sound.pump(System.currentTimeMillis());
             if (game.quitRequested) {
                 System.exit(0);
             }

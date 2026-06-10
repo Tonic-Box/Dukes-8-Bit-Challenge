@@ -4,12 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Simplify/reduce detail on some sprites">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Readme for the inline list generation tooling">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/merge/ReferenceRedirector.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/merge/ReferenceRedirector.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Game.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Renderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Renderer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/pack/DescriptorCollapser.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/pack/ResourcePacker.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/pack/ResourcePacker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/test/java/dukes/yabr/pack/DescriptorCollapserTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/inline-allowlist.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inline-allowlist.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/App.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/App.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Sound.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Sound.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -93,7 +98,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="master" />
+        <entry key="$PROJECT_DIR$" value="main" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -273,30 +278,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1780326724902</updated>
-    </task>
-    <task id="LOCAL-00016" summary="- Size optimizations via effectOf/magOf helpers replacing the six accessors&#10;- Updated README">
-      <option name="closed" value="true" />
-      <created>1780588947009</created>
-      <option name="number" value="00016" />
-      <option name="presentableId" value="LOCAL-00016" />
-      <option name="project" value="LOCAL" />
-      <updated>1780588947009</updated>
-    </task>
-    <task id="LOCAL-00017" summary="- Size optimizations via effectOf/magOf helpers replacing the six accessors&#10;- Cut runtime allocation ~8x via VRAM scene buffer and batched fog&#10;- Updated README">
-      <option name="closed" value="true" />
-      <created>1780590744542</created>
-      <option name="number" value="00017" />
-      <option name="presentableId" value="LOCAL-00017" />
-      <option name="project" value="LOCAL" />
-      <updated>1780590744542</updated>
-    </task>
-    <task id="LOCAL-00018" summary="- Updated README image">
-      <option name="closed" value="true" />
-      <created>1780590824560</created>
-      <option name="number" value="00018" />
-      <option name="presentableId" value="LOCAL-00018" />
-      <option name="project" value="LOCAL" />
-      <updated>1780590824560</updated>
     </task>
     <task id="LOCAL-00019" summary="- Added in some explanatory comments">
       <option name="closed" value="true" />
@@ -666,7 +647,31 @@
       <option name="project" value="LOCAL" />
       <updated>1781022167026</updated>
     </task>
-    <option name="localTasksCounter" value="65" />
+    <task id="LOCAL-00065" summary="- Added a walking/waddle animation because why not">
+      <option name="closed" value="true" />
+      <created>1781066582916</created>
+      <option name="number" value="00065" />
+      <option name="presentableId" value="LOCAL-00065" />
+      <option name="project" value="LOCAL" />
+      <updated>1781066582916</updated>
+    </task>
+    <task id="LOCAL-00066" summary="- Wrote up propper targeted tests&#10;- Fixed an issue with OptimalDeflate that its new test surfaced">
+      <option name="closed" value="true" />
+      <created>1781074891939</created>
+      <option name="number" value="00066" />
+      <option name="presentableId" value="LOCAL-00066" />
+      <option name="project" value="LOCAL" />
+      <updated>1781074891939</updated>
+    </task>
+    <task id="LOCAL-00067" summary="- Readme for the inline list generation tooling">
+      <option name="closed" value="true" />
+      <created>1781076537296</created>
+      <option name="number" value="00067" />
+      <option name="presentableId" value="LOCAL-00067" />
+      <option name="project" value="LOCAL" />
+      <updated>1781076537296</updated>
+    </task>
+    <option name="localTasksCounter" value="68" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -681,10 +686,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- buildSrc ASM pass inlines single-call methods into their one caller&#10;- Auto-tune the inline list against real post-ProGuard size (tools/tune-inline.sh)&#10;- Deadline-based frame pacing to kill the intermittent movement stutter&#10;- Shorter boss slam cooldown (4000 -&gt; 2500ms)" />
-    <MESSAGE value="- tune-inline.bat script" />
-    <MESSAGE value="- Pack constant Color fields into one decoded palette&#10;- Single BuildPasses dispatcher runs all passes&#10;- Tidy build.gradle" />
-    <MESSAGE value="- buildSrc ClassMerger fuses the stateless Renderer into Game (4 source classes ship as 3) collapsing two constant pools into one" />
     <MESSAGE value="- buildSrc ClassMerger fuses the Sound now into Game" />
     <MESSAGE value="- Sound.java restructured into a static design to better facilitate class merging more cleanly&#10;- buildSrc ClassMerger fuses the Sound now into Game" />
     <MESSAGE value="- Build time merge all classes into Game.class" />
@@ -706,6 +707,10 @@
     <MESSAGE value="- Fix merge self-field recursion (removals before redirectOwner)&#10;- Collapse no-verify-safe method descriptors" />
     <MESSAGE value="- Descriptor collapsing" />
     <MESSAGE value="- Simplify/reduce detail on some sprites" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Simplify/reduce detail on some sprites" />
+    <MESSAGE value="- Added a walking/waddle animation because why not" />
+    <MESSAGE value="- Wrote up propper targetted tests&#10;- Fixed an issue with OptimalDeflate that its new test surfaced" />
+    <MESSAGE value="- Wrote up propper targeted tests&#10;- Fixed an issue with OptimalDeflate that its new test surfaced" />
+    <MESSAGE value="- Readme for the inline list generation tooling" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Readme for the inline list generation tooling" />
   </component>
 </project>

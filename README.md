@@ -7,6 +7,16 @@ mimic chests, topple floor bosses, and see how deep you can get before you fall.
 
 ![screenshot.png](screenshot.png)
 
+## No-rules build
+
+This branch throws out the "stay a clean, portable, ordinary program" rules and uses whatever saves bytes; it still plays identically. The tricks it leans on:
+
+- Stamps the game's class file down to version 49 so the JVM's legacy type-inference verifier accepts it with every StackMapTable frame stripped
+- Loads it with a bare `MethodHandles.Lookup.defineClass` and no `Unsafe`
+- Removes the loader class's constructor from the shipped bytecode entirely
+- Hand-wraps the compressed blob in a zlib container only to drop a `new Inflater(true)` from the loader
+- Drives all audio off the render loop, so note timing is quantized to the frame and there is no separate sound thread
+
 ## Build & Run
 
 Requires **JDK 25**.
@@ -65,7 +75,7 @@ Requires **JDK 25**.
 
 ## Architecture
 
-Four game classes, each with a single responsibility, plus a small bootstrap loader:
+Four game classes, each with a single responsibility, plus a small loader:
 
 | Class | Responsibility |
 | --- | --- |
@@ -73,7 +83,7 @@ Four game classes, each with a single responsibility, plus a small bootstrap loa
 | `Game` | All simulation: map generation, field of view, entities, combat, progression, and state. |
 | `Renderer` | All drawing; stateless and derived entirely from `Game`. |
 | `Sound` | Procedural MIDI: sound effects and a looping music track via the JDK synthesizer. |
-| `Main` | Bootstrap loader that unpacks and launches the game (see [Build-time bytecode passes](#build-time-bytecode-passes)). |
+| `Main` | Loader that unpacks and launches the game (see [Build-time bytecode passes](#build-time-bytecode-passes)). |
 
 Key decisions:
 
@@ -129,12 +139,11 @@ Implemented with **YABR**, My own bytecode library (No use of ASM, Javassist, et
 - Single-call methods get inlined based on a tuned scan (`tools\tune-inline.sh` / `tools\tune-inline.bat`)
 - Constant `Color` fields packed into one load-decoded palette
 - `App`, `Renderer`, and `Sound` are merged into `Game`, collapsing four constant pools into one
-- The merged `Game` is then frame-stripped and compressed into the `Game` resource (see the loader pattern below)
-- Exploiting that same unverified loader, the object-type names in private/static method descriptors are collapsed to a one-char placeholder: those methods are never dispatched through a JDK type, and the loader matches calls by descriptor shape (arity and slot kinds), not by the named types, so the real type names are dead weight in the constant pool. JDK calls, overrides, fields, and `invokedynamic` sites keep their real descriptors, since the JVM still resolves those by exact match
+- The merged `Game` is then frame-stripped, re-stamped to class-file version 49, and compressed into the `Game` resource (see the loader pattern below)
 - Compression uses a from-scratch DEFLATE encoder (Zopfli-style optimal LZ77 parse plus block splitting) that beats the stock library at the same format, so the stock inflater still decodes it
 - The runnable jar is self-packed by that same encoder rather than `JarOutputStream`: each entry is optimally deflated, and the already-compressed `Game` blob is stored verbatim instead of wastefully re-deflated
 
-**Loader pattern:**`Game` carries the entire program but its StackMapTable frames are pure verifier bookkeeping. `Main` defines the inflated class into the bootstrap class loader, which is trusted and so runs no verification - the only thing that reads those frames - letting the build strip them before compressing. The blob is still an ordinary Java 25 class file; only the frames are gone. This trades a small, fixed loader for the frame bytes plus the compression of everything else, roughly halving the measured size.
+**Loader pattern:** `Game` carries the entire program but its StackMapTable frames are pure verifier bookkeeping. Class-file versions below 50 are checked by the JVM's older type-inference verifier, which reconstructs types itself and never reads those frames, so the build strips the frames and re-stamps the class to version 49 before compressing. `Main` then inflates the blob and defines it with a plain `MethodHandles.Lookup` - no `Unsafe`, no skipped verification - and the inference verifier accepts the frameless class. This trades a small, fixed loader for the frame bytes plus the compression of everything else.
 
 
 ![build.png](build.png)
@@ -145,7 +154,7 @@ Measured from a build (`./gradlew size`), which sums the compiled classes and re
 
 | Artifact | Size |
 | --- | ---: |
-| `Main.class` (bootstrap loader) | 2,226 B |
-| `Game` resource (the whole game, compressed) | 17,171 B |
-| **Total (measured)** | **19,397 B (18.94 KB)** |
-| Packaged `DukesDescent-1.0.jar` | 18,582 B (18.15 KB) |
+| `Main.class` (loader) | 778 B |
+| `Game` resource (the whole game, compressed) | 16,942 B |
+| **Total (measured)** | **17,720 B (17.30 KB)** |
+| Packaged `DukesDescent-1.0.jar` | 17,734 B (17.32 KB) |

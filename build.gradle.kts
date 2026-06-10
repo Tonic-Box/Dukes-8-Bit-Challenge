@@ -147,11 +147,13 @@ tasks.register<ProGuardTask>("proguard") {
         }
         tmpJar.delete()
         // Frame-strip the minified Game, deflate it into the "Game" resource, and drop the .class: the Main
-        // loader inflates and bootstrap-defines it at startup. The shipped classes are just Main.
+        // loader inflates and defines it at startup. The shipped classes are just Main.
         val resourcesDir = layout.buildDirectory.dir("resources/main").get().asFile
         val gameClass = File(classesDir, "Game.class")
         val gameBlob = File(resourcesDir, "Game")
         val blobBytes = dukes.yabr.pack.ResourcePacker.pack(gameClass, gameBlob)
+        // Strip the dead no-arg constructor from the raw-shipped Main loader (it is never instantiated).
+        dukes.yabr.pack.LoaderMinifier.minify(File(classesDir, "Main.class"))
         // Repackage the runnable jar to match: the Main loader plus the Game blob, no Game.class. We write the
         // ZIP ourselves (dukes.yabr.pack.JarPacker) so each entry uses OptimalDeflate - which beats the stock
         // Deflater on the class bytes - and the already-compressed Game blob is stored rather than re-deflated.
