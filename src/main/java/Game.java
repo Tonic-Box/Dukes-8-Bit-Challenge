@@ -275,7 +275,8 @@ final class Game {
     private int vaultDoorY;
     private int previousX;
     private int previousY;
-    private float moveProgress = 1f;
+    // Package-visible so the renderer can read it for Duke's walk-cycle foot toggle (< 1 means a step is in flight).
+    float moveProgress = 1f;
     private float enemyProgress;
     private int enemyStepParity;
     private float regenTimer;

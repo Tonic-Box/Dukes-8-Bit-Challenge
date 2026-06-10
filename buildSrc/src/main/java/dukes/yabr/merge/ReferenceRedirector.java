@@ -65,8 +65,7 @@ final class ReferenceRedirector {
             CodeWriter writer = new CodeWriter(method);
             boolean methodChanged = false;
             for (Instruction insn : writer.getInstructionList()) {
-                if (insn instanceof GetFieldInstruction get && !get.isStatic()
-                        && get.getOwnerClass().equals(referrer.getClassName()) && get.getFieldName().equals(sourceField)) {
+                if (insn instanceof GetFieldInstruction get && !get.isStatic() && get.getOwnerClass().equals(referrer.getClassName()) && get.getFieldName().equals(sourceField)) {
                     writer.replaceInstruction(insn, new GetFieldInstruction(constPool, GETFIELD.getCode(), 0, targetRef));
                     methodChanged = true;
                 }

@@ -4,9 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Descriptor collapsing">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Simplify/reduce detail on some sprites">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/merge/ReferenceRedirector.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/merge/ReferenceRedirector.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Game.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Renderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Renderer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -142,7 +144,7 @@
     &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.gradle&quot;
   }
 }</component>
-  <component name="RunManager" selected="Gradle.dukes8bit [run]">
+  <component name="RunManager" selected="Gradle.dukes8bit [size]">
     <configuration name="dukes8bit [:buildSrc:build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -255,8 +257,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.dukes8bit [run]" />
         <item itemvalue="Gradle.dukes8bit [size]" />
+        <item itemvalue="Gradle.dukes8bit [run]" />
         <item itemvalue="Gradle.dukes8bit [build]" />
         <item itemvalue="Gradle.dukes8bit [:buildSrc:build]" />
         <item itemvalue="Gradle.dukes8bit [clean]" />
@@ -271,14 +273,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1780326724902</updated>
-    </task>
-    <task id="LOCAL-00015" summary="- Added breakable scenery&#10;- Added pitfalls &#10;- Added hotkey for muting the music track">
-      <option name="closed" value="true" />
-      <created>1780588066790</created>
-      <option name="number" value="00015" />
-      <option name="presentableId" value="LOCAL-00015" />
-      <option name="project" value="LOCAL" />
-      <updated>1780588066790</updated>
     </task>
     <task id="LOCAL-00016" summary="- Size optimizations via effectOf/magOf helpers replacing the six accessors&#10;- Updated README">
       <option name="closed" value="true" />
@@ -664,7 +658,15 @@
       <option name="project" value="LOCAL" />
       <updated>1781017955663</updated>
     </task>
-    <option name="localTasksCounter" value="64" />
+    <task id="LOCAL-00064" summary="- Simplify/reduce detail on some sprites">
+      <option name="closed" value="true" />
+      <created>1781022167026</created>
+      <option name="number" value="00064" />
+      <option name="presentableId" value="LOCAL-00064" />
+      <option name="project" value="LOCAL" />
+      <updated>1781022167026</updated>
+    </task>
+    <option name="localTasksCounter" value="65" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -679,7 +681,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- Optimization to build" />
     <MESSAGE value="- buildSrc ASM pass inlines single-call methods into their one caller&#10;- Auto-tune the inline list against real post-ProGuard size (tools/tune-inline.sh)&#10;- Deadline-based frame pacing to kill the intermittent movement stutter&#10;- Shorter boss slam cooldown (4000 -&gt; 2500ms)" />
     <MESSAGE value="- tune-inline.bat script" />
     <MESSAGE value="- Pack constant Color fields into one decoded palette&#10;- Single BuildPasses dispatcher runs all passes&#10;- Tidy build.gradle" />
@@ -704,6 +705,7 @@
     <MESSAGE value="- JavaCompile -XDstringConcat=inline (makes javac compile string concatenation to StringBuilder instead of invokedynamic" />
     <MESSAGE value="- Fix merge self-field recursion (removals before redirectOwner)&#10;- Collapse no-verify-safe method descriptors" />
     <MESSAGE value="- Descriptor collapsing" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Descriptor collapsing" />
+    <MESSAGE value="- Simplify/reduce detail on some sprites" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Simplify/reduce detail on some sprites" />
   </component>
 </project>

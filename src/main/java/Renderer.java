@@ -233,6 +233,10 @@ final class Renderer {
 
         int dukeX = Math.round(game.renderPixelX());
         int dukeY = Math.round(game.renderPixelY());
+        // While a step is in flight, hide one foot - alternating each step via the destination tile's parity - for a
+        // two-frame walk cycle in step with the footfalls; standing still (moveProgress == 1) shows both feet. The
+        // same parity drives Duke's waddle (applied in drawDuke).
+        int footHide = game.moveProgress < 1f ? ((game.playerX + game.playerY) & 1) + 1 : 0;
         if (game.falling && game.fallProgress > 0f) {
             float scale = 1f - game.fallProgress;
             if (scale > 0.02f) {
@@ -242,13 +246,13 @@ final class Renderer {
                 graphics2d.translate(cx, cy);
                 graphics2d.scale(scale, scale);
                 graphics2d.translate(-cx, -cy);
-                drawDuke(graphics, dukeX, dukeY, game.facing, 0f, 0f);
+                drawDuke(graphics, dukeX, dukeY, game.facing, 0f, 0f, footHide);
                 graphics2d.translate(cx, cy);
                 graphics2d.scale(1.0 / scale, 1.0 / scale);
                 graphics2d.translate(-cx, -cy);
             }
         } else {
-            drawDuke(graphics, dukeX, dukeY, game.facing, game.playerHeal, game.playerDodge);
+            drawDuke(graphics, dukeX, dukeY, game.facing, game.playerHeal, game.playerDodge, footHide);
         }
         if (game.attackProgress < 1f) {
             drawSword(graphics, dukeX + Game.TILE / 2, dukeY + Game.TILE / 2, game.attackProgress);
@@ -398,12 +402,17 @@ final class Renderer {
     }
 
     /** Draws Duke facing his current travel direction; right reuses the left sprite mirrored. */
-    private void drawDuke(Graphics graphics, int px, int py, int facing, float heal, float dodge) {
+    private void drawDuke(Graphics graphics, int px, int py, int facing, float heal, float dodge, int footHide) {
+        // Front/back waddle one pixel sideways per step (footHide carries the parity); profiles and standing stay
+        // put. A whole-pixel shift keeps the eye-bearing front sprite crisp.
+        if (facing != Game.FACE_LEFT && facing != Game.FACE_RIGHT) {
+            px += footHide == 1 ? -1 : footHide == 2 ? 1 : 0;
+        }
         switch (facing) {
-            case Game.FACE_UP -> drawDukeBack(graphics, px, py);
+            case Game.FACE_UP -> drawDukeBack(graphics, px, py, footHide);
             case Game.FACE_LEFT -> drawDukeLeft(graphics, px, py);
             case Game.FACE_RIGHT -> drawDukeRight(graphics, px, py);
-            default -> drawDukeFront(graphics, px, py);
+            default -> drawDukeFront(graphics, px, py, footHide);
         }
         graphics.setColor(DUKE_OUTLINE);
         graphics.drawRoundRect(px + 5, py + 2, 14, 20, 11, 11);
@@ -415,23 +424,31 @@ final class Renderer {
         }
     }
 
-    /** The feet, flippers, and body shell shared by Duke's front and back sprites. */
-    private void drawDukeBase(Graphics graphics, int px, int py) {
-        rect(graphics, DUKE_FOOT, px + 7, py + 21, 4, 2);
-        graphics.fillRect(px + 13, py + 21, 4, 2);
+    /**
+     * The feet, flippers, and body shell shared by Duke's front and back sprites. {@code footHide} is 0 (both feet),
+     * 1 (hide the left foot), or 2 (hide the right) - the walk cycle alternates 1 and 2 each step.
+     */
+    private void drawDukeBase(Graphics graphics, int px, int py, int footHide) {
+        graphics.setColor(DUKE_FOOT);
+        if (footHide != 1) {
+            graphics.fillRect(px + 7, py + 21, 4, 2);
+        }
+        if (footHide != 2) {
+            graphics.fillRect(px + 13, py + 21, 4, 2);
+        }
         graphics.setColor(DARK);
         graphics.fillRoundRect(px + 3, py + 10, 4, 8, 4, 4);
         graphics.fillRoundRect(px + 17, py + 10, 4, 8, 4, 4);
         graphics.fillRoundRect(px + 5, py + 2, 14, 20, 11, 11);
     }
 
-    private void drawDukeFront(Graphics graphics, int px, int py) {
-        drawDukeBase(graphics, px, py);
+    private void drawDukeFront(Graphics graphics, int px, int py, int footHide) {
+        drawDukeBase(graphics, px, py, footHide);
         oval(graphics, DUKE_BELLY, px + 8, py + 10, 8, 11);
         oval(graphics, Color.WHITE, px + 7, py + 6, 5, 5);
         graphics.fillOval(px + 12, py + 6, 5, 5);
-        oval(graphics, Color.BLACK, px + 9, py + 7, 2, 2);
-        graphics.fillOval(px + 14, py + 7, 2, 2);
+        oval(graphics, Color.BLACK, px + 9, py + 8, 2, 2);
+        graphics.fillOval(px + 14, py + 8, 2, 2);
         graphics.setColor(DUKE_NOSE);
         POLY_X[0] = px + 10; POLY_X[1] = px + 14; POLY_X[2] = px + 12;
         POLY_Y[0] = py + 12; POLY_Y[1] = py + 12; POLY_Y[2] = py + 15;
@@ -439,15 +456,13 @@ final class Renderer {
     }
 
     /** Back view used while walking away: body and flippers with a nape patch, no face. */
-    private void drawDukeBack(Graphics graphics, int px, int py) {
-        drawDukeBase(graphics, px, py);
+    private void drawDukeBack(Graphics graphics, int px, int py, int footHide) {
+        drawDukeBase(graphics, px, py, footHide);
         graphics.fillRoundRect(px + 9, py + 5, 6, 8, 5, 5);
     }
 
     /** Left-facing profile: belly, eye, and beak turned to the side. */
     private void drawDukeLeft(Graphics graphics, int px, int py) {
-        rect(graphics, DUKE_FOOT, px + 8, py + 21, 4, 2);
-        graphics.fillRect(px + 13, py + 21, 3, 2);
         graphics.setColor(DARK);
         graphics.fillRoundRect(px + 5, py + 2, 14, 20, 11, 11);
         oval(graphics, DUKE_BELLY, px + 6, py + 10, 8, 11);
