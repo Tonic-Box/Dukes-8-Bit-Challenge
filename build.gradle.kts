@@ -19,10 +19,11 @@ java {
 }
 
 // The game ships as a pack200 blob and is reconstructed at runtime by the JDK-11 built-in Pack200 unpacker. pack200
-// was removed from the JDK in 14, so the build packs with a JDK-11 toolchain's pack200 tool (auto-detected).
-val pack200Exe = javaToolchains.launcherFor {
-    languageVersion = JavaLanguageVersion.of(11)
-}.map { it.metadata.installationPath.file("bin/pack200.exe").asFile.absolutePath }
+// was removed from the JDK in 14, so the build packs with (and `run` launches on) a JDK 11 toolchain - found among
+// installed JDKs or auto-provisioned via the Foojay resolver (see settings.gradle.kts).
+val java11 = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(11) }
+val pack200Tool = if (System.getProperty("os.name").startsWith("Windows")) "bin/pack200.exe" else "bin/pack200"
+val pack200Exe = java11.map { it.metadata.installationPath.file(pack200Tool).asFile.absolutePath }
 
 application {
     // Game ships as a compressed resource (see the proguard task); the Main loader inflates and launches it.
@@ -178,9 +179,18 @@ tasks.register<ProGuardTask>("proguard") {
     }
 }
 
-// Build and run both go through ProGuard, so the jar and the classes that ship/execute are minified.
+// Build goes through ProGuard, so the jar and the shipped classes are minified.
 tasks.named("build") { dependsOn("proguard") }
-tasks.named("run") { dependsOn("proguard") }
+
+// `run` plays the real shipped artifact: launch Main from the packed jar on the JDK 11 toolchain (whose built-in
+// Pack200 unpacker rebuilds the game class). The default application `run` would use the raw build/classes on the
+// build JDK, where the game is still unpacked and Pack200 is absent, so it is repointed at the jar and JDK 11.
+tasks.named<JavaExec>("run") {
+    dependsOn("proguard")
+    classpath = files(layout.buildDirectory.file("libs/DukesDescent-$version.jar"))
+    mainClass = "Main"
+    javaLauncher = java11
+}
 
 tasks.register("size") {
     group = "verification"

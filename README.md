@@ -18,17 +18,16 @@ This branch throws out the "stay a clean, portable, ordinary program" rules and 
 - DEFLATEs the raw pack200 stream and hand-wraps it in a zlib container only to drop a `new Inflater(true)` from the loader
 - Drives all audio off the render loop, so note timing is quantized to the frame and there is no separate sound thread
 
-## Build & Run
-
-- **Build with JDK 25** - the game source uses modern language features.
-- **Also have a JDK 11 installed** - the build packs the game class with JDK 11's `pack200` tool (Gradle finds the JDK automatically). Without one, the build fails at the pack step.
-- **Run the jar on JDK 11** (any 11-13) - its built-in Pack200 unpacker reconstructs the game class at load.
+- **Built on JDK 25** (the game source uses modern language features), but the game **runs on JDK 11** - its built-in Pack200 unpacker reconstructs the packed game class at load.
+- Gradle uses a **JDK 11 toolchain** for the `pack200` pack step and the `run` task, **auto-provisioned** if the machine doesn't have one (via the Foojay resolver), so no manual JDK setup is needed.
 
 ```
-./gradlew size    # compile + package + print the measured compiled sizes (JDK 25)
-./gradlew build   # compile + package (JDK 25)
-java -jar build/libs/DukesDescent-1.0.jar   # play - run with a JDK 11 java
+./gradlew run     # build and play (launches on the JDK 11 toolchain)
+./gradlew size    # compile + package + print the measured compiled sizes
+./gradlew build   # compile + package
 ```
+
+Running the jar directly (outside Gradle) needs a **JDK 11-13** java: `java -jar build/libs/DukesDescent-1.0.jar`.
 
 ## Notes for game-play
 - It's to your benefit to try and fully explore each floor before going down:
