@@ -30,6 +30,16 @@ application {
     mainClass = "Main"
 }
 
+// Main is compiled on its own (see compileMain) by the JDK-11 toolchain so it can call java.util.jar.Pack200
+// directly rather than reflectively (the API was removed in JDK 14). Keep it out of the JDK-25 game compile.
+sourceSets {
+    main {
+        java {
+            exclude("Main.java")
+        }
+    }
+}
+
 repositories {
     mavenCentral()
 }
@@ -61,6 +71,17 @@ tasks.withType<JavaCompile>().configureEach {
 tasks.named<JavaCompile>("compileJava") {
     outputs.upToDateWhen { false }
     doFirst { destinationDirectory.get().asFile.deleteRecursively() }
+}
+
+// Compile the Main loader on the JDK-11 toolchain (which still has java.util.jar.Pack200), into its own output dir.
+// The proguard task copies the result into the shipped classes after minifying the game. release = 11 overrides the
+// global release = 25 set in the withType<JavaCompile> block above (registered first, so this wins).
+val compileMain = tasks.register<JavaCompile>("compileMain") {
+    source = fileTree(layout.projectDirectory.dir("src/main/java")) { include("Main.java") }
+    classpath = files()
+    destinationDirectory = layout.buildDirectory.dir("classes/main11")
+    javaCompiler = javaToolchains.compilerFor { languageVersion = JavaLanguageVersion.of(11) }
+    options.release = 11
 }
 
 // The compiled-classes directory the bytecode passes transform and ProGuard later minifies in place.
@@ -115,7 +136,7 @@ tasks.jar {
 tasks.register<ProGuardTask>("proguard") {
     group = "build"
     description = "Minify in place (shrink + shorten members, keep class names): the jar and compiled classes."
-    dependsOn("jar")
+    dependsOn("jar", "compileMain")
     // Always re-run: it overwrites the compile/jar outputs, which would confuse up-to-date checks.
     outputs.upToDateWhen { false }
 
@@ -129,9 +150,8 @@ tasks.register<ProGuardTask>("proguard") {
     libraryjars("$jdk/jmods/java.desktop.jmod")
     libraryjars("$jdk/jmods/jdk.unsupported.jmod")
 
-    // Main is the launch entry point; Game is reached reflectively, so keep its main() as the shrink root
-    // (everything it uses is retained, members still shorten). Both class names are preserved by keepnames.
-    keep("public class Main { public static void main(java.lang.String[]); }")
+    // Game is reached reflectively, so keep its main() as the shrink root (everything it uses is retained, members
+    // still shorten). Main is not in the injar - it is compiled separately (compileMain) and injected below.
     keep("class Game { static void main(); }")
 
     // Keep class names readable; members may shorten. Two optimizations are off because they grow this build:
@@ -153,6 +173,12 @@ tasks.register<ProGuardTask>("proguard") {
             into(classesDir)
         }
         tmpJar.delete()
+        // Drop in the JDK-11-compiled Main loader (it bypasses ProGuard - its direct Pack200 calls don't resolve
+        // against the JDK-25 library jars). LoaderMinifier strips its <init> below.
+        copy {
+            from(layout.buildDirectory.dir("classes/main11"))
+            into(classesDir)
+        }
         // Frame-strip the minified Game, deflate it into the "Game" resource, and drop the .class: the Main
         // loader inflates and defines it at startup. The shipped classes are just Main.
         val resourcesDir = layout.buildDirectory.dir("resources/main").get().asFile

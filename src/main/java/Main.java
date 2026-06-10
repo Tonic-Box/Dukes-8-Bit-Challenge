@@ -1,8 +1,8 @@
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.util.jar.JarOutputStream;
+import java.util.jar.Pack200;
 import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -12,15 +12,12 @@ public final class Main {
 
     public static void main(String[] args) throws Throwable {
         // The "G" resource is a DEFLATE-wrapped raw pack200 stream. Inflate to the .pack, then reconstruct the game
-        // class with the JDK's built-in Pack200 unpacker. Pack200 was removed from the JDK in 14, so it is reached by
-        // reflection (this class compiles on JDK 25) and bound at runtime, where the jar must run on JDK <= 13.
+        // class with the JDK's built-in Pack200 unpacker. Pack200 was removed from the JDK in 14; this loader compiles
+        // on JDK 11 (where the API still exists, so the calls are direct rather than reflective) and runs on JDK 11..13.
         byte[] pack = new InflaterInputStream(Main.class.getResourceAsStream("G")).readAllBytes();
         ByteArrayOutputStream jarBytes = new ByteArrayOutputStream();
         try (JarOutputStream out = new JarOutputStream(jarBytes)) {
-            Object unpacker = Class.forName("java.util.jar.Pack200").getMethod("newUnpacker").invoke(null);
-            Class.forName("java.util.jar.Pack200$Unpacker")
-                    .getMethod("unpack", InputStream.class, JarOutputStream.class)
-                    .invoke(unpacker, new ByteArrayInputStream(pack), out);
+            Pack200.newUnpacker().unpack(new ByteArrayInputStream(pack), out);
         }
         byte[] gameClass = null;
         try (ZipInputStream in = new ZipInputStream(new ByteArrayInputStream(jarBytes.toByteArray()))) {

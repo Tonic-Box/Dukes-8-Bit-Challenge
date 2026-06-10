@@ -4,9 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Gradle now fetches JDK 11 for you, and run task is modified to launch via jdk 11 (still compiling under jdk 25)">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="Re-tune inlining for pack200; test the blob's hand-rolled transforms&#10;- Swap the DEFLATE-era 53-method inline allowlist for a 6-method set re-tuned against the live pack200 size: 14,626 -&gt; 14,449 B&#10;- Main: read the unpacked class with ZipInputStream over JarInputStream (lighter, drops the jar imports)&#10;- Add ResourcePackerTest covering zlibWrap's zlib framing (0x789C header + big-endian Adler-32, decoded as Main does) and the Game-&gt;G rename moving every reference and staying loadable; package-private both helpers to reach them">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/inline-allowlist.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inline-allowlist.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/pack/LoaderMinifier.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/pack/LoaderMinifier.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/pack/ResourcePacker.java" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/pack/ResourcePacker.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -36,6 +39,12 @@
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="dukes8bit" type="f1a62948:ProjectNode" />
                 <item name="Tasks" type="e4a08cd1:TasksNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="dukes8bit" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="application" type="c8890929:TasksNode$1" />
               </path>
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
@@ -256,8 +265,8 @@
     <recent_temporary>
       <list>
         <item itemvalue="Gradle.dukes8bit [run]" />
-        <item itemvalue="Gradle.dukes8bit [test]" />
         <item itemvalue="Gradle.dukes8bit [size]" />
+        <item itemvalue="Gradle.dukes8bit [test]" />
         <item itemvalue="Gradle.dukes8bit [build]" />
         <item itemvalue="Gradle.dukes8bit [:buildSrc:build]" />
       </list>
@@ -271,14 +280,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1780326724902</updated>
-    </task>
-    <task id="LOCAL-00021" summary="- Added Size breakdown section to readme&#10;- Fixed some local names">
-      <option name="closed" value="true" />
-      <created>1780595790579</created>
-      <option name="number" value="00021" />
-      <option name="presentableId" value="LOCAL-00021" />
-      <option name="project" value="LOCAL" />
-      <updated>1780595790579</updated>
     </task>
     <task id="LOCAL-00022" summary="- Added a design overview dot graph">
       <option name="closed" value="true" />
@@ -664,7 +665,15 @@
       <option name="project" value="LOCAL" />
       <updated>1781107562526</updated>
     </task>
-    <option name="localTasksCounter" value="70" />
+    <task id="LOCAL-00070" summary="Re-tune inlining for pack200; test the blob's hand-rolled transforms&#10;- Swap the DEFLATE-era 53-method inline allowlist for a 6-method set re-tuned against the live pack200 size: 14,626 -&gt; 14,449 B&#10;- Main: read the unpacked class with ZipInputStream over JarInputStream (lighter, drops the jar imports)&#10;- Add ResourcePackerTest covering zlibWrap's zlib framing (0x789C header + big-endian Adler-32, decoded as Main does) and the Game-&gt;G rename moving every reference and staying loadable; package-private both helpers to reach them">
+      <option name="closed" value="true" />
+      <created>1781124385408</created>
+      <option name="number" value="00070" />
+      <option name="presentableId" value="LOCAL-00070" />
+      <option name="project" value="LOCAL" />
+      <updated>1781124385408</updated>
+    </task>
+    <option name="localTasksCounter" value="71" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -679,7 +688,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- Build time merge all classes into Game.class" />
     <MESSAGE value="- Compile time strip Frames and stackmap data from the resultime merged Game class, compress via Zopfli and pack as a resource with a minimal loader class (Main.java) that abuses IMPL_LOOKUP to fetch the internal Unsafe class and load it via the bootstrap classloader (Since Bootstrap skips verifier check)" />
     <MESSAGE value="- Bugfix in gradle for proguard" />
     <MESSAGE value="- Method Inlining: interaction-aware allowlist refinement" />
@@ -704,6 +712,7 @@
     <MESSAGE value="- Readme for the inline list generation tooling" />
     <MESSAGE value="- Pack the game class with the JDK pack200 tool (removed from the JDK in 14) and ship it to run on JDK 11, whose built-in unpacker rebuilds it at load for zero shipped decoder: G blob 16,942 -&gt; 12,702 B (build stays on 25, jar now needs JDK 11-13 to run)&#10;- Rewrite Main as a main(String[]) loader that inflates the .pack, reflectively unpacks it, and defineClasses the rebuilt class; LoaderMinifier re-stamps it to class v55&#10;- ResourcePacker shells out to a JDK-11 toolchain's pack200 and pins the jar-entry mtime so the blob is byte-deterministic; fix the ProGuard keep rule and shorten the resource name to &quot;G&quot;&#10;- Refresh the README loader notes, size table, and build/run instructions" />
     <MESSAGE value="- Gradle now fetches JDK 11 for you, and run task is modified to launch via jdk 11 (still compiling under jdk 25)" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Gradle now fetches JDK 11 for you, and run task is modified to launch via jdk 11 (still compiling under jdk 25)" />
+    <MESSAGE value="Re-tune inlining for pack200; test the blob's hand-rolled transforms&#10;- Swap the DEFLATE-era 53-method inline allowlist for a 6-method set re-tuned against the live pack200 size: 14,626 -&gt; 14,449 B&#10;- Main: read the unpacked class with ZipInputStream over JarInputStream (lighter, drops the jar imports)&#10;- Add ResourcePackerTest covering zlibWrap's zlib framing (0x789C header + big-endian Adler-32, decoded as Main does) and the Game-&gt;G rename moving every reference and staying loadable; package-private both helpers to reach them" />
+    <option name="LAST_COMMIT_MESSAGE" value="Re-tune inlining for pack200; test the blob's hand-rolled transforms&#10;- Swap the DEFLATE-era 53-method inline allowlist for a 6-method set re-tuned against the live pack200 size: 14,626 -&gt; 14,449 B&#10;- Main: read the unpacked class with ZipInputStream over JarInputStream (lighter, drops the jar imports)&#10;- Add ResourcePackerTest covering zlibWrap's zlib framing (0x789C header + big-endian Adler-32, decoded as Main does) and the Game-&gt;G rename moving every reference and staying loadable; package-private both helpers to reach them" />
   </component>
 </project>
