@@ -6,50 +6,79 @@ import com.tonic.parser.constpool.Item;
 import com.tonic.parser.constpool.Utf8Item;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
 import java.util.zip.Adler32;
 import java.util.zip.Inflater;
 
 /**
- * Packs a compiled class into a compressed resource blob and removes the original .class. The StackMapTable
- * frames are stripped and the class is re-stamped to version 49, whose type-inference verifier needs no frames;
- * the frameless class is compressed with {@link OptimalDeflate}, and the {@code Main} loader inflates and defines
- * it with a plain lookup at startup, so the frames are never needed.
+ * Packs a compiled class into the {@code G} resource blob and removes the original .class. The StackMapTable
+ * frames are stripped and the class is re-stamped to version 49 (inference-verified, no frames needed). The frameless
+ * class is then run through the JDK {@code pack200} tool, whose structure-aware transform beats DEFLATE on class
+ * files; the raw {@code .pack} stream is DEFLATE-compressed for shipping. At runtime the {@code Main} loader inflates
+ * it and reconstructs the class with the JDK-11 built-in Pack200 unpacker (which ships in the runtime, for free).
  */
 public final class ResourcePacker {
 
     private ResourcePacker() {
     }
 
-    /** Strips frames from {@code classFile}, compresses it into {@code resourceFile}, and deletes the class file. */
-    public static int pack(File classFile, File resourceFile) throws Exception {
+    /** Frame-strips {@code classFile}, pack200-packs and compresses it into {@code resourceFile}, deletes the class. */
+    public static int pack(File classFile, File resourceFile, String pack200Exe) throws Exception {
         // An empty pool avoids loading the JDK: the rename is a constant-pool edit and the frame strip drops an
         // attribute, so no code is rewritten and no JDK type resolution is needed. The class is renamed to "G" in
-        // the blob (the Main loader defines it under that name); the resource file stays "Game".
+        // the blob (the Main loader defines it under that name); the resource file stays "G".
         ClassFile node = new ClassPool(true).loadClass(Files.readAllBytes(classFile.toPath()));
         renameClassInPlace(node, "Game", "G");
         node.stripStackMapTables();
         byte[] frameless = node.write();
-        // Stamp class-file version 49 (minor 0): versions below 50 are checked by the JVM's type-inference
-        // verifier, which needs no StackMapTables - so the frames stay stripped while a plain (non-Unsafe) loader
-        // can verify and define the class. Descriptor collapse is intentionally not run here; the real verifier
-        // would reject its synthetic "LA;" placeholder type.
+        // Stamp class-file version 49 (minor 0): versions below 50 are checked by the JVM's type-inference verifier,
+        // which needs no StackMapTables - so the frames stay stripped and a plain loader can verify and define it.
         frameless[4] = 0;
         frameless[5] = 0;
         frameless[6] = 0;
         frameless[7] = 49;
 
-        // Wrap the raw DEFLATE stream in a minimal zlib container (2-byte header + 4-byte Adler-32 trailer) so the
-        // Main loader can inflate it with a plain single-arg InflaterInputStream - dropping `new Inflater(true)` from
-        // the raw-shipped loader saves more than the 6 wrapper bytes cost on the already-compressed blob.
-        byte[] blob = zlibWrap(frameless, OptimalDeflate.compress(frameless));
-        verifyRoundTrip(frameless, blob);
+        // Pack with the JDK pack200 tool (its structural transform crushes class files far below DEFLATE), then
+        // DEFLATE the raw .pack and zlib-wrap it as before. Main inflates to the .pack and lets the JDK-11 runtime's
+        // built-in Pack200 unpacker rebuild the class - the unpacker ships in the JDK, so it costs zero shipped bytes.
+        byte[] pack = pack200(frameless, pack200Exe);
+        byte[] blob = zlibWrap(pack, OptimalDeflate.compress(pack));
+        verifyRoundTrip(pack, blob);
 
         resourceFile.getParentFile().mkdirs();
         Files.write(resourceFile.toPath(), blob);
         Files.delete(classFile.toPath());
         return blob.length;
+    }
+
+    /** Runs the v49 class through the {@code pack200} tool (no gzip) and returns the raw {@code .pack} bytes. */
+    private static byte[] pack200(byte[] frameless, String pack200Exe) throws Exception {
+        File dir = Files.createTempDirectory("p200").toFile();
+        File jar = new File(dir, "g.jar");
+        File packFile = new File(dir, "g.pack");
+        try (JarOutputStream jos = new JarOutputStream(new FileOutputStream(jar))) {
+            JarEntry entry = new JarEntry("G.class");
+            // pack200 keeps the entry's mtime, so pin it to a constant to keep the packed blob byte-deterministic.
+            entry.setTime(0L);
+            jos.putNextEntry(entry);
+            jos.write(frameless);
+            jos.closeEntry();
+        }
+        Process process = new ProcessBuilder(pack200Exe, "--no-gzip", "--effort=9",
+                packFile.getPath(), jar.getPath()).redirectErrorStream(true).start();
+        process.getInputStream().readAllBytes();
+        if (process.waitFor() != 0) {
+            throw new IllegalStateException("pack200 failed for the game class");
+        }
+        byte[] pack = Files.readAllBytes(packFile.toPath());
+        jar.delete();
+        packFile.delete();
+        dir.delete();
+        return pack;
     }
 
     /** Frames a raw DEFLATE stream as zlib: {@code 0x78 0x9C} header, the deflate body, then the big-endian Adler-32. */

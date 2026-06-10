@@ -18,6 +18,12 @@ java {
     }
 }
 
+// The game ships as a pack200 blob and is reconstructed at runtime by the JDK-11 built-in Pack200 unpacker. pack200
+// was removed from the JDK in 14, so the build packs with a JDK-11 toolchain's pack200 tool (auto-detected).
+val pack200Exe = javaToolchains.launcherFor {
+    languageVersion = JavaLanguageVersion.of(11)
+}.map { it.metadata.installationPath.file("bin/pack200.exe").asFile.absolutePath }
+
 application {
     // Game ships as a compressed resource (see the proguard task); the Main loader inflates and launches it.
     mainClass = "Main"
@@ -124,7 +130,7 @@ tasks.register<ProGuardTask>("proguard") {
 
     // Main is the launch entry point; Game is reached reflectively, so keep its main() as the shrink root
     // (everything it uses is retained, members still shorten). Both class names are preserved by keepnames.
-    keep("public class Main { static void main(); }")
+    keep("public class Main { public static void main(java.lang.String[]); }")
     keep("class Game { static void main(); }")
 
     // Keep class names readable; members may shorten. Two optimizations are off because they grow this build:
@@ -150,8 +156,8 @@ tasks.register<ProGuardTask>("proguard") {
         // loader inflates and defines it at startup. The shipped classes are just Main.
         val resourcesDir = layout.buildDirectory.dir("resources/main").get().asFile
         val gameClass = File(classesDir, "Game.class")
-        val gameBlob = File(resourcesDir, "Game")
-        val blobBytes = dukes.yabr.pack.ResourcePacker.pack(gameClass, gameBlob)
+        val gameBlob = File(resourcesDir, "G")
+        val blobBytes = dukes.yabr.pack.ResourcePacker.pack(gameClass, gameBlob, pack200Exe.get())
         // Strip the dead no-arg constructor from the raw-shipped Main loader (it is never instantiated).
         dukes.yabr.pack.LoaderMinifier.minify(File(classesDir, "Main.class"))
         // Repackage the runnable jar to match: the Main loader plus the Game blob, no Game.class. We write the

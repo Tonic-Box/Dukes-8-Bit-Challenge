@@ -11,20 +11,23 @@ mimic chests, topple floor bosses, and see how deep you can get before you fall.
 
 This branch throws out the "stay a clean, portable, ordinary program" rules and uses whatever saves bytes; it still plays identically. The tricks it leans on:
 
+- Packs the game class with **pack200** (the structure-aware class-file compressor removed from the JDK in 14) and ships it to run on **JDK 11**, whose built-in Pack200 unpacker rebuilds the class at load - a far smaller blob for a decoder that costs zero shipped bytes. The jar therefore requires **JDK 11-13** to run.
 - Stamps the game's class file down to version 49 so the JVM's legacy type-inference verifier accepts it with every StackMapTable frame stripped
 - Loads it with a bare `MethodHandles.Lookup.defineClass` and no `Unsafe`
-- Removes the loader class's constructor from the shipped bytecode entirely
-- Hand-wraps the compressed blob in a zlib container only to drop a `new Inflater(true)` from the loader
+- Removes the loader class's constructor from the shipped bytecode and re-stamps it to version 55 for the JDK-11 runtime
+- DEFLATEs the raw pack200 stream and hand-wraps it in a zlib container only to drop a `new Inflater(true)` from the loader
 - Drives all audio off the render loop, so note timing is quantized to the frame and there is no separate sound thread
 
 ## Build & Run
 
-Requires **JDK 25**.
+- **Build with JDK 25** - the game source uses modern language features.
+- **Also have a JDK 11 installed** - the build packs the game class with JDK 11's `pack200` tool (Gradle finds the JDK automatically). Without one, the build fails at the pack step.
+- **Run the jar on JDK 11** (any 11-13) - its built-in Pack200 unpacker reconstructs the game class at load.
 
 ```
-./gradlew run     # play
-./gradlew size    # print the measured compiled sizes
-./gradlew build   # compile + package
+./gradlew size    # compile + package + print the measured compiled sizes (JDK 25)
+./gradlew build   # compile + package (JDK 25)
+java -jar build/libs/DukesDescent-1.0.jar   # play - run with a JDK 11 java
 ```
 
 ## Notes for game-play
@@ -139,11 +142,11 @@ Implemented with **YABR**, My own bytecode library (No use of ASM, Javassist, et
 - Single-call methods get inlined based on a tuned scan (`tools\tune-inline.sh` / `tools\tune-inline.bat`)
 - Constant `Color` fields packed into one load-decoded palette
 - `App`, `Renderer`, and `Sound` are merged into `Game`, collapsing four constant pools into one
-- The merged `Game` is then frame-stripped, re-stamped to class-file version 49, and compressed into the `Game` resource (see the loader pattern below)
-- Compression uses a from-scratch DEFLATE encoder (Zopfli-style optimal LZ77 parse plus block splitting) that beats the stock library at the same format, so the stock inflater still decodes it
+- The merged `Game` is frame-stripped, re-stamped to class-file version 49, then **packed with the JDK `pack200` tool** (whose structure-aware transform crushes class files far below DEFLATE) into the single-char `G` resource (see the loader pattern below)
+- The raw `.pack` stream is then compressed with a from-scratch DEFLATE encoder (Zopfli-style optimal LZ77 parse plus block splitting) that beats the stock library at the same format, so the stock inflater still decodes it
 - The runnable jar is self-packed by that same encoder rather than `JarOutputStream`: each entry is optimally deflated, and the already-compressed `Game` blob is stored verbatim instead of wastefully re-deflated
 
-**Loader pattern:** `Game` carries the entire program but its StackMapTable frames are pure verifier bookkeeping. Class-file versions below 50 are checked by the JVM's older type-inference verifier, which reconstructs types itself and never reads those frames, so the build strips the frames and re-stamps the class to version 49 before compressing. `Main` then inflates the blob and defines it with a plain `MethodHandles.Lookup` - no `Unsafe`, no skipped verification - and the inference verifier accepts the frameless class. This trades a small, fixed loader for the frame bytes plus the compression of everything else.
+**Loader pattern:** `Game` ships as a `pack200`-packed, DEFLATE-compressed resource. pack200 (JSR-200) is a structure-aware class-file compressor that beats general compressors on bytecode - but it was removed from the JDK in 14, so the jar runs on **JDK 11**, whose *built-in* Pack200 unpacker reconstructs the class at load for zero shipped bytes. `Main` inflates the resource to the raw `.pack`, calls the runtime unpacker by reflection (so it still compiles on JDK 25), reads the rebuilt class out of the resulting jar, and defines it with a plain `MethodHandles.Lookup`. The class is still frame-stripped v49 (the inference verifier needs no StackMapTables). Trading portability for an unpacker that ships inside the JDK takes the blob from ~16.9 KB to ~12.7 KB.
 
 
 ![build.png](build.png)
@@ -154,7 +157,7 @@ Measured from a build (`./gradlew size`), which sums the compiled classes and re
 
 | Artifact | Size |
 | --- | ---: |
-| `Main.class` (loader) | 778 B |
-| `Game` resource (the whole game, compressed) | 16,942 B |
-| **Total (measured)** | **17,720 B (17.30 KB)** |
-| Packaged `DukesDescent-1.0.jar` | 17,734 B (17.32 KB) |
+| `Main.class` (loader) | 1,924 B |
+| `G` resource (the whole game, pack200 + DEFLATE) | 12,702 B |
+| **Total (measured)** | **14,626 B (14.28 KB)** |
+| Packaged `DukesDescent-1.0.jar` | 14,029 B (13.70 KB) |
