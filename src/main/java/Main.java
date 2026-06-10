@@ -2,10 +2,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
-import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 import java.util.zip.InflaterInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public final class Main {
     private Main() {}
@@ -23,8 +23,8 @@ public final class Main {
                     .invoke(unpacker, new ByteArrayInputStream(pack), out);
         }
         byte[] gameClass = null;
-        try (JarInputStream in = new JarInputStream(new ByteArrayInputStream(jarBytes.toByteArray()))) {
-            for (JarEntry entry; (entry = in.getNextJarEntry()) != null; ) {
+        try (ZipInputStream in = new ZipInputStream(new ByteArrayInputStream(jarBytes.toByteArray()))) {
+            for (ZipEntry entry; (entry = in.getNextEntry()) != null; ) {
                 if (entry.getName().endsWith(".class")) {
                     gameClass = in.readAllBytes();
                     break;

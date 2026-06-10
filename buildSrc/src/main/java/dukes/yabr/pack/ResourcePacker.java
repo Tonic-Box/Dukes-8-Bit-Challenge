@@ -82,7 +82,7 @@ public final class ResourcePacker {
     }
 
     /** Frames a raw DEFLATE stream as zlib: {@code 0x78 0x9C} header, the deflate body, then the big-endian Adler-32. */
-    private static byte[] zlibWrap(byte[] uncompressed, byte[] deflated) {
+    static byte[] zlibWrap(byte[] uncompressed, byte[] deflated) {
         Adler32 adler = new Adler32();
         adler.update(uncompressed);
         long sum = adler.getValue();
@@ -104,7 +104,7 @@ public final class ResourcePacker {
      * constant-pool compaction is available). The {@code Main} loader defines the class under {@code to}; the
      * resource file keeps its original name.
      */
-    private static void renameClassInPlace(ClassFile node, String from, String to) {
+    static void renameClassInPlace(ClassFile node, String from, String to) {
         String fromToken = "L" + from + ";";
         String toToken = "L" + to + ";";
         for (Item<?> item : node.getConstPool().getItems()) {
