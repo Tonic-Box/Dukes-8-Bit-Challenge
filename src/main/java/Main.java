@@ -16,6 +16,8 @@ public final class Main {
         // manifest, so the game class is its first entry.
         ByteArrayOutputStream jarBytes = new ByteArrayOutputStream();
         JarOutputStream out = new JarOutputStream(jarBytes);
+
+        //This class is built wil java 11 via gradle so ignore the red Pack200 here. It will still build.
         Pack200.newUnpacker().unpack(new InflaterInputStream(Main.class.getResourceAsStream("G")), out);
         out.close();
         ZipInputStream in = new ZipInputStream(new ByteArrayInputStream(jarBytes.toByteArray()));
