@@ -9,17 +9,16 @@ mimic chests, topple floor bosses, and see how deep you can get before you fall.
 
 ## No-rules build
 
-This branch throws out the "stay a clean, portable, ordinary program" rules and uses whatever saves bytes; it still plays identically. The tricks it leans on:
+This branch drops the "clean, portable, ordinary program" rules and uses whatever saves bytes; it plays identically. The tricks:
 
-- Packs the game class with **pack200** (the structure-aware class-file compressor removed from the JDK in 14) and ships it to run on **JDK 11**, whose built-in Pack200 unpacker rebuilds the class at load - a far smaller blob for a decoder that costs zero shipped bytes. The jar therefore requires **JDK 11-13** to run.
-- Stamps the game's class file down to version 49 so the JVM's legacy type-inference verifier accepts it with every StackMapTable frame stripped
-- Loads it with a bare `MethodHandles.Lookup.defineClass` and no `Unsafe`
-- Removes the loader class's constructor and StackMapTables from the shipped bytecode and re-stamps it to version 49 (the JDK-11 inference verifier needs no frames)
-- DEFLATEs the raw pack200 stream and hand-wraps it in a zlib container only to drop a `new Inflater(true)` from the loader
-- Drives all audio off the render loop, so note timing is quantized to the frame and there is no separate sound thread
+- Packs the game class with **pack200** (structure-aware class-file compressor, removed from the JDK in 14) and runs it on **JDK 11**, whose built-in unpacker rebuilds the class at load — a far smaller blob for a zero-byte decoder. The jar needs **JDK 11–13** to run.
+- Stamps the game class to version 49 so the legacy inference verifier accepts it with all StackMapTable frames stripped.
+- Loads it with a bare `MethodHandles.Lookup.defineClass` — no `Unsafe`.
+- Strips the loader's constructor and frames too, re-stamped v49 (the inference verifier needs no frames).
+- Wraps the raw pack200 stream's DEFLATE in a zlib container only to drop `new Inflater(true)` from the loader.
+- Drives audio off the render loop: note timing is quantized to the frame, no separate sound thread.
 
-- **Built on JDK 25** (the game source uses modern language features), but the game **runs on JDK 11** - its built-in Pack200 unpacker reconstructs the packed game class at load.
-- Gradle uses a **JDK 11 toolchain** for the `pack200` pack step and the `run` task, **auto-provisioned** if the machine doesn't have one (via the Foojay resolver), so no manual JDK setup is needed.
+**Built on JDK 25** (the game uses modern syntax) but **runs on JDK 11**. Gradle uses a **JDK 11 toolchain** for the pack step and `run`, auto-provisioned via the Foojay resolver — no manual JDK setup.
 
 ```
 ./gradlew run     # build and play (launches on the JDK 11 toolchain)
@@ -77,82 +76,74 @@ Running the jar directly (outside Gradle) needs a **JDK 11-13** java: `java -jar
 
 ## Architecture
 
-Four game classes, each with a single responsibility, plus a small loader:
+Four single-responsibility game classes plus a loader:
 
 | Class | Responsibility |
 | --- | --- |
-| `App` | Window, render loop, and keyboard input. |
-| `Game` | All simulation: map generation, field of view, entities, combat, progression, and state. |
-| `Renderer` | All drawing; stateless and derived entirely from `Game`. |
-| `Sound` | Procedural MIDI: sound effects and a looping music track via the JDK synthesizer. |
-| `Main` | Loader that unpacks and launches the game (see [Build-time bytecode passes](#build-time-bytecode-passes)). |
+| `App` | Window, render loop, keyboard input. |
+| `Game` | All simulation: map generation, field of view, entities, combat, progression, state. |
+| `Renderer` | All drawing; stateless, derived from `Game`. |
+| `Sound` | Procedural audio: effects and a looping track on the JDK synthesizer. |
+| `Main` | Loader that unpacks and launches the game (see [Build-time passes](#build-time-bytecode-passes)). |
 
-Key decisions:
-
-- **Data-oriented state:** The world is flat primitive arrays (`int[] map`, parallel enemy arrays) rather than an object hierarchy, no per-entity classes or allocations.
-- **Real-time over discrete logic:** Player, enemy, and attack actions run on independent millisecond clocks and are interpolated each frame.
-- **Fully procedural content:** Floors use rectangular rooms joined by corridors; visibility uses per-tile ray casting; sprites are composed of primitive shapes.
-- **Procedural audio:** Effects and music share one playback path: both are scheduled note-by-note through a single executor onto the JDK synthesizer's channels (effects on 0-3, music on 4-6), with the looping track driven by an eighth-note ticker. No audio or art assets are loaded from disk; everything is synthesized at runtime.
-- **Seeded then persistent floors:** A floor's first layout, enemies, and merchant are produced from a per-floor seed (`baseSeed + floor`); after that the floor's state is snapshotted and restored on return, so revisiting preserves your changes rather than regenerating.
+- **Data-oriented state:** flat primitive arrays (`int[] map`, parallel enemy arrays), no per-entity objects or allocation.
+- **Real-time logic:** player, enemy, and attack actions run on independent millisecond clocks, interpolated each frame.
+- **Procedural content:** rooms joined by corridors, per-tile ray-cast visibility, sprites from primitive shapes — no assets.
+- **Procedural audio:** effects and music scheduled note-by-note onto the synthesizer (effects on channels 0–3, music on 4–6).
+- **Seeded, persistent floors:** generated from `baseSeed + floor`, then snapshotted and restored on revisit.
 
 ## Algorithms & patterns
 
-The notable techniques the game uses.
-
-- **Floor generation - rejection sampling:** Random rooms are placed one by one, rejecting any that overlap (plus a one-tile border), then linked to the previous room by an L-shaped corridor. A per-floor seed makes every floor rebuild identically.
-- **Field of view - Bresenham ray casting:** A line is walked from the player to each tile in radius, marking it visible until the line hits a wall, door, or scenery. Visible tiles become permanently explored.
-- **Vault isolation - region check before carving:** A vault carves only where its footprint, door, and wall border are all solid rock, so the locked door is the only way in. Its key spawns a fixed distance away.
-- **Pit clusters - seeded neighbor growth:** A pit grows from one tile by attaching random open neighbors (up to four), each required to pass a 3x3-floor interior test so clusters never reach corridors.
-- **Smooth motion - positional interpolation:** Entities store a previous and current tile plus a 0–1 progress; the rendered position is their linear blend, animating between discrete steps.
-- **Lighting - light levels with run-batched overlay:** Each tile's light eases toward visible or remembered; tiles draw lit, then a translucent overlay sized by `1 - light` dims them, with equal-darkness runs merged into one fill.
-- **Entity storage - structure of arrays, swap-remove:** Enemies and loot are parallel primitive arrays; removal copies the last element into the freed slot for O(1) unordered deletion.
-- **Floor persistence - packed snapshots:** A floor serializes into one depth-keyed `int[]` (header, fixed-stride entity/loot records, then map and explored masks) and restores on return; first visits generate from the seed.
-- **Item encoding - bit-packing:** Each item is one `int`: template id in the low bits, rarity tier above. Stats and effects scale by rarity when read.
-- **Rarity rolls - depth-weighted bands:** Rarity is drawn from probability bands that widen with depth (Legendary from floor 7, Rare scaling, both clamped); bosses add a flat Rare bonus.
-- **Boss collision - footprint AABB:** The 3x3 boss is an axis-aligned box; a move checks every destination tile, and the slam hits the bordering ring.
-- **Display scaling - fixed-resolution buffer:** The game renders to a fixed-size buffer stretched to the window each frame, keeping world coordinates resolution-independent.
+- **Floor generation:** rejection-sampled non-overlapping rooms (one-tile border), L-shaped corridor links; a per-floor seed rebuilds each floor identically.
+- **Field of view:** Bresenham ray cast from the player to each tile in radius, stopping at walls/doors/scenery; visible tiles stay explored.
+- **Vault isolation:** carved only where footprint, door, and border are solid rock, so the locked door is the only way in; the key spawns a fixed distance away.
+- **Pit clusters:** grown by attaching open neighbors (up to four) that each pass a 3×3-floor interior test, so they never reach corridors.
+- **Smooth motion:** a previous + current tile and a 0–1 progress, linearly blended each frame.
+- **Lighting:** per-tile light eases toward visible/remembered; equal-darkness runs merge into one translucent overlay fill.
+- **Entity storage:** structure-of-arrays with swap-remove for O(1) unordered deletion.
+- **Floor persistence:** one depth-keyed `int[]` snapshot (header, fixed-stride entity/loot records, map + explored masks); first visits generate from the seed.
+- **Item encoding:** one `int` per item — template id in the low bits, rarity above; stats and effects scale by rarity.
+- **Rarity rolls:** depth-weighted probability bands (Legendary from floor 7, both clamped); bosses add a flat Rare bonus.
+- **Boss collision:** the 3×3 boss is an AABB; a move checks every destination tile, and the slam hits the bordering ring.
+- **Display scaling:** a fixed-resolution buffer stretched to the window keeps world coordinates resolution-independent.
 
 ## Code design notes
 
-A few implementation choices and the reasoning behind them:
-
-- **Input as flags drained by the loop:** Key events (AWT's event thread) only set held/request booleans; the game loop reads and acts on them. Simulation stays on a single thread, and discrete actions (potion, buy, pause, stairs) use edge detection so a held key fires once instead of repeating with the OS key-repeat.
-- **Single integer game state:** `PLAYING` / `SHOP` / `PAUSED` / `DEAD` is one `int` switched on in update and render; a minimal state machine that needs no extra classes or enums.
-- **Integer-rounded camera:** The camera follows Duke's interpolated sub-pixel position but is rounded to whole pixels before drawing, so the scrolling dungeon stays crisp instead of shimmering.
-- **Placement sanity checks:** The merchant is only placed where the surrounding 3×3 block is floor, guaranteeing it sits in open room space and can never wall off a corridor.
-- **Directional avatar:** Duke is drawn as four facing sprites (front / back / left / right); the right profile is the left one mirrored with a transform, so only one side is hand-built.
-- **Boss as separate state:** A floor boss lives in its own fields rather than the per-tile enemy arrays, keeping its multi-tile collision, telegraphed slam, and enrage phase separate from the lightweight regular enemies.
-- **VRAM scene buffer:** The fixed-resolution scene is drawn into a `VolatileImage` so the scaled blit runs on the GPU; the render loop uses the standard validate / `contentsLost` retry and allocates no per-frame pixel rasters.
+- **Input as drained flags:** AWT key events only set held/request booleans; the loop reads and acts on them, keeping simulation single-threaded. Discrete actions use edge detection so a held key fires once, not with OS key-repeat.
+- **Single-`int` game state:** `PLAYING`/`SHOP`/`PAUSED`/`DEAD` is one `int` switched on in update and render — a state machine with no extra classes or enums.
+- **Integer-rounded camera:** follows Duke's sub-pixel position but rounds to whole pixels before drawing, so scrolling stays crisp.
+- **Directional avatar:** four facing sprites; the right profile is the left mirrored by a transform, so only one side is hand-built.
+- **Boss as separate state:** the floor boss lives in its own fields, keeping its multi-tile collision, slam, and enrage out of the lightweight enemy arrays.
+- **VRAM scene buffer:** the scene draws into a `VolatileImage` for a GPU blit, using the standard validate/`contentsLost` retry and no per-frame pixel rasters.
 
 ## Optimization strategies
 
-Size is measured as the compiled `.class` files and resources under `build/classes/java/main` and `build/resources/main`; the game itself ships as a compressed resource (see the size breakdown below).
+Size is the compiled `.class` files plus resources under `build/classes/java/main` and `build/resources/main`; the game ships as one compressed resource (see the breakdown below).
 
-- **Debug info stripped** (`-g:none`): line-number, local-variable, and source-file tables are removed from the bytecode while source remains fully readable.
-- **No asset files:** both graphics and audio are generated at runtime.
-- **Packed data tables:** numeric tables (enemy stats, item base stats/effects/magnitudes) and the music and sound-effect note sequences are stored as printable-char strings - one char per value, biased to stay printable - and expanded at load, rather than the much larger array-initialization bytecode a literal `int[]` would compile to. The item and effect name lists are likewise one delimited string, split once at load.
-- **Computed and merged data:** structural tables are derived instead of stored (an item's slot comes from its id), and near-duplicate colors are collapsed onto shared constants.
-- **No per-frame allocation:** colors and the fog-overlay palette are hoisted into constants and lookup tables, polygon scratch buffers are shared, and entities are reused in fixed arrays, keeping peak memory low.
-- **Root Package:** the classes are dropped to the root package to save on constant-pool reference sizes.
-- Other minor optimizations are explained inline with comments.
+- **Debug info stripped** (`-g:none`): line-number, local-variable, and source-file tables removed; source stays fully readable.
+- **No asset files:** graphics and audio are generated at runtime.
+- **Packed data tables:** numeric tables (enemy/item stats, note sequences) and the name lists ship as printable-char strings expanded at load — far smaller than the `int[]`/`String[]` initialization bytecode.
+- **Computed and merged data:** derived where possible (an item's slot from its id); near-duplicate colors share constants.
+- **No per-frame allocation:** hoisted colors and palettes, shared scratch buffers, reused entity arrays.
+- **Root package:** classes in the default package, to shrink constant-pool references.
 
 ### Build-time bytecode passes
-Implemented with **YABR**, My own bytecode library (No use of ASM, Javassist, etc), run over the freshly compiled classes before packaging:
-- Single-call methods get inlined based on a tuned scan (`tools\tune-inline.sh` / `tools\tune-inline.bat`)
-- Constant `Color` fields packed into one load-decoded palette
-- `App`, `Renderer`, and `Sound` are merged into `Game`, collapsing four constant pools into one
-- The merged `Game` is frame-stripped, re-stamped to class-file version 49, then **packed with the JDK `pack200` tool** (whose structure-aware transform crushes class files far below DEFLATE) into the single-char `G` resource (see the loader pattern below)
-- The raw `.pack` stream is then compressed with a from-scratch DEFLATE encoder (Zopfli-style optimal LZ77 parse plus block splitting) that beats the stock library at the same format, so the stock inflater still decodes it
-- The runnable jar is self-packed by that same encoder rather than `JarOutputStream`: each entry is optimally deflated, and the already-compressed `Game` blob is stored verbatim instead of wastefully re-deflated
+Implemented with **YABR**, my own bytecode library (no ASM/Javassist), run over the compiled classes before packaging:
+- Inline single-call methods from a tuned scan (`tools/tune-inline`).
+- Pack constant `Color` fields into one decoded palette.
+- Merge `App`, `Renderer`, and `Sound` into `Game` — four constant pools into one.
+- Frame-strip the merged `Game`, re-stamp it to class-file version 49, then **pack it with the JDK `pack200` tool** (whose structure-aware transform crushes class files far below DEFLATE) into the single-char `G` resource (see the loader pattern).
+- Compress the raw `.pack` stream with a from-scratch DEFLATE encoder (Zopfli-style optimal parse + block splitting) that beats the stock library at the same format — the stock inflater still decodes it.
+- Self-pack the runnable jar: each entry optimally deflated, the compressed `G` blob stored verbatim.
 
-**Loader pattern:** `Game` ships as a `pack200`-packed, DEFLATE-compressed resource. pack200 (JSR-200) is a structure-aware class-file compressor that beats general compressors on bytecode - but it was removed from the JDK in 14, so the jar runs on **JDK 11**, whose *built-in* Pack200 unpacker reconstructs the class at load for zero shipped bytes. `Main` - itself compiled on JDK 11 so it can call the unpacker directly instead of by reflection - inflates the resource to the raw `.pack`, runs the runtime unpacker, reads the rebuilt class out of the resulting jar, and defines it with a plain `MethodHandles.Lookup`. Both `Main` and the game class are frame-stripped v49 (the inference verifier needs no StackMapTables). Trading portability for an unpacker that ships inside the JDK takes the blob from ~16.9 KB to ~12.5 KB.
+**Loader pattern:** the game ships as a `pack200`-packed, DEFLATE-compressed `G` resource. pack200 (JSR-200) crushes class files far below general compressors but was removed from the JDK in 14, so the jar runs on **JDK 11**, whose built-in unpacker rebuilds the class at load for zero shipped bytes. `Main` — compiled on JDK 11 so it calls the unpacker directly rather than by reflection — inflates the `.pack`, unpacks it, and defines the rebuilt class with a plain `MethodHandles.Lookup`. Both `Main` and the game class are frame-stripped v49 (the inference verifier needs no frames). Trading portability for the JDK's built-in unpacker takes the blob from ~16.9 KB to ~12.5 KB.
 
 
 ![build.png](build.png)
 
 ### Size breakdown
 
-Measured from a build (`./gradlew size`), which sums the compiled classes and resources.
+From `./gradlew size` (compiled classes + resources):
 
 | Artifact | Size |
 | --- | ---: |
