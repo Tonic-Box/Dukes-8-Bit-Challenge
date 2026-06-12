@@ -7,6 +7,11 @@ mimic chests, topple floor bosses, and see how deep you can get before you fall.
 
 ![screenshot.png](screenshot.png)
 
+## Branches
+
+- [`no-rules`](https://github.com/Tonic-Box/Dukes-8-Bit-Challenge/tree/no-rules) — The minified rules out the window version of the game
+- [`auto`](https://github.com/Tonic-Box/Dukes-8-Bit-Challenge/tree/auto) — Check this out last~
+
 ## Build & Run
 
 Requires **JDK 25**.
