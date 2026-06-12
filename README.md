@@ -14,7 +14,7 @@ mimic chests, topple floor bosses, and see how deep you can get before you fall.
 
 ## Build & Run
 
-Requires **JDK 25**.
+Requires **JDK 25** (Works best on Amazon Corretto).
 
 ```
 ./gradlew run     # play
