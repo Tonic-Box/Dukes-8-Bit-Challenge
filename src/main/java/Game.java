@@ -1182,7 +1182,7 @@ final class Game {
 
     private void openAdjacentChest() {
         for (int i = 0; i < lootCount; i++) {
-            if (lootChest[i] && Math.abs(lootX[i] - playerX) + Math.abs(lootY[i] - playerY) <= 1) {
+            if (lootChest[i] && distToPlayer(lootX[i], lootY[i]) <= 1) {
                 int chestX = lootX[i], chestY = lootY[i];
                 if (random.nextInt(100) < 15) {
                     removeLoot(i);
@@ -2042,7 +2042,7 @@ final class Game {
     }
 
     /** Manhattan distance from Duke to a tile. */
-    private int distToPlayer(int x, int y) {
+    int distToPlayer(int x, int y) {
         return Math.abs(playerX - x) + Math.abs(playerY - y);
     }
 }

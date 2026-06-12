@@ -142,7 +142,7 @@ final class Renderer {
                 } else {
                     int tile = game.map[idx];
                     drawTile(graphics, screenX, rowSy, tile, ((x + y) & 1) == 1, x, y);
-                    if (tile == Game.TRAP && game.visible[idx] && Math.abs(x - game.playerX) + Math.abs(y - game.playerY) <= 2) {
+                    if (tile == Game.TRAP && game.visible[idx] && game.distToPlayer(x, y) <= 2) {
                         drawTrap(graphics, screenX, rowSy);
                     }
                     float light = game.lightLevel[idx];
@@ -223,7 +223,7 @@ final class Renderer {
         }
         for (int i = 0; i < game.lootCount; i++) {
             if (game.lootChest[i] && game.visible[Game.index(game.lootX[i], game.lootY[i])]
-                    && Math.abs(game.lootX[i] - game.playerX) + Math.abs(game.lootY[i] - game.playerY) <= 1) {
+                    && game.distToPlayer(game.lootX[i], game.lootY[i]) <= 1) {
                 graphics.setColor(PROMPT);
                 drawCenteredAt(graphics, "E", game.lootX[i] * Game.TILE + Game.TILE / 2,
                         game.lootY[i] * Game.TILE - 4);
@@ -653,7 +653,7 @@ final class Renderer {
         drawCenteredAt(graphics, bossName(game.bossType) + (game.bossEnraged ? "   — ENRAGED" : ""),
                 Game.PLAY_WIDTH / 2, barY - 4);
         graphics.setColor(GRAY_LIGHT);
-        drawCenteredAt(graphics, "The stairs below stay sealed until it falls", Game.PLAY_WIDTH / 2, barY + 30);
+        drawCenteredAt(graphics, "The stairs unseal when it falls", Game.PLAY_WIDTH / 2, barY + 30);
     }
 
     private static final String[] BOSS_NAME = {"KERNEL PANIC", "STACK OVERFLOW", "SEGFAULT", "HEAP CORRUPTION"};
@@ -744,7 +744,7 @@ final class Renderer {
         rect(graphics, XP_FILL, barX, xpY, barWidth * Math.min(game.playerXp, game.xpForNext()) / game.xpForNext(), 7);
 
         graphics.setColor(GRAY_LIGHT);
-        graphics.drawString("WASD move   Space attack   Q potion   Tab inventory   E interact   M mute all   T mute music   Stairs descend",
+        graphics.drawString("WASD move   Space attack   Q potion   Tab inventory   E interact   M mute   T music",
                 12, top + 58);
     }
 
@@ -759,10 +759,10 @@ final class Renderer {
     private void drawShop(Graphics graphics, Game game) {
         rect(graphics, OVERLAY, 0, 0, Game.VIEW_WIDTH, Game.VIEW_HEIGHT);
         graphics.setColor(HUD_TEXT);
-        drawCentered(graphics, "DUKE FINDS A MERCHANT", Game.PLAY_HEIGHT / 2 - 52);
+        drawCentered(graphics, "MERCHANT", Game.PLAY_HEIGHT / 2 - 52);
         drawCentered(graphics, "Gold: " + game.gold + "      Potions: " + game.potions, Game.PLAY_HEIGHT / 2 - 20);
         drawCentered(graphics, "[E]  Buy a potion  -  " + Game.POTION_COST + " gold", Game.PLAY_HEIGHT / 2 + 12);
-        drawCentered(graphics, "[Q]  Leave the merchant", Game.PLAY_HEIGHT / 2 + 40);
+        drawCentered(graphics, "[Q]  Leave", Game.PLAY_HEIGHT / 2 + 40);
     }
 
     private void drawPause(Graphics graphics, Game game) {
@@ -774,7 +774,7 @@ final class Renderer {
         graphics.setColor(game.pauseSelection == 1 ? PROMPT : GRAY_LIGHT);
         drawCentered(graphics, (game.pauseSelection == 1 ? "> " : "  ") + "Quit", Game.PLAY_HEIGHT / 2 + 30);
         graphics.setColor(GRAY_LIGHT);
-        drawCentered(graphics, "W / S to choose      E to confirm      Esc to resume", Game.PLAY_HEIGHT / 2 + 64);
+        drawCentered(graphics, "W/S choose   E confirm   Esc resume", Game.PLAY_HEIGHT / 2 + 64);
     }
 
     private void drawInventory(Graphics graphics, Game game) {
@@ -817,7 +817,7 @@ final class Renderer {
         }
 
         graphics.setColor(GRAY_LIGHT);
-        drawCentered(graphics, "[Up/Down] select    [E] equip    [D] drop    [Q/Esc] close",
+        drawCentered(graphics, "[Up/Down] select   [E] equip   [D] drop   [Q/Esc] close",
                 Game.VIEW_HEIGHT - 22);
     }
 

@@ -3,10 +3,10 @@ import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Frame;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.KeyboardFocusManager;
 import java.awt.KeyEventDispatcher;
+import java.awt.RenderingHints;
 import java.awt.image.BufferStrategy;
 import java.awt.image.VolatileImage;
 import java.awt.event.KeyEvent;
@@ -112,8 +112,11 @@ public final class App extends Frame implements KeyEventDispatcher {
                 renderer.render(sceneGraphics, game);
                 sceneGraphics.dispose();
 
-                Graphics graphics = strategy.getDrawGraphics();
+                Graphics2D graphics = (Graphics2D) strategy.getDrawGraphics();
                 if (width > 0 && height > 0) {
+                    // Bilinear filtering for the stretch: nearest-neighbor at a non-integer window scale makes
+                    // edges advance unevenly while the world scrolls, so objects visibly shear into pieces.
+                    graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
                     graphics.drawImage(scene, 0, 0, width, height, null);
                 }
                 graphics.dispose();
@@ -142,6 +145,10 @@ public final class App extends Frame implements KeyEventDispatcher {
     }
 
     static void main() {
+        // Present through the DWM-composited GDI pipeline instead of Direct3D: D3D's back-buffer present is not
+        // synced to the compositor, so a maximized window tears mid-scan - vertical edges visibly shear while the
+        // world scrolls horizontally. Must be set before the first AWT graphics call initializes the pipeline.
+        System.setProperty("sun.java2d.d3d", "false");
         new App().run();
     }
 }
