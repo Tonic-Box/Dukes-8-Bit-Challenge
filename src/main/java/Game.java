@@ -65,7 +65,12 @@ final class Game {
     private static final int[] ENEMY_STATS = unpack("4124062481937>1725:1A4<F2E4<H2");
 
     static final int MAX_ENEMIES = 32;
-    static final int POTION_COST = 12;
+    static final int POTION_CAP = 12;
+
+    /** Potion price inflates with depth, so gold income can't trivialize late-game healing. */
+    int potionCost() {
+        return 12 + floor / 2;
+    }
 
     // Equipment effect types. EFF_NONE is plain gear; the rest layer a behaviour on top of the slot's base stat.
     static final int EFF_NONE = 0;
@@ -944,7 +949,7 @@ final class Game {
                 enemyCooldown[i] = ENEMY_ATTACK_MS;
                 enemyAttack[i] = 1f;
                 aggroed[i] = true;
-                if (damagePlayer(ENEMY_STATS[enemyType[i] * 5 + 1] + floor / 4 + random.nextInt(2))
+                if (damagePlayer(ENEMY_STATS[enemyType[i] * 5 + 1] + floor / 3 + random.nextInt(2))
                         && effectOf(equippedArmor) == EFF_THORNS) {
                     enemyHp[i] -= magOf(equippedArmor);
                     enemyHit[i] = 1f;
@@ -1073,8 +1078,8 @@ final class Game {
     }
 
     private void buyPotion() {
-        if (gold >= POTION_COST) {
-            gold -= POTION_COST;
+        if (gold >= potionCost() && potions < POTION_CAP) {
+            gold -= potionCost();
             potions++;
         }
     }

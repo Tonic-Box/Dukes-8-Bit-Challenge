@@ -24,6 +24,7 @@ public final class App extends Frame implements KeyEventDispatcher {
     private final BufferStrategy strategy;
     private final Game game = new Game();
     private final Renderer renderer = new Renderer();
+    private final boolean autopilotDriving = Boolean.getBoolean("autoplay");
     // VRAM-backed scene buffer: drawing into and stretching from a VolatileImage keeps the scaled
     // blit on the GPU, so the loop allocates no per-frame pixel rasters the way a BufferedImage would.
     private VolatileImage scene;
@@ -49,9 +50,15 @@ public final class App extends Frame implements KeyEventDispatcher {
     /**
      * Tracks held movement keys without requiring window focus; Escape quits.
      * Movement itself is driven by the loop's update, not by the key event.
+     * While the autopilot drives, the keyboard is ignored except the T / M mute
+     * toggles, so a stray key (or Escape pausing into a menu the bot does not
+     * play) cannot fight the bot for control.
      */
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        if (autopilotDriving && event.getKeyCode() != KeyEvent.VK_T && event.getKeyCode() != KeyEvent.VK_M) {
+            return false;
+        }
         if (event.getID() == KeyEvent.KEY_PRESSED) {
             game.keyDown(event.getKeyCode());
         } else if (event.getID() == KeyEvent.KEY_RELEASED) {
@@ -84,6 +91,12 @@ public final class App extends Frame implements KeyEventDispatcher {
      * ~1 ms here), so the spin alone suffices and the daemon's capturing lambda would only add bytes for no gain.
      */
     private void run() {
+        autoplay.AutoPilot pilot = null;
+        if (Boolean.getBoolean("autoplay")) {
+            BotBridge bridge = new BotBridge(game);
+            pilot = new autoplay.AutoPilot(bridge, bridge,
+                    autoplay.BotConfig.fromSystemProperties(), new autoplay.BotLogger());
+        }
         long frameNanos = 1_000_000_000L / 60;
         long last = System.nanoTime();
         long deadline = last;
@@ -92,6 +105,9 @@ public final class App extends Frame implements KeyEventDispatcher {
             long deltaMillis = (now - last) / 1_000_000L;
             last = now;
             game.update(deltaMillis);
+            if (pilot != null) {
+                pilot.tick(deltaMillis);
+            }
             if (game.quitRequested) {
                 System.exit(0);
             }

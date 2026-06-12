@@ -744,7 +744,7 @@ final class Renderer {
         rect(graphics, XP_FILL, barX, xpY, barWidth * Math.min(game.playerXp, game.xpForNext()) / game.xpForNext(), 7);
 
         graphics.setColor(GRAY_LIGHT);
-        graphics.drawString("WASD move   Space attack   Q potion   Tab inventory   E interact   M mute   T music",
+        graphics.drawString("M mute   T music",
                 12, top + 58);
     }
 
@@ -761,7 +761,7 @@ final class Renderer {
         graphics.setColor(HUD_TEXT);
         drawCentered(graphics, "MERCHANT", Game.PLAY_HEIGHT / 2 - 52);
         drawCentered(graphics, "Gold: " + game.gold + "      Potions: " + game.potions, Game.PLAY_HEIGHT / 2 - 20);
-        drawCentered(graphics, "[E]  Buy a potion  -  " + Game.POTION_COST + " gold", Game.PLAY_HEIGHT / 2 + 12);
+        drawCentered(graphics, "[E]  Buy a potion  -  " + game.potionCost() + " gold", Game.PLAY_HEIGHT / 2 + 12);
         drawCentered(graphics, "[Q]  Leave", Game.PLAY_HEIGHT / 2 + 40);
     }
 

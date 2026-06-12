@@ -4,12 +4,94 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="- Simplify/reduce detail on some sprites">
+    <list default="true" id="d8b71686-c20c-4b19-999b-4a2376a16e72" name="Changes" comment="Add autoplay bot: Duke plays himself, with decision logging&#10;- autoplay/ package: behavior-tree brain behind GameView/Controls ports, BFS navigator, intent executor, watchdog, structured logs (logs/autoplay.log)&#10;- BotBridge adapter + runBot (windowed, human-paced menus, input locked to T/M) and runBotSim (headless fast-forward) Gradle tasks&#10;- Restarts on death; tunable via -Pautoplay.* properties; unit-tested">
+      <change afterPath="$PROJECT_DIR$/src/main/java/BotBridge.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/BotMain.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/BotSim.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/AutoPilot.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/BossInfo.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/BotConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/BotLogger.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/BotMemory.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/Controls.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/Enemy.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/EnemyType.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/GameView.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/IntentExecutor.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/Item.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/Key.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/Loot.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/Mode.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/Navigator.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/PlayerState.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/RunStats.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/SimDashboard.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/TileType.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/Tiles.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/WorldSnapshot.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/behavior/AvoidBossSlam.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/behavior/Behavior.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/behavior/BreakScenery.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/behavior/CollectLoot.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/behavior/Descend.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/behavior/DrinkPotion.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/behavior/ExploreFrontier.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/behavior/FightTarget.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/behavior/FleeWhenCritical.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/behavior/HuntEnemy.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/behavior/InventoryRoutine.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/behavior/OpenChest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/behavior/RestartOnDeath.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/behavior/ShopRoutine.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/behavior/UnlockVault.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/behavior/VisitMerchant.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/autoplay/intent/Intent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/autoplay/BehaviorTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/autoplay/InventoryRoutineTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/autoplay/NavigatorTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/autoplay/WorldBuilder.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/build.gradle.kts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/BuildPasses.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/CompiledClasses.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/color/ColorPacker.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/color/ColorScanner.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/color/PackedColor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/color/PalettePacker.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/inline/CallSiteLocator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/inline/MethodInliner.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/inline/MethodSplicer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/merge/Bytecode.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/merge/ClassMerger.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/merge/MemberAbsorber.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/merge/ReferenceRedirector.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/pack/DescriptorCollapser.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/pack/JarPacker.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/pack/OptimalDeflate.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/java/dukes/yabr/pack/ResourcePacker.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/test/java/dukes/yabr/Fixtures.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/test/java/dukes/yabr/color/ColorPackerTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/test/java/dukes/yabr/merge/ClassMergerTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/test/java/dukes/yabr/merge/ReferenceRedirectorTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/test/java/dukes/yabr/pack/DescriptorCollapserTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/test/java/dukes/yabr/pack/JarPackerTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/test/java/dukes/yabr/pack/OptimalDeflateTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/graph.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/inline-allowlist.txt" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/App.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/App.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Game.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Renderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Renderer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/readme.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/refine-inline.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/refine-inline.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/tune-inline.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/tune-inline.sh" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,42 +125,11 @@
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="dukes8bit" type="f1a62948:ProjectNode" />
                 <item name="Tasks" type="e4a08cd1:TasksNode" />
-                <item name="application" type="c8890929:TasksNode$1" />
+                <item name="autoplay" type="c8890929:TasksNode$1" />
               </path>
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="dukes8bit" type="f1a62948:ProjectNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
-                <item name="build" type="c8890929:TasksNode$1" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="dukes8bit" type="f1a62948:ProjectNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
-                <item name="verification" type="c8890929:TasksNode$1" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="dukes8bit" type="f1a62948:ProjectNode" />
-                <item name="buildSrc" type="2d1252cf:ModuleNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="dukes8bit" type="f1a62948:ProjectNode" />
-                <item name="buildSrc" type="2d1252cf:ModuleNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="dukes8bit" type="f1a62948:ProjectNode" />
-                <item name="buildSrc" type="2d1252cf:ModuleNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
-                <item name="build" type="c8890929:TasksNode$1" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="dukes8bit" type="f1a62948:ProjectNode" />
-                <item name="buildSrc" type="2d1252cf:ModuleNode" />
                 <item name="Tasks" type="e4a08cd1:TasksNode" />
                 <item name="verification" type="c8890929:TasksNode$1" />
               </path>
@@ -99,7 +150,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="master" />
+        <entry key="$PROJECT_DIR$" value="main" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -128,51 +179,32 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.Download Sources.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.dukes8bit [:buildSrc:build].executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.dukes8bit [build].executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.dukes8bit [clean].executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.dukes8bit [proguard].executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.dukes8bit [run].executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.dukes8bit [size].executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.dukes8bit [test].executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/zacke/IdeaProjects/dukes8bit/build.gradle.kts&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.5091954&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.gradle&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.Main.executor": "Run",
+    "Gradle.Download Sources.executor": "Run",
+    "Gradle.dukes8bit [:buildSrc:build].executor": "Run",
+    "Gradle.dukes8bit [build].executor": "Run",
+    "Gradle.dukes8bit [clean].executor": "Run",
+    "Gradle.dukes8bit [clearLog].executor": "Run",
+    "Gradle.dukes8bit [proguard].executor": "Run",
+    "Gradle.dukes8bit [runBotSim].executor": "Run",
+    "Gradle.dukes8bit [runBot].executor": "Run",
+    "Gradle.dukes8bit [run].executor": "Run",
+    "Gradle.dukes8bit [size].executor": "Run",
+    "Gradle.dukes8bit [test].executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/zacke/IdeaProjects/dukes8bit/build.gradle.kts",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.5091954",
+    "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle"
   }
-}</component>
-  <component name="RunManager" selected="Gradle.dukes8bit [run]">
-    <configuration name="dukes8bit [:buildSrc:build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list>
-            <option value=":buildSrc:build" />
-          </list>
-        </option>
-        <option name="vmOptions" />
-      </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
-      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <DebugAllEnabled>false</DebugAllEnabled>
-      <RunAsTest>false</RunAsTest>
-      <method v="2" />
-    </configuration>
+}]]></component>
+  <component name="RunManager" selected="Gradle.dukes8bit [runBotSim]">
     <configuration name="dukes8bit [build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -195,7 +227,7 @@
       <RunAsTest>false</RunAsTest>
       <method v="2" />
     </configuration>
-    <configuration name="dukes8bit [clean]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="dukes8bit [clearLog]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -206,7 +238,51 @@
         </option>
         <option name="taskNames">
           <list>
-            <option value="clean" />
+            <option value="clearLog" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="dukes8bit [runBotSim]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="runBotSim" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="dukes8bit [runBot]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="runBot" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -239,42 +315,20 @@
       <RunAsTest>false</RunAsTest>
       <method v="2" />
     </configuration>
-    <configuration name="dukes8bit [size]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list>
-            <option value="size" />
-          </list>
-        </option>
-        <option name="vmOptions" />
-      </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
-      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <DebugAllEnabled>false</DebugAllEnabled>
-      <RunAsTest>false</RunAsTest>
-      <method v="2" />
-    </configuration>
     <list>
-      <item itemvalue="Gradle.dukes8bit [:buildSrc:build]" />
+      <item itemvalue="Gradle.dukes8bit [clearLog]" />
+      <item itemvalue="Gradle.dukes8bit [runBotSim]" />
+      <item itemvalue="Gradle.dukes8bit [runBot]" />
       <item itemvalue="Gradle.dukes8bit [build]" />
-      <item itemvalue="Gradle.dukes8bit [clean]" />
       <item itemvalue="Gradle.dukes8bit [run]" />
-      <item itemvalue="Gradle.dukes8bit [size]" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Gradle.dukes8bit [runBotSim]" />
+        <item itemvalue="Gradle.dukes8bit [runBot]" />
+        <item itemvalue="Gradle.dukes8bit [clearLog]" />
         <item itemvalue="Gradle.dukes8bit [run]" />
         <item itemvalue="Gradle.dukes8bit [build]" />
-        <item itemvalue="Gradle.dukes8bit [size]" />
-        <item itemvalue="Gradle.dukes8bit [:buildSrc:build]" />
-        <item itemvalue="Gradle.dukes8bit [clean]" />
       </list>
     </recent_temporary>
   </component>
@@ -286,14 +340,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1780326724902</updated>
-    </task>
-    <task id="LOCAL-00016" summary="- Size optimizations via effectOf/magOf helpers replacing the six accessors&#10;- Updated README">
-      <option name="closed" value="true" />
-      <created>1780588947009</created>
-      <option name="number" value="00016" />
-      <option name="presentableId" value="LOCAL-00016" />
-      <option name="project" value="LOCAL" />
-      <updated>1780588947009</updated>
     </task>
     <task id="LOCAL-00017" summary="- Size optimizations via effectOf/magOf helpers replacing the six accessors&#10;- Cut runtime allocation ~8x via VRAM scene buffer and batched fog&#10;- Updated README">
       <option name="closed" value="true" />
@@ -679,7 +725,15 @@
       <option name="project" value="LOCAL" />
       <updated>1781022167026</updated>
     </task>
-    <option name="localTasksCounter" value="65" />
+    <task id="LOCAL-00065" summary="Fix maximized-window shearing; trim UI text and reuse distToPlayer&#10;- Bilinear-filter the scaled blit + GDI pipeline (D3D present tears unsynced)&#10;- Shorten HUD/menu help strings; reuse distToPlayer at 3 sites: -40 B">
+      <option name="closed" value="true" />
+      <created>1781235084070</created>
+      <option name="number" value="00065" />
+      <option name="presentableId" value="LOCAL-00065" />
+      <option name="project" value="LOCAL" />
+      <updated>1781235084070</updated>
+    </task>
+    <option name="localTasksCounter" value="66" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -694,8 +748,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- buildSrc ASM pass inlines single-call methods into their one caller&#10;- Auto-tune the inline list against real post-ProGuard size (tools/tune-inline.sh)&#10;- Deadline-based frame pacing to kill the intermittent movement stutter&#10;- Shorter boss slam cooldown (4000 -&gt; 2500ms)" />
-    <MESSAGE value="- tune-inline.bat script" />
     <MESSAGE value="- Pack constant Color fields into one decoded palette&#10;- Single BuildPasses dispatcher runs all passes&#10;- Tidy build.gradle" />
     <MESSAGE value="- buildSrc ClassMerger fuses the stateless Renderer into Game (4 source classes ship as 3) collapsing two constant pools into one" />
     <MESSAGE value="- buildSrc ClassMerger fuses the Sound now into Game" />
@@ -719,6 +771,8 @@
     <MESSAGE value="- Fix merge self-field recursion (removals before redirectOwner)&#10;- Collapse no-verify-safe method descriptors" />
     <MESSAGE value="- Descriptor collapsing" />
     <MESSAGE value="- Simplify/reduce detail on some sprites" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Simplify/reduce detail on some sprites" />
+    <MESSAGE value="Fix maximized-window shearing; trim UI text and reuse distToPlayer&#10;- Bilinear-filter the scaled blit + GDI pipeline (D3D present tears unsynced)&#10;- Shorten HUD/menu help strings; reuse distToPlayer at 3 sites: -40 B" />
+    <MESSAGE value="Add autoplay bot: Duke plays himself, with decision logging&#10;- autoplay/ package: behavior-tree brain behind GameView/Controls ports, BFS navigator, intent executor, watchdog, structured logs (logs/autoplay.log)&#10;- BotBridge adapter + runBot (windowed, human-paced menus, input locked to T/M) and runBotSim (headless fast-forward) Gradle tasks&#10;- Restarts on death; tunable via -Pautoplay.* properties; unit-tested" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add autoplay bot: Duke plays himself, with decision logging&#10;- autoplay/ package: behavior-tree brain behind GameView/Controls ports, BFS navigator, intent executor, watchdog, structured logs (logs/autoplay.log)&#10;- BotBridge adapter + runBot (windowed, human-paced menus, input locked to T/M) and runBotSim (headless fast-forward) Gradle tasks&#10;- Restarts on death; tunable via -Pautoplay.* properties; unit-tested" />
   </component>
 </project>
